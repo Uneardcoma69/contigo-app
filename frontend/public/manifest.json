@@ -1,0 +1,26 @@
+{
+  "name": "Contigo — Aquí Estoy",
+  "short_name": "Contigo",
+  "description": "Tu espacio seguro de apoyo emocional y bienestar mental.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#4ecdc4",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/contigo-bot.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/contigo-bot.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "lifestyle"],
+  "lang": "es"
+}

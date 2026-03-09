@@ -1,134 +1,57 @@
-# 🌿 Contigo — Aquí Estoy v2.0
+# Contigo — Aquí Estoy 🌿
 
-Aplicación fullstack de apoyo emocional con IA. Chat empático con historial persistente, técnicas de bienestar y diseño profesional.
+App de apoyo emocional con IA. Chat empático, objetivos de bienestar, PWA instalable en iPhone.
+
+## 🚀 Deploy en Railway (paso a paso)
+
+### 1. Sube el código a GitHub
+```bash
+git add .
+git commit -m "proyecto listo para deploy"
+git push origin main
+```
+
+### 2. En Railway (railway.app)
+1. Crear nuevo proyecto → "Deploy from GitHub repo"
+2. Seleccionar tu repositorio `contigo-app`
+3. Railway detectará el `railway.toml` automáticamente ✅
+
+### 3. Variables de entorno en Railway
+En el panel de Railway → Variables → Agregar:
+
+| Variable | Valor |
+|----------|-------|
+| `PORT` | `3000` |
+| `NODE_ENV` | `production` |
+| `JWT_SECRET` | Un texto secreto largo (mínimo 32 caracteres) |
+| `OPENAI_API_KEY` | Tu key de OpenAI (o dejar vacío para modo demo) |
+
+### 4. Deploy
+Railway construye y despliega automáticamente. En ~2 minutos tendrás tu URL pública.
 
 ---
 
-## 🗂 Estructura
-
-```
-contigo-app/
-├── backend/            → Express + MongoDB + JWT + OpenAI
-│   ├── models/
-│   │   ├── User.js          → Usuarios con bcrypt
-│   │   └── Conversation.js  → Historial de conversaciones
-│   ├── routes/
-│   │   ├── auth.js          → Register / Login / Me
-│   │   └── chat.js          → Chat + historial
-│   ├── middleware/
-│   │   └── requireAuth.js   → Verificación JWT
-│   └── server.js            → Express con Helmet + Rate limiting + CORS
-│
-└── frontend/           → Vite + React 18 + React Router v6
-    └── src/
-        ├── context/         → AuthContext (estado global de auth)
-        ├── hooks/           → useToast (notificaciones)
-        ├── components/      → Header, AuthForm, TypingIndicator, ToastContainer
-        └── pages/           → Home, Login, Register, ChatPage
-```
-
----
-
-## 🚀 Setup rápido
-
-### 1. Backend
+## 🛠️ Desarrollo local
 
 ```bash
+# Terminal 1 — Backend
 cd backend
-cp .env.example .env
-# Edita .env con tus valores
 npm install
-npm run dev
-```
+npm run dev    # → http://localhost:3000
 
-Variables en `.env`:
-| Variable | Descripción |
-|---|---|
-| `PORT` | Puerto del servidor (default: 5000) |
-| `MONGO_URI` | Connection string de MongoDB Atlas |
-| `JWT_SECRET` | Secreto largo y aleatorio para JWT |
-| `OPENAI_API_KEY` | (Opcional) API key de OpenAI — sin ella se activa modo demo |
-
-### 2. Frontend
-
-```bash
+# Terminal 2 — Frontend
 cd frontend
 npm install
-npm run dev
+npm run dev    # → http://localhost:5173
 ```
 
-Abre http://localhost:5173
+## 📱 PWA (instalar en iPhone)
+1. Abre la app en Safari
+2. Toca el botón compartir (cajita con flecha)
+3. "Añadir a pantalla de inicio"
 
----
-
-## 🌟 Funcionalidades v2.0
-
-### Backend
-- ✅ Auto-login al registrarse (devuelve token)
-- ✅ Historial persistente en MongoDB (GET / DELETE `/api/chat/history`)
-- ✅ Contexto conversacional — OpenAI recibe las últimas 20 respuestas
-- ✅ Rate limiting (15 req/min auth, 20 msg/min chat)
-- ✅ Helmet para headers de seguridad HTTP
-- ✅ Morgan para logging de requests
-- ✅ Validación robusta de inputs
-- ✅ Rotación automática de respuestas demo (7 variantes)
-- ✅ Endpoint `/api/auth/me` para verificar sesión
-
-### Frontend
-- ✅ Context de autenticación global (AuthContext)
-- ✅ Verificación de token al iniciar (auto-logout si expira)
-- ✅ Carga del historial de conversaciones previas
-- ✅ Indicador de escritura animado
-- ✅ Toasts de notificación (sin dependencias externas)
-- ✅ Respuestas rápidas (quick replies)
-- ✅ Contador de caracteres con aviso
-- ✅ Timestamps en burbujas y separadores de fecha
-- ✅ Botón para borrar historial
-- ✅ Diseño responsivo (mobile-friendly)
-- ✅ Scrollbar automático al mensaje nuevo
-- ✅ Enter para enviar, Shift+Enter para nueva línea
-- ✅ Badge de modo demo cuando no hay API key
-
----
-
-## 🔌 API Endpoints
-
-### Auth
-```
-POST /api/auth/register  { name, email, password } → { token, user }
-POST /api/auth/login     { email, password }        → { token, user }
-GET  /api/auth/me        (Bearer token)             → { user }
-```
-
-### Chat
-```
-POST   /api/chat         (Bearer) { message }       → { reply, demo? }
-GET    /api/chat/history (Bearer)                   → { messages[] }
-DELETE /api/chat/history (Bearer)                   → { ok: true }
-```
-
----
-
-## 🏗 Producción
-
-```bash
-# Frontend: genera archivos estáticos
-cd frontend && npm run build
-
-# Sirve el frontend con nginx o déjalo en dist/
-# Backend: usa pm2 o similar
-NODE_ENV=production node server.js
-
-# Variables adicionales para producción:
-FRONTEND_URL=https://tudominio.com   # Para CORS
-```
-
----
-
-## ⚠️ Aviso importante
-
-Contigo es un apoyo complementario y **no reemplaza** la atención de un profesional de salud mental. Si estás en crisis, contacta una línea de emergencias o un profesional.
-
----
-
-*Contigo v2.0 — Aquí Estoy 🌿*
+## 🔑 Cómo obtener una API Key de OpenAI
+1. Ve a platform.openai.com
+2. Crea cuenta → API Keys → Create new secret key
+3. Pégala en Railway como `OPENAI_API_KEY`
+4. Sin key = modo demo (respuestas pre-escritas, gratis)
