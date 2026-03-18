@@ -63,8 +63,8 @@ router.post('/', requireAuth, async (req, res) => {
   if (!message?.trim()) return res.status(400).json({ reply: 'Mensaje vacío.' })
   if (message.length > 1000) return res.status(400).json({ reply: 'Mensaje demasiado largo.' })
 
-  // DEMO MODE
-  if (!process.env.OPENAI_API_KEY) {
+  // DEMO MODE (Solo si no hay NINGUNA key)
+  if (!process.env.OPENAI_API_KEY && !process.env.DEEPSEEK_API_KEY) {
     const raw = DEMO_RESPONSES[demoIndex % DEMO_RESPONSES.length]
     demoIndex++
     const { cleanText, suggestedGoals } = parseGoalsFromReply(raw)
@@ -73,20 +73,26 @@ router.post('/', requireAuth, async (req, res) => {
     return res.json({ reply: cleanText, suggestedGoals, demo: true })
   }
 
-  // OPENAI MODE
+  // OPENAI / DEEPSEEK MODE
   try {
     const history = getHistory(req.userId).slice(-20).map(m => ({
       role: m.role, content: m.content
     }))
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Detectar qué proveedor usar
+    const isDeepSeek = !!process.env.DEEPSEEK_API_KEY
+    const apiKey = isDeepSeek ? process.env.DEEPSEEK_API_KEY : process.env.OPENAI_API_KEY
+    const endpoint = isDeepSeek ? 'https://api.deepseek.com/chat/completions' : 'https://api.openai.com/v1/chat/completions'
+    const model = isDeepSeek ? 'deepseek-chat' : 'gpt-4o-mini'
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           ...history,
@@ -98,7 +104,7 @@ router.post('/', requireAuth, async (req, res) => {
     })
 
     if (!response.ok) {
-      console.error('OpenAI error:', response.status)
+      console.error('API Provider error:', response.status)
       return res.status(502).json({ reply: 'Tuve un problema técnico. ¿Lo intentamos de nuevo?' })
     }
 

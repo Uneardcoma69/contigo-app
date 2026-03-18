@@ -55,7 +55,7 @@ app.use('/api/goals', goalsRoutes)
 app.get('/api/health', (_req, res) => res.json({
   ok: true,
   storage: 'memory',
-  mode: process.env.OPENAI_API_KEY ? 'openai' : 'demo',
+  mode: process.env.DEEPSEEK_API_KEY ? 'deepseek' : process.env.OPENAI_API_KEY ? 'openai' : 'demo',
   timestamp: new Date().toISOString()
 }))
 
@@ -87,6 +87,6 @@ app.use((err, _req, res, _next) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 Contigo Backend → http://localhost:${PORT}`)
   console.log(`💾 Storage: Memoria RAM (sin base de datos)`)
-  console.log(`🧪 Modo: ${process.env.OPENAI_API_KEY ? 'OpenAI activo ✅' : 'DEMO (sin API key)'}`)
+  console.log(`🧪 Modo: ${process.env.DEEPSEEK_API_KEY ? 'DeepSeek activo 🐳' : process.env.OPENAI_API_KEY ? 'OpenAI activo ✅' : 'DEMO (sin API key)'}`)
   console.log(`🌐 Frontend: ${frontendDist}\n`)
 })

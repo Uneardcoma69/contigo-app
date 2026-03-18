@@ -30,13 +30,13 @@ export default function Home() {
               src="/contigo-bot.jpeg"
               alt="Contigo mascota"
               style={{
-                width: 110,
-                height: 110,
+                width: 120,
+                height: 120,
                 borderRadius: '50%',
                 objectFit: 'cover',
-                border: '4px solid var(--teal-light)',
-                boxShadow: '0 8px 30px rgba(78,205,196,.25)',
-                animation: 'float 3s ease-in-out infinite'
+                border: '4px solid rgba(255,255,255,0.8)',
+                boxShadow: '0 12px 36px rgba(78,205,196,.3)',
+                animation: 'float 3.5s ease-in-out infinite'
               }}
             />
             {/* Burbuja de saludo */}

@@ -42,7 +42,7 @@ function BotAvatar() {
     <img
       src="/contigo-bot.jpeg"
       alt="Contigo"
-      style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--teal-light)', flexShrink: 0 }}
+      style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.8)', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}
     />
   )
 }
