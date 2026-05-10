@@ -3,16 +3,17 @@ import { Navigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
+import Icon from '../components/Icon.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import { useToast } from '../hooks/useToast.js'
 
 const CATEGORIES = [
-  { id: 'general',   label: 'General',   emoji: '⭐', color: '#f6ad55' },
-  { id: 'bienestar', label: 'Bienestar', emoji: '🌿', color: '#68d391' },
-  { id: 'sueño',     label: 'Sueño',     emoji: '😴', color: '#76e4f7' },
-  { id: 'ejercicio', label: 'Ejercicio', emoji: '💪', color: '#fc8181' },
-  { id: 'mente',     label: 'Mente',     emoji: '🧘', color: '#b794f4' },
-  { id: 'social',    label: 'Social',    emoji: '💬', color: '#63b3ed' },
+  { id: 'general',   label: 'General',   icon: 'star',     color: '#f6ad55' },
+  { id: 'bienestar', label: 'Bienestar', icon: 'leaf',     color: '#68d391' },
+  { id: 'sueño',     label: 'Sueño',     icon: 'moon',     color: '#76e4f7' },
+  { id: 'ejercicio', label: 'Ejercicio', icon: 'dumbbell', color: '#fc8181' },
+  { id: 'mente',     label: 'Mente',     icon: 'brain',    color: '#b794f4' },
+  { id: 'social',    label: 'Social',    icon: 'users',    color: '#63b3ed' },
 ]
 
 function getCat(id) {
@@ -46,11 +47,11 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
             width: 34, height: 34, borderRadius: 10,
-            background: `${cat.color}30`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.1rem'
+            background: `${cat.color}25`,
+            color: cat.color,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            {cat.emoji}
+            <Icon name={cat.icon} size={18} strokeWidth={1.8} />
           </span>
           <div>
             <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--navy)' }}>
@@ -119,15 +120,17 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
               onClick={() => onDelete(goal._id)}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--slate-light)', fontSize: '0.85rem',
-                padding: '2px 4px', borderRadius: 4,
-                opacity: 0.6, transition: 'opacity 0.15s'
+                color: 'var(--slate-light)',
+                padding: '4px', borderRadius: 6,
+                display: 'flex', alignItems: 'center',
+                opacity: 0.55, transition: 'opacity 0.15s'
               }}
               onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '0.55'}
               title="Eliminar"
+              aria-label="Eliminar objetivo"
             >
-              ✕
+              <Icon name="close" size={14} />
             </button>
           </div>
         ))}
@@ -167,7 +170,7 @@ export default function GoalsPage() {
       setTitle('')
       setCategory('general')
       setShowForm(false)
-      success('Objetivo agregado 🎯')
+      success('Objetivo agregado')
     } catch (err) {
       showError(err?.response?.data?.message || 'Error al agregar.')
     } finally {
@@ -219,16 +222,29 @@ export default function GoalsPage() {
 
         {/* Título */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-          <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
-              🎯 Mis objetivos
-            </h1>
-            <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
-              Pequeños pasos hacia el bienestar
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'linear-gradient(135deg, var(--teal), var(--sage))',
+              color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <Icon name="target" size={20} />
+            </span>
+            <div>
+              <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
+                Mis objetivos
+              </h1>
+              <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '2px 0 0' }}>
+                Pequeños pasos hacia el bienestar
+              </p>
+            </div>
           </div>
           <button className="btn btn--primary btn--sm" onClick={() => setShowForm(f => !f)}>
-            {showForm ? '✕ Cancelar' : '+ Nuevo'}
+            {showForm
+              ? <><Icon name="close" size={14} /> Cancelar</>
+              : <><Icon name="plus" size={14} /> Nuevo</>}
           </button>
         </div>
 
@@ -289,15 +305,18 @@ export default function GoalsPage() {
                     type="button"
                     onClick={() => setCategory(cat.id)}
                     style={{
-                      padding: '6px 14px', borderRadius: 999,
+                      padding: '6px 12px', borderRadius: 999,
                       border: `2px solid ${category === cat.id ? cat.color : 'var(--border)'}`,
                       background: category === cat.id ? `${cat.color}20` : 'var(--white)',
                       color: category === cat.id ? 'var(--navy)' : 'var(--slate)',
-                      fontWeight: category === cat.id ? 700 : 400,
-                      fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.15s'
+                      fontWeight: category === cat.id ? 700 : 500,
+                      fontSize: '0.82rem', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      transition: 'all 0.15s'
                     }}
                   >
-                    {cat.emoji} {cat.label}
+                    <Icon name={cat.icon} size={13} color={category === cat.id ? cat.color : 'currentColor'} strokeWidth={1.8} />
+                    {cat.label}
                   </button>
                 ))}
               </div>
@@ -311,18 +330,21 @@ export default function GoalsPage() {
         {/* Filtros */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
           {[
-            { id: 'todas',        label: `Todas (${total})` },
-            { id: 'pendientes',   label: `⏳ Pendientes` },
-            { id: 'completados',  label: `✅ Completados` },
+            { id: 'todas',        label: `Todas (${total})`,  icon: null },
+            { id: 'pendientes',   label: 'Pendientes',         icon: 'hourglass' },
+            { id: 'completados',  label: 'Completados',        icon: 'check' },
           ].map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)} style={{
               padding: '5px 12px', borderRadius: 999,
               border: filter === f.id ? '2px solid var(--teal)' : '2px solid var(--border)',
               background: filter === f.id ? 'var(--teal-pale)' : 'var(--white)',
               color: filter === f.id ? 'var(--teal-dark)' : 'var(--slate)',
-              fontWeight: filter === f.id ? 700 : 400,
-              fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.15s'
+              fontWeight: filter === f.id ? 700 : 500,
+              fontSize: '0.8rem', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              transition: 'all 0.15s'
             }}>
+              {f.icon && <Icon name={f.icon} size={12} strokeWidth={1.8} />}
               {f.label}
             </button>
           ))}
@@ -339,7 +361,14 @@ export default function GoalsPage() {
             background: 'var(--white)', borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: 14 }}>🌱</div>
+            <div style={{
+              width: 56, height: 56, borderRadius: 16,
+              background: 'var(--teal-pale)', color: 'var(--teal-dark)',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 14
+            }}>
+              <Icon name="sprout" size={28} strokeWidth={1.6} />
+            </div>
             <p style={{ fontWeight: 700, color: 'var(--navy)', fontSize: '1rem', margin: '0 0 6px' }}>
               {filter === 'todas' ? '¡Aquí empezará tu camino!' : 'No hay objetivos aquí'}
             </p>
@@ -350,7 +379,7 @@ export default function GoalsPage() {
             </p>
             {filter === 'todas' && (
               <button className="btn btn--primary" onClick={() => setShowForm(true)}>
-                + Agregar primer objetivo
+                <Icon name="plus" size={14} /> Agregar primer objetivo
               </button>
             )}
           </div>
@@ -375,9 +404,16 @@ export default function GoalsPage() {
             background: 'var(--teal-pale)', borderRadius: 'var(--radius-lg)',
             border: '1.5px solid var(--teal-light)'
           }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🎉</div>
+            <div style={{
+              width: 48, height: 48, borderRadius: 14,
+              background: 'var(--white)', color: 'var(--teal-dark)',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 10, boxShadow: 'var(--shadow-sm)'
+            }}>
+              <Icon name="sparkle" size={24} strokeWidth={1.6} />
+            </div>
             <p style={{ fontWeight: 800, color: 'var(--teal-dark)', margin: '0 0 4px', fontSize: '1.1rem' }}>
-              ¡Completaste todos tus objetivos!
+              Completaste todos tus objetivos
             </p>
             <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: 0 }}>
               Eso merece un momento de orgullo. Sigue así.

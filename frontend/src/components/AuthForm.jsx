@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
+import Icon from './Icon.jsx'
 
 export default function AuthForm({ mode = 'login', onSuccess, onError }) {
   const isLogin = mode === 'login'
@@ -49,7 +50,7 @@ export default function AuthForm({ mode = 'login', onSuccess, onError }) {
     <form onSubmit={submit} noValidate>
       {error && (
         <div className="alert alert--error" role="alert">
-          <span>⚠️</span>
+          <Icon name="alert" size={16} />
           <span>{error}</span>
         </div>
       )}

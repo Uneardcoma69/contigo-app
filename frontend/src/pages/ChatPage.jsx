@@ -3,6 +3,8 @@ import { Navigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
+import Icon from '../components/Icon.jsx'
+import CrisisBanner from '../components/CrisisBanner.jsx'
 import TypingIndicator from '../components/TypingIndicator.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import { useToast } from '../hooks/useToast.js'
@@ -15,9 +17,15 @@ const QUICK_REPLIES = [
   'Necesito más energía',
 ]
 
-const CAT_EMOJI = {
-  general: '⭐', bienestar: '🌿', sueño: '😴',
-  ejercicio: '💪', mente: '🧘', social: '💬'
+// Iconos por categoría de objetivo. Se reemplazaron emojis para una UI
+// más sobria. El color marca la categoría visualmente.
+const CAT_META = {
+  general:   { icon: 'star',     color: '#f6ad55' },
+  bienestar: { icon: 'leaf',     color: '#68d391' },
+  sueño:     { icon: 'moon',     color: '#76e4f7' },
+  ejercicio: { icon: 'dumbbell', color: '#fc8181' },
+  mente:     { icon: 'brain',    color: '#b794f4' },
+  social:    { icon: 'users',    color: '#63b3ed' },
 }
 
 const MAX_CHARS = 1000
@@ -42,7 +50,7 @@ function BotAvatar() {
     <img
       src="/contigo-bot.jpeg"
       alt="Contigo"
-      style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.8)', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}
+      className="chat-bot-avatar"
     />
   )
 }
@@ -65,52 +73,41 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
   }
 
   return (
-    <div style={{
-      margin: '4px 0 4px 38px',
-      background: 'linear-gradient(135deg, var(--teal-pale), var(--white))',
-      border: '1.5px solid var(--teal-light)',
-      borderRadius: 'var(--radius)',
-      padding: '14px 16px',
-      maxWidth: '72%',
-      boxShadow: 'var(--shadow-sm)',
-      animation: 'bubbleIn .2s ease'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <img src="/contigo-bot.jpeg" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
-        <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--teal-dark)' }}>
-          Objetivos sugeridos para ti
-        </p>
+    <div className="suggest-goals">
+      <div className="suggest-goals__header">
+        <Icon name="target" size={16} color="var(--teal-dark)" />
+        <p className="suggest-goals__title">Objetivos sugeridos para ti</p>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {goals.map((g, i) => (
-          <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            background: added.includes(i) ? 'var(--sage-light)' : 'var(--white)',
-            border: `1.5px solid ${added.includes(i) ? 'var(--sage)' : 'var(--border)'}`,
-            borderRadius: 10, padding: '9px 12px', transition: 'all 0.2s'
-          }}>
-            <span style={{ fontSize: '1rem', flexShrink: 0 }}>{CAT_EMOJI[g.category] || '⭐'}</span>
-            <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--navy)', textDecoration: added.includes(i) ? 'line-through' : 'none', opacity: added.includes(i) ? 0.6 : 1 }}>
-              {g.title}
-            </span>
-            <button
-              onClick={() => handleAdd(g, i)}
-              disabled={added.includes(i) || loading === i}
-              style={{
-                padding: '4px 12px', borderRadius: 999, border: 'none',
-                background: added.includes(i) ? 'var(--sage)' : 'linear-gradient(135deg, var(--teal), var(--teal-dark))',
-                color: 'white', fontSize: '0.75rem', fontWeight: 700,
-                cursor: added.includes(i) ? 'default' : 'pointer', flexShrink: 0, transition: 'all 0.2s'
-              }}
-            >
-              {loading === i ? '...' : added.includes(i) ? '✓ Agregado' : '+ Agregar'}
-            </button>
-          </div>
-        ))}
+      <div className="suggest-goals__list">
+        {goals.map((g, i) => {
+          const meta = CAT_META[g.category] || CAT_META.general
+          const isAdded = added.includes(i)
+          return (
+            <div key={i} className={`suggest-goals__item ${isAdded ? 'is-added' : ''}`}>
+              <span className="suggest-goals__cat" style={{ background: `${meta.color}20`, color: meta.color }}>
+                <Icon name={meta.icon} size={14} />
+              </span>
+              <span className={`suggest-goals__text ${isAdded ? 'is-added' : ''}`}>{g.title}</span>
+              <button
+                onClick={() => handleAdd(g, i)}
+                disabled={isAdded || loading === i}
+                className={`suggest-goals__btn ${isAdded ? 'is-added' : ''}`}
+              >
+                {loading === i
+                  ? <span className="spinner" style={{ width: 12, height: 12 }} />
+                  : isAdded
+                    ? <><Icon name="check" size={12} /> Agregado</>
+                    : <><Icon name="plus" size={12} /> Agregar</>}
+              </button>
+            </div>
+          )
+        })}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-        <Link to="/goals" style={{ fontSize: '0.75rem', color: 'var(--teal-dark)', fontWeight: 600 }}>Ver todos mis objetivos →</Link>
-        <button onClick={onDismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: 'var(--slate-light)' }}>Descartar</button>
+      <div className="suggest-goals__footer">
+        <Link to="/goals" className="suggest-goals__link">
+          Ver todos mis objetivos <Icon name="arrowRight" size={12} />
+        </Link>
+        <button onClick={onDismiss} className="suggest-goals__dismiss">Descartar</button>
       </div>
     </div>
   )
@@ -126,6 +123,7 @@ export default function ChatPage() {
   const [loadingHist,     setLoadingHist]     = useState(true)
   const [isDemo,          setIsDemo]          = useState(false)
   const [goalSuggestions, setGoalSuggestions] = useState({})
+  const [crisisLevel,     setCrisisLevel]     = useState(null)
 
   const messagesEndRef = useRef(null)
   const inputRef       = useRef(null)
@@ -138,11 +136,11 @@ export default function ChatPage() {
         if (data.messages?.length > 0) {
           setMessages(data.messages)
         } else {
-          setMessages([{ id: 'welcome', from: 'bot', text: `¡Hola, ${user?.name?.split(' ')[0] || 'bienvenido/a'}! Soy Contigo, estoy aquí para escucharte 🤍 ¿Cómo te sientes hoy?`, timestamp: new Date().toISOString() }])
+          setMessages([{ id: 'welcome', from: 'bot', text: `Hola ${user?.name?.split(' ')[0] || ''}, soy Contigo. Estoy aquí para escucharte. ¿Cómo te sientes hoy?`, timestamp: new Date().toISOString() }])
         }
       })
       .catch(() => {
-        setMessages([{ id: 'welcome', from: 'bot', text: '¡Hola! Soy Contigo, estoy aquí para escucharte 🤍 ¿Cómo te sientes hoy?', timestamp: new Date().toISOString() }])
+        setMessages([{ id: 'welcome', from: 'bot', text: 'Hola, soy Contigo. Estoy aquí para escucharte. ¿Cómo te sientes hoy?', timestamp: new Date().toISOString() }])
       })
       .finally(() => setLoadingHist(false))
   }, [])
@@ -154,7 +152,7 @@ export default function ChatPage() {
   const handleAddGoal = useCallback(async (goal) => {
     try {
       await axios.post('/api/goals', goal)
-      success(`Objetivo agregado: "${goal.title}" 🎯`)
+      success(`Objetivo agregado: ${goal.title}`)
     } catch { showError('No se pudo agregar el objetivo.') }
   }, [success, showError])
 
@@ -177,6 +175,9 @@ export default function ChatPage() {
       const botId = Date.now() + 1
       setMessages(prev => [...prev, { id: botId, from: 'bot', text: data.reply, timestamp: new Date().toISOString() }])
       if (data.suggestedGoals?.length > 0) setGoalSuggestions(prev => ({ ...prev, [botId]: data.suggestedGoals }))
+      if (data.risk && (data.risk.level === 'L2' || data.risk.level === 'L3')) {
+        setCrisisLevel(data.risk.level)
+      }
     } catch (err) {
       if (err?.response?.status === 401) { showError('Tu sesión expiró.'); setTimeout(logout, 1500); return }
       setMessages(prev => [...prev, { id: Date.now() + 1, from: 'bot', text: err?.response?.data?.reply || 'Hubo un problema. ¿Lo intentamos de nuevo?', timestamp: new Date().toISOString() }])
@@ -192,8 +193,9 @@ export default function ChatPage() {
     if (!window.confirm('¿Borrar todo el historial?')) return
     try {
       await axios.delete('/api/chat/history')
-      setMessages([{ id: 'reset', from: 'bot', text: 'Historial borrado. ¡Empecemos de nuevo! 🤍', timestamp: new Date().toISOString() }])
+      setMessages([{ id: 'reset', from: 'bot', text: 'Historial borrado. Empecemos de nuevo cuando quieras.', timestamp: new Date().toISOString() }])
       setGoalSuggestions({})
+      setCrisisLevel(null)
       success('Historial borrado')
     } catch { showError('No se pudo borrar el historial.') }
   }
@@ -208,18 +210,30 @@ export default function ChatPage() {
 
   return (
     <div className="app-layout">
-      <Header actions={<button className="btn btn--ghost btn--sm" onClick={handleClearHistory} title="Borrar historial">🗑️</button>} />
+      <Header actions={
+        <button className="btn btn--ghost btn--sm" onClick={handleClearHistory} title="Borrar historial" aria-label="Borrar historial">
+          <Icon name="trash" size={16} />
+        </button>
+      } />
       <ToastContainer toasts={toasts} />
 
       <div className="chat-wrapper">
+        {crisisLevel && (
+          <CrisisBanner
+            level={crisisLevel}
+            country="default"
+            onClose={() => setCrisisLevel(null)}
+          />
+        )}
+
         <div className="chat-messages" role="log">
           {loadingHist ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+            <div className="chat-loading">
               <span className="spinner spinner--dark" style={{ width: 28, height: 28 }} />
             </div>
           ) : (
             <>
-              {isDemo && <div style={{ textAlign: 'center', paddingTop: 8 }}><span className="demo-badge">⚡ Modo demo</span></div>}
+              {isDemo && <div style={{ textAlign: 'center', paddingTop: 8 }}><span className="demo-badge">Modo demo</span></div>}
               {grouped.map(item =>
                 item.type === 'date' ? (
                   <div className="chat-date-sep" key={item.key}>{item.label}</div>
@@ -255,7 +269,7 @@ export default function ChatPage() {
               <textarea
                 ref={inputRef}
                 className="chat-input"
-                placeholder="Escribe tu mensaje... (Enter para enviar)"
+                placeholder="Escribe tu mensaje..."
                 value={text}
                 onChange={e => setText(e.target.value.slice(0, MAX_CHARS))}
                 onKeyDown={handleKeyDown}
@@ -268,11 +282,10 @@ export default function ChatPage() {
                 </div>
               )}
             </div>
-            <button className="chat-send-btn" onClick={() => send()} disabled={!text.trim() || typing || loadingHist}>
+            <button className="chat-send-btn" onClick={() => send()} disabled={!text.trim() || typing || loadingHist} aria-label="Enviar">
               {typing
                 ? <span className="spinner" style={{ width: 18, height: 18 }} />
-                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              }
+                : <Icon name="send" size={18} color="white" />}
             </button>
           </div>
         </div>

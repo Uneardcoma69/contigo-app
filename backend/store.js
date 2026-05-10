@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto'
 const users         = new Map()  // Map<id, user>
 const conversations = new Map()  // Map<userId, message[]>
 const goals         = new Map()  // Map<userId, goal[]>
+const riskEvents    = new Map()  // Map<userId, riskEvent[]>
 
 // ── Usuarios ───────────────────────────────────────────────────
 export function findUserByEmail(email) {
@@ -83,4 +84,59 @@ export function deleteGoal(userId, goalId) {
   const filtered = list.filter(g => g._id !== goalId)
   goals.set(userId, filtered)
   return filtered.length < list.length
+}
+
+// ── Eventos de riesgo ──────────────────────────────────────────
+// Cada análisis con level !== 'none' genera un evento.
+// Se conservan los últimos 365 días por usuario.
+
+export function addRiskEvent(userId, { level, score, matches, messageId }) {
+  const list = riskEvents.get(userId) || []
+  const event = {
+    _id: randomUUID(),
+    level,
+    score,
+    terms: matches.filter(m => !m.negated).map(m => m.term),
+    messageId: messageId || null,
+    createdAt: new Date()
+  }
+  list.push(event)
+
+  // Purga eventos > 365 días
+  const cutoff = Date.now() - 365 * 24 * 60 * 60 * 1000
+  const trimmed = list.filter(e => e.createdAt.getTime() >= cutoff)
+  riskEvents.set(userId, trimmed)
+  return event
+}
+
+export function getRiskEvents(userId, { since } = {}) {
+  const list = riskEvents.get(userId) || []
+  if (!since) return list
+  const cutoff = since instanceof Date ? since.getTime() : new Date(since).getTime()
+  return list.filter(e => e.createdAt.getTime() >= cutoff)
+}
+
+// Agrega eventos por día (YYYY-MM-DD). Devuelve el día con su score máximo,
+// nivel más alto y conteo. Los días sin eventos NO se incluyen — el frontend
+// rellena el calendario completo.
+export function getRiskHeatmap(userId, days = 90) {
+  const cutoff = new Date()
+  cutoff.setHours(0, 0, 0, 0)
+  cutoff.setDate(cutoff.getDate() - (days - 1))
+
+  const events = getRiskEvents(userId, { since: cutoff })
+  const byDay = new Map()
+  const order = { L1: 1, L2: 2, L3: 3 }
+
+  for (const e of events) {
+    const d = new Date(e.createdAt)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const cell = byDay.get(key) || { date: key, count: 0, maxScore: 0, level: 'none' }
+    cell.count += 1
+    if (e.score > cell.maxScore) cell.maxScore = e.score
+    if (order[e.level] > (order[cell.level] || 0)) cell.level = e.level
+    byDay.set(key, cell)
+  }
+
+  return Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date))
 }

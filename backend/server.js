@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 import authRoutes  from './routes/auth.js'
 import chatRoutes  from './routes/chat.js'
 import goalsRoutes from './routes/goals.js'
+import riskRoutes  from './routes/risk.js'
 
 dotenv.config()
 
@@ -51,6 +52,7 @@ const chatLimiter = rateLimit({
 app.use('/api/auth',  authLimiter, authRoutes)
 app.use('/api/chat',  chatLimiter, chatRoutes)
 app.use('/api/goals', goalsRoutes)
+app.use('/api/risk',  riskRoutes)
 
 app.get('/api/health', (_req, res) => res.json({
   ok: true,

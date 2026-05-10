@@ -1,14 +1,15 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
+import Icon from '../components/Icon.jsx'
 
 const features = [
-  { icon: '💬', title: 'Conversación empática',    text: 'Un espacio sin juicios para expresarte libremente en cualquier momento.' },
-  { icon: '🫁', title: 'Técnicas de respiración',  text: 'Ejercicios guiados para calmar la mente y reducir el estrés al instante.' },
-  { icon: '🧘', title: 'Mindfulness',              text: 'Prácticas de atención plena adaptadas a tu ritmo y necesidades.' },
-  { icon: '🎯', title: 'Objetivos de bienestar',   text: 'Establece metas personales y síguelas con progreso visual.' },
-  { icon: '🔒', title: 'Privacidad primero',        text: 'Tu información es tuya. Conversaciones protegidas y confidenciales.' },
-  { icon: '⏰', title: 'Siempre disponible',        text: 'Accede cuando lo necesites, a cualquier hora del día.' },
+  { icon: 'chat',     title: 'Conversación empática',    text: 'Un espacio sin juicios para expresarte libremente en cualquier momento.' },
+  { icon: 'wind',     title: 'Técnicas de respiración',  text: 'Ejercicios guiados para calmar la mente y reducir el estrés al instante.' },
+  { icon: 'brain',    title: 'Mindfulness',              text: 'Prácticas de atención plena adaptadas a tu ritmo y necesidades.' },
+  { icon: 'target',   title: 'Objetivos de bienestar',   text: 'Establece metas personales y síguelas con progreso visual.' },
+  { icon: 'lock',     title: 'Privacidad primero',       text: 'Tu información es tuya. Conversaciones protegidas y confidenciales.' },
+  { icon: 'clock',    title: 'Siempre disponible',       text: 'Accede cuando lo necesites, a cualquier hora del día.' },
 ]
 
 export default function Home() {
@@ -23,38 +24,12 @@ export default function Home() {
 
       <main>
         <section className="home-hero">
-
-          {/* Mascota */}
-          <div style={{ marginBottom: 24, position: 'relative', display: 'inline-block' }}>
+          <div className="home-hero__mascot">
             <img
               src="/contigo-bot.jpeg"
               alt="Contigo mascota"
-              style={{
-                width: 120,
-                height: 120,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: '4px solid rgba(255,255,255,0.8)',
-                boxShadow: '0 12px 36px rgba(78,205,196,.3)',
-                animation: 'float 3.5s ease-in-out infinite'
-              }}
+              className="home-hero__mascot-img"
             />
-            {/* Burbuja de saludo */}
-            <div style={{
-              position: 'absolute',
-              top: -8, right: -14,
-              background: 'var(--white)',
-              border: '1.5px solid var(--teal-light)',
-              borderRadius: '12px 12px 12px 2px',
-              padding: '4px 10px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: 'var(--teal-dark)',
-              whiteSpace: 'nowrap',
-              boxShadow: 'var(--shadow-sm)'
-            }}>
-              ¡Hola! 👋
-            </div>
           </div>
 
           <div className="home-hero__badge">
@@ -86,7 +61,9 @@ export default function Home() {
           <div className="home-features">
             {features.map(f => (
               <div className="home-feature" key={f.title}>
-                <span className="home-feature__icon">{f.icon}</span>
+                <div className="home-feature__icon-wrap">
+                  <Icon name={f.icon} size={22} color="var(--teal-dark)" strokeWidth={1.6} />
+                </div>
                 <div className="home-feature__title">{f.title}</div>
                 <p className="home-feature__text">{f.text}</p>
               </div>
@@ -94,11 +71,15 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ textAlign: 'center', padding: '0 24px 80px' }}>
-          <p style={{ color: 'var(--slate-light)', fontSize: '0.8rem', maxWidth: 400, margin: '0 auto' }}>
-            ⚠️ Contigo es un apoyo complementario y no reemplaza la atención de un profesional de salud mental.
-            Si estás en crisis, contacta una línea de emergencias.
-          </p>
+        <section className="home-disclaimer-wrap">
+          <div className="home-disclaimer">
+            <Icon name="info" size={16} color="var(--slate)" />
+            <p>
+              Contigo es un apoyo complementario y no reemplaza la atención
+              de un profesional de salud mental. Si estás en crisis, contacta
+              una línea de emergencias.
+            </p>
+          </div>
         </section>
       </main>
     </div>

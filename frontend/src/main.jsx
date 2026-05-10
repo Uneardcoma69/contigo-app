@@ -3,11 +3,13 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 
-import Home      from './pages/Home.jsx'
-import Login     from './pages/Login.jsx'
-import Register  from './pages/Register.jsx'
-import ChatPage  from './pages/ChatPage.jsx'
-import GoalsPage from './pages/GoalsPage.jsx'
+import Home        from './pages/Home.jsx'
+import Login       from './pages/Login.jsx'
+import Register    from './pages/Register.jsx'
+import ChatPage    from './pages/ChatPage.jsx'
+import GoalsPage   from './pages/GoalsPage.jsx'
+import HeatmapPage from './pages/HeatmapPage.jsx'
+import Icon        from './components/Icon.jsx'
 import './index.css'
 
 function RequireAuth({ children }) {
@@ -18,7 +20,7 @@ function RequireAuth({ children }) {
       justifyContent: 'center', flexDirection: 'column', gap: 16,
       background: 'var(--cream)'
     }}>
-      <span style={{ fontSize: '2.5rem' }}>🌿</span>
+      <Icon name="leaf" size={36} color="var(--teal-dark)" />
       <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Cargando...</p>
     </div>
   )
@@ -35,6 +37,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/register" element={<Register />} />
           <Route path="/chat"     element={<RequireAuth><ChatPage /></RequireAuth>} />
           <Route path="/goals"    element={<RequireAuth><GoalsPage /></RequireAuth>} />
+          <Route path="/timeline" element={<RequireAuth><HeatmapPage /></RequireAuth>} />
           <Route path="*"         element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
