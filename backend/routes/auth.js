@@ -1,7 +1,7 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, STAFF_ROLES } from '../store.js'
+import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, getAppointmentsForPatient, STAFF_ROLES } from '../store.js'
 import requireAuth from '../middleware/requireAuth.js'
 import { effectiveRole } from '../middleware/requireRole.js'
 
@@ -68,6 +68,25 @@ router.get('/me', requireAuth, (req, res) => {
   const user = findUserById(req.userId)
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
   return res.json({ user: sanitize(user) })
+})
+
+// ── Citas del propio usuario ───────────────────────────────────
+// GET /api/auth/appointments — mis citas (como paciente)
+router.get('/appointments', requireAuth, (req, res) => {
+  const list = getAppointmentsForPatient(req.userId)
+    .map(a => {
+      const psy = findUserById(a.psychologistId)
+      return {
+        _id: a._id,
+        date: a.date,
+        durationMin: a.durationMin,
+        modality: a.modality,
+        status: a.status,
+        psychologistName: psy?.name || 'Equipo Contigo'
+      }
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+  return res.json({ appointments: list })
 })
 
 // ── Ficha médica del propio usuario ────────────────────────────

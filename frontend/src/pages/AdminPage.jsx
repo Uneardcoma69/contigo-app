@@ -213,8 +213,6 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState(null)
   const [autoRefresh, setAutoRefresh]   = useState(true)
 
-  if (!user) return <Navigate to="/login" replace />
-
   const fetchData = useCallback(async () => {
     try {
       const { data: d } = await axios.get('/api/admin/dashboard')
@@ -231,15 +229,18 @@ export default function AdminPage() {
   }, [showError])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (user) fetchData()
+  }, [fetchData]) // eslint-disable-line
 
   // Auto-refresh cada 15 segundos
   useEffect(() => {
-    if (!autoRefresh) return
+    if (!user || !autoRefresh) return
     const interval = setInterval(fetchData, 15000)
     return () => clearInterval(interval)
-  }, [autoRefresh, fetchData])
+  }, [autoRefresh, fetchData]) // eslint-disable-line
+
+  // Importante: el return condicional va DESPUÉS de todos los hooks
+  if (!user) return <Navigate to="/login" replace />
 
   if (loading) {
     return (

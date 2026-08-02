@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 
 function initials(name) {
@@ -9,6 +11,21 @@ function initials(name) {
 export default function Header({ actions }) {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [riskAlert, setRiskAlert] = useState({ alto: 0, medio: 0 })
+
+  // Badge de riesgo para el staff: consulta cada 30 s
+  useEffect(() => {
+    if (!user?.isStaff) return
+    let active = true
+    const fetchAlerts = () => {
+      axios.get('/api/staff/alerts/summary')
+        .then(({ data }) => { if (active) setRiskAlert(data) })
+        .catch(() => {})
+    }
+    fetchAlerts()
+    const interval = setInterval(fetchAlerts, 30000)
+    return () => { active = false; clearInterval(interval) }
+  }, [user?.isStaff])
 
   const navLink = (to, label) => (
     <Link
@@ -78,11 +95,22 @@ export default function Header({ actions }) {
       <div className="header__actions">
         {user ? (
           <>
-            <div style={{ display: 'flex', gap: '8px', marginRight: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginRight: '8px', alignItems: 'center' }}>
               {!user.isStaff && navLink('/chat',  '💬 Chat')}
               {!user.isStaff && navLink('/goals', '🎯 Metas')}
               {user.isStaff && navLink('/staff', '🩺 Panel Staff')}
               {user.isAdmin && navLink('/admin', '🛡️ Admin')}
+              {user.isStaff && riskAlert.alto > 0 && (
+                <Link to={user.isAdmin ? '/admin' : '/staff'} title={`${riskAlert.alto} paciente(s) en riesgo alto`} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  padding: '5px 12px', borderRadius: 999, textDecoration: 'none',
+                  background: '#fef2f2', border: '1.5px solid #fecaca',
+                  color: '#b91c1c', fontWeight: 800, fontSize: '0.8rem',
+                  animation: 'pulse-soft 1.6s ease-in-out infinite'
+                }}>
+                  🔴 {riskAlert.alto} en riesgo alto
+                </Link>
+              )}
             </div>
             {actions}
             <div className="header__user" style={{ paddingLeft: 16, borderLeft: '2px solid var(--border)', marginLeft: 8 }}>

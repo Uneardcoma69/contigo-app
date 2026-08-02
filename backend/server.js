@@ -13,7 +13,7 @@ import goalsRoutes from './routes/goals.js'
 import adminRoutes from './routes/admin.js'
 import staffRoutes from './routes/staff.js'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail } from './store.js'
+import { createUser, findUserByEmail, setUserPassword } from './store.js'
 
 dotenv.config()
 
@@ -63,10 +63,28 @@ app.use('/api/goals', goalsRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/staff', staffRoutes)
 
-// ── Seed de cuentas demo ───────────────────────────────────────
-// En desarrollo siempre; en la app de escritorio via CONTIGO_SEED_DEMO.
-// Es idempotente: si las cuentas ya existen (datos persistidos), no hace nada.
+// ── Seed de cuentas ────────────────────────────────────────────
+// Desarrollo: 3 cuentas demo con contraseñas fijas.
+// App de escritorio (CONTIGO_ADMIN_PASSWORD): SOLO se crea el admin con
+// la contraseña aleatoria generada por la app en la primera ejecución.
+// El resto del staff se crea desde la pestaña Equipo del panel admin.
+// Idempotente: si el admin ya existe, se sincroniza su contraseña con
+// la de config.json para que siempre coincidan.
 async function seedDemoAccounts() {
+  const desktopAdminPass = process.env.CONTIGO_ADMIN_PASSWORD
+
+  if (desktopAdminPass) {
+    const hash = await bcrypt.hash(desktopAdminPass, 10)
+    const existing = findUserByEmail('admin@contigo.com')
+    if (existing) {
+      setUserPassword(existing._id, hash)
+    } else {
+      createUser({ name: 'Administrador', email: 'admin@contigo.com', password: hash, role: 'admin' })
+    }
+    console.log('👤 Cuenta admin lista (admin@contigo.com, contraseña en config.json)')
+    return
+  }
+
   if (!isDev && process.env.CONTIGO_SEED_DEMO !== 'true') return
   const demo = [
     { name: 'Admin Contigo',    email: 'admin@contigo.com',     password: 'admin123',   role: 'admin' },

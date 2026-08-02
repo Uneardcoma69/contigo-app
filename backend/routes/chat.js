@@ -153,7 +153,7 @@ router.post('/', requireAuth, async (req, res) => {
 
 // GET /api/chat/history
 router.get('/history', requireAuth, (req, res) => {
-  const msgs = getHistory(req.userId).slice(-40).map(m => ({
+  const msgs = getHistory(req.userId).slice(-100).map(m => ({
     id: m._id,
     from: m.role === 'user' ? 'user' : 'bot',
     text: m.content,

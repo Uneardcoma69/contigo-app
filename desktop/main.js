@@ -40,11 +40,23 @@ function loadConfig() {
     cfg.jwtSecret = crypto.randomBytes(32).toString('hex')
     changed = true
   }
+  // Contraseña del admin: aleatoria y única por instalación
+  if (!cfg.adminPassword) {
+    cfg.adminPassword = crypto.randomBytes(9).toString('base64url')   // ~12 caracteres
+    cfg.adminPasswordShown = false
+    changed = true
+  }
   if (changed) {
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(file, JSON.stringify(cfg, null, 2))
   }
   return cfg
+}
+
+function markAdminPasswordShown(cfg) {
+  cfg.adminPasswordShown = true
+  const file = path.join(app.getPath('userData'), 'config.json')
+  fs.writeFileSync(file, JSON.stringify(cfg, null, 2))
 }
 
 // ── Puerto libre para el servidor local ────────────────────────
@@ -66,8 +78,8 @@ async function startEmbeddedServer(cfg) {
   process.env.PORT = String(port)
   process.env.NODE_ENV = 'production'
   process.env.JWT_SECRET = cfg.jwtSecret
-  process.env.CONTIGO_DATA_DIR = app.getPath('userData')   // datos persistentes
-  process.env.CONTIGO_SEED_DEMO = 'true'                   // cuentas demo (idempotente)
+  process.env.CONTIGO_DATA_DIR = app.getPath('userData')       // datos persistentes
+  process.env.CONTIGO_ADMIN_PASSWORD = cfg.adminPassword       // admin con contraseña propia de esta instalación
   if (cfg.deepseekApiKey) process.env.DEEPSEEK_API_KEY = cfg.deepseekApiKey
 
   // Importar el servidor Express (escucha al importarse)
@@ -121,6 +133,22 @@ async function createWindow() {
   })
 
   await win.loadURL(url)
+
+  // Primera ejecución: mostrar las credenciales del administrador UNA sola vez
+  if (!cfg.apiUrl && !cfg.adminPasswordShown) {
+    dialog.showMessageBox(win, {
+      type: 'info',
+      title: 'Contigo — Cuenta de administrador',
+      message: 'Se creó tu cuenta de administrador',
+      detail:
+        `Correo:      admin@contigo.com\n` +
+        `Contraseña:  ${cfg.adminPassword}\n\n` +
+        `Guárdala en un lugar seguro. También puedes consultarla en:\n` +
+        `${path.join(app.getPath('userData'), 'config.json')}\n\n` +
+        `Con esta cuenta puedes crear psicólogos, monitores y más administradores desde la pestaña "Equipo".`,
+      buttons: ['Entendido']
+    }).then(() => markAdminPasswordShown(cfg))
+  }
 }
 
 app.on('second-instance', () => {

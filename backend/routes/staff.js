@@ -58,7 +58,7 @@ router.get('/patients/:id', (req, res) => {
     return res.status(403).json({ message: 'Este paciente no está asignado a ti.' })
 
   const risk = getRiskProfile(patient._id)
-  const chat = getHistory(patient._id).slice(-60).map(m => ({
+  const chat = getHistory(patient._id).slice(-200).map(m => ({
     role: m.role, content: m.content, timestamp: m.createdAt
   }))
   const goals = getGoals(patient._id)
@@ -258,6 +258,19 @@ router.get('/reports', (req, res) => {
     },
     patients: patientRows
   })
+})
+
+// ── GET /api/staff/alerts/summary — para el badge del header ───
+// Cuenta pacientes en riesgo alto/medio (según el alcance del rol)
+router.get('/alerts/summary', (req, res) => {
+  const patients = req.userRole === 'admin' ? getPatients() : getPatientsOf(req.userId)
+  let alto = 0, medio = 0
+  for (const p of patients) {
+    const risk = getRiskProfile(p._id)
+    if (risk?.level === 'alto') alto++
+    else if (risk?.level === 'medio') medio++
+  }
+  return res.json({ alto, medio })
 })
 
 // ── GET /api/staff/team — lista de staff (para selects) ────────

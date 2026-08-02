@@ -108,6 +108,13 @@ export function setUserRole(id, role) {
   return user
 }
 
+export function setUserPassword(id, passwordHash) {
+  const user = users.get(id)
+  if (!user) return null
+  user.password = passwordHash
+  return user
+}
+
 export function assignPatient(patientId, staffId) {
   const patient = users.get(patientId)
   if (!patient || patient.role !== 'user') return null
@@ -150,7 +157,8 @@ export function getHistory(userId) {
 export function addMessage(userId, role, content) {
   const msgs = conversations.get(userId) || []
   msgs.push({ _id: randomUUID(), role, content, createdAt: new Date() })
-  if (msgs.length > 60) msgs.splice(0, msgs.length - 60)
+  // Límite amplio: el staff necesita el historial para el seguimiento clínico
+  if (msgs.length > 500) msgs.splice(0, msgs.length - 500)
   conversations.set(userId, msgs)
 }
 

@@ -19,6 +19,90 @@ function getCat(id) {
   return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]
 }
 
+const APPT_STATUS_LABEL = {
+  programada: { text: 'Programada', color: 'var(--teal-dark)', bg: 'var(--teal-pale)' },
+  completada: { text: 'Completada', color: '#16a34a', bg: '#f0fdf4' },
+  cancelada:  { text: 'Cancelada',  color: '#94a3b8', bg: '#f8fafc' },
+}
+
+// Citas del paciente: agendadas por su psicólogo/a
+function MyAppointmentsCard() {
+  const [appointments, setAppointments] = useState([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    axios.get('/api/auth/appointments')
+      .then(({ data }) => setAppointments(data.appointments))
+      .catch(() => {})
+      .finally(() => setLoaded(true))
+  }, [])
+
+  const now = Date.now()
+  const upcoming = appointments.filter(a => a.status === 'programada' && new Date(a.date).getTime() >= now)
+  const past = appointments.filter(a => !(a.status === 'programada' && new Date(a.date).getTime() >= now))
+  const next = upcoming[0]
+
+  if (!loaded || appointments.length === 0) return null   // sin citas: no mostrar nada
+
+  const fmtDate = d => new Date(d).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
+  const fmtTime = d => new Date(d).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
+
+  return (
+    <div style={{
+      marginTop: 32, background: 'var(--white)', border: '1px solid var(--border)',
+      borderRadius: 'var(--radius-lg)', padding: 24, boxShadow: 'var(--shadow-sm)'
+    }}>
+      <h2 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)' }}>📅 Mis citas</h2>
+      <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: 'var(--slate)' }}>
+        Agendadas por tu psicólogo/a. Si necesitas cambiar una, escríbele con anticipación.
+      </p>
+
+      {next && (
+        <div style={{
+          background: 'var(--teal-pale)', border: '2px solid var(--teal-light)',
+          borderRadius: 16, padding: '16px 20px', marginBottom: 14
+        }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--teal-dark)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+            ✨ Tu próxima cita
+          </div>
+          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--navy)', textTransform: 'capitalize' }}>
+            {fmtDate(next.date)} · {fmtTime(next.date)}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--slate)', marginTop: 2 }}>
+            {next.modality === 'online' ? '💻 En línea' : '🏢 Presencial'} · {next.durationMin} min · con {next.psychologistName}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[...upcoming.slice(1), ...past.slice().reverse().slice(0, 5)].map(a => {
+          const st = APPT_STATUS_LABEL[a.status] || APPT_STATUS_LABEL.programada
+          return (
+            <div key={a._id} style={{
+              display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+              padding: '10px 14px', background: 'var(--cream)',
+              border: '1px solid var(--border)', borderRadius: 12, fontSize: '0.85rem'
+            }}>
+              <span style={{ fontWeight: 700, color: 'var(--navy)', textTransform: 'capitalize' }}>
+                {fmtDate(a.date)} · {fmtTime(a.date)}
+              </span>
+              <span style={{ color: 'var(--slate)' }}>
+                {a.modality === 'online' ? '💻' : '🏢'} {a.psychologistName}
+              </span>
+              <span style={{
+                marginLeft: 'auto', padding: '2px 10px', borderRadius: 999,
+                background: st.bg, color: st.color, fontWeight: 800, fontSize: '0.75rem'
+              }}>
+                {st.text}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const MEDICAL_STATUS_LABEL = {
   validada:  { text: '✅ Validada por tu psicólogo/a', color: '#16a34a', bg: '#f0fdf4' },
   pendiente: { text: '⏳ Pendiente de validación', color: '#f59e0b', bg: '#fffbeb' },
@@ -255,14 +339,17 @@ export default function GoalsPage() {
   const [showForm, setShowForm] = useState(false)
   const [filter,   setFilter]   = useState('todas')
 
-  if (!user) return <Navigate to="/login" replace />
-
   useEffect(() => {
+    if (!user) return
     axios.get('/api/goals')
       .then(({ data }) => setGoals(data.goals))
       .catch(() => showError('No se pudo cargar los objetivos.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, []) // eslint-disable-line
+
+  // Importante: el return condicional va DESPUÉS de todos los hooks
+  // (las reglas de React exigen que los hooks se llamen siempre en el mismo orden)
+  if (!user) return <Navigate to="/login" replace />
 
   const handleAdd = async (e) => {
     e.preventDefault()
@@ -504,6 +591,9 @@ export default function GoalsPage() {
             </p>
           </div>
         )}
+
+        {/* Mis citas */}
+        <MyAppointmentsCard />
 
         {/* Ficha médica */}
         <MedicalRecordCard notifySuccess={success} notifyError={showError} />
