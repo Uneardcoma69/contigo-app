@@ -1,57 +1,46 @@
-# Contigo — Aquí Estoy 🌿
+# Contigo — Aquí Estoy
 
-App de apoyo emocional con IA. Chat empático, objetivos de bienestar, PWA instalable en iPhone.
+"No estás solo. Aquí estoy contigo."
 
-## 🚀 Deploy en Railway (paso a paso)
+Contigo — Aquí Estoy nació con una misión simple pero profunda: que nadie tenga que enfrentar sus momentos difíciles en silencio. En un mundo donde hablar de salud mental sigue siendo un tabú, Contigo abre un espacio seguro, sin juicios y disponible las 24 horas, donde cualquier persona puede expresarse libremente y recibir acompañamiento emocional real.
+Impulsada por inteligencia artificial y diseñada con empatía en cada detalle, Contigo no es solo una app — es un compañero digital que escucha, orienta y acompaña. Desde el seguimiento de metas personales hasta conversaciones de apoyo en tiempo real, cada funcionalidad fue pensada para poner el bienestar mental al alcance de todos.
 
-### 1. Sube el código a GitHub
-```bash
-git add .
-git commit -m "proyecto listo para deploy"
-git push origin main
-```
+# Características principales
 
-### 2. En Railway (railway.app)
-1. Crear nuevo proyecto → "Deploy from GitHub repo"
-2. Seleccionar tu repositorio `contigo-app`
-3. Railway detectará el `railway.toml` automáticamente ✅
+Chat de apoyo emocional — Conversaciones empáticas en tiempo real con IA
+Sistema de metas — Seguimiento de objetivos en 6 categorías de bienestar
+Autenticación segura — Registro e inicio de sesión con JWT
+PWA — Instalable en móvil y escritorio, funciona como app nativa
+Modo demo — Funciona sin clave de API activa
+Diseño responsive — Optimizado para iOS, Android y navegadores de escritorio
 
-### 3. Variables de entorno en Railway
-En el panel de Railway → Variables → Agregar:
 
-| Variable | Valor |
-|----------|-------|
-| `PORT` | `3000` |
-| `NODE_ENV` | `production` |
-| `JWT_SECRET` | Un texto secreto largo (mínimo 32 caracteres) |
-| `OPENAI_API_KEY` | Tu key de OpenAI (o dejar vacío para modo demo) |
+# 🛠 Stack tecnológico
+CapaTecnologíaFrontendReact + ViteBackendNode.js + ExpressIAOpenAI API AutenticaciónJWTAlmacenamientoEn memoria (RAM)DespliegueRender.com
 
-### 4. Deploy
-Railway construye y despliega automáticamente. En ~2 minutos tendrás tu URL pública.
+# Inicio rápido
+Prerrequisitos
 
----
+Node.js v18+
+npm
+Clave de API de Deepseek (opcional — modo demo disponible)
 
-## 🛠️ Desarrollo local
-
-```bash
-# Terminal 1 — Backend
+# Terminal (Correr programa)
+Backend
 cd backend
-npm install
-npm run dev    # → http://localhost:3000
+npm run dev
 
-# Terminal 2 — Frontend
+Frontend (en otra terminal)
 cd frontend
-npm install
-npm run dev    # → http://localhost:5173
-```
+npm run dev
 
-## 📱 PWA (instalar en iPhone)
-1. Abre la app en Safari
-2. Toca el botón compartir (cajita con flecha)
-3. "Añadir a pantalla de inicio"
+# Notas importantes
 
-## 🔑 Cómo obtener una API Key de OpenAI
-1. Ve a platform.openai.com
-2. Crea cuenta → API Keys → Create new secret key
-3. Pégala en Railway como `OPENAI_API_KEY`
-4. Sin key = modo demo (respuestas pre-escritas, gratis)
+El almacenamiento es en memoria (RAM) — los datos se pierden al reiniciar el servidor. Una futura versión incorporará base de datos persistente.
+
+# Contribuciones
+Este proyecto está en fase MVP. Si quieres colaborar o tienes sugerencias, abre un issue o contacta al autor.
+
+#  Licencia
+2025 Contigo — Aquí Estoy.
+Este código es privado y confidencial. Solo puede ser visto y modificado por miembros autorizados del equipo de desarrollo. Queda prohibida su copia, distribución o uso comercial sin permiso explícito del autor Uneard (Santiago Turriago Laverde).

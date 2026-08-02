@@ -14,14 +14,15 @@ export default function Header({ actions }) {
     <Link
       to={to}
       style={{
-        fontSize: '0.875rem',
-        fontWeight: 600,
+        fontSize: '0.95rem',
+        fontWeight: 700,
         color: location.pathname === to ? 'var(--teal-dark)' : 'var(--slate)',
         textDecoration: 'none',
-        padding: '5px 10px',
-        borderRadius: 8,
+        padding: '8px 16px',
+        borderRadius: 'var(--radius-pill)',
         background: location.pathname === to ? 'var(--teal-pale)' : 'transparent',
-        transition: 'all 0.15s'
+        border: location.pathname === to ? '1px solid var(--teal-light)' : '1px solid transparent',
+        transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
       }}
     >
       {label}
@@ -29,44 +30,72 @@ export default function Header({ actions }) {
   )
 
   return (
-    <header className="header">
+    <header className="header" style={{
+      margin: '16px auto',
+      maxWidth: '1200px',
+      borderRadius: 'var(--radius-pill)',
+      padding: '12px 24px',
+      border: '1px solid var(--border-light)',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      top: '16px',
+      boxShadow: 'var(--shadow-sm)'
+    }}>
       <Link to="/" className="header__brand">
         <img
           src="/contigo-bot.jpeg"
           alt="Contigo"
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 14,
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
             objectFit: 'cover',
-            border: '2px solid rgba(255,255,255,0.6)',
+            border: '3px solid var(--white)',
             boxShadow: 'var(--shadow-sm)',
             flexShrink: 0
           }}
+          onError={(e) => {
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
         />
+        <div style={{
+          display: 'none', width: 48, height: 48, borderRadius: '50%',
+          background: 'linear-gradient(135deg, var(--teal-light), var(--sage-light))',
+          border: '3px solid var(--white)', boxShadow: 'var(--shadow-sm)',
+          alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+          flexShrink: 0
+        }}>
+          🌱
+        </div>
         <div>
-          <div className="header__title" style={{ fontSize: '1.2rem', color: 'var(--navy)' }}>Contigo</div>
-          <div className="header__subtitle" style={{ fontSize: '0.75rem', color: 'var(--teal-dark)', fontWeight: 600 }}>Aquí Estoy</div>
+          <div className="header__title">Contigo</div>
+          <div className="header__subtitle" style={{ color: 'var(--teal-dark)' }}>Aquí Estoy</div>
         </div>
       </Link>
 
       <div className="header__actions">
         {user ? (
           <>
-            {navLink('/chat',  '💬 Chat')}
-            {navLink('/goals', '🎯 Objetivos')}
-            {actions}
-            <div className="header__user" style={{ marginLeft: 8, paddingLeft: 12, borderLeft: '1px solid var(--border)' }}>
-              <div className="header__avatar" style={{ boxShadow: 'var(--shadow-sm)' }}>{initials(user.name)}</div>
-              <span style={{ display: 'none' /* ocultar nombre en móviles para ahorrar espacio */ }} className="hide-on-mobile">{user.name.split(' ')[0]}</span>
+            <div style={{ display: 'flex', gap: '8px', marginRight: '8px' }}>
+              {!user.isStaff && navLink('/chat',  '💬 Chat')}
+              {!user.isStaff && navLink('/goals', '🎯 Metas')}
+              {user.isStaff && navLink('/staff', '🩺 Panel Staff')}
+              {user.isAdmin && navLink('/admin', '🛡️ Admin')}
             </div>
-            <button className="btn btn--ghost btn--sm" onClick={logout} title="Cerrar sesión">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            {actions}
+            <div className="header__user" style={{ paddingLeft: 16, borderLeft: '2px solid var(--border)', marginLeft: 8 }}>
+              <div className="header__avatar">{initials(user.name)}</div>
+              <span style={{ display: 'none' }} className="hide-on-mobile">{user.name.split(' ')[0]}</span>
+            </div>
+            <button className="btn btn--icon" onClick={logout} title="Cerrar sesión" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', marginLeft: '4px' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
           </>
         ) : (
           <>
-            <Link to="/login"    className="btn btn--outline btn--sm" style={{ background: 'var(--glass-bg)' }}>Iniciar sesión</Link>
+            <Link to="/login"    className="btn btn--outline btn--sm" style={{ border: 'none', background: 'transparent' }}>Iniciar sesión</Link>
             <Link to="/register" className="btn btn--primary btn--sm">Crear cuenta</Link>
           </>
         )}

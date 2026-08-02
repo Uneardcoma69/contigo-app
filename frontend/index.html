@@ -1,39 +1,21 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="Contigo — Aquí Estoy. Tu espacio seguro de apoyo emocional y bienestar mental." />
-    <meta name="theme-color" content="#4ecdc4" />
-    <title>Contigo — Aquí Estoy 🌿</title>
-
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-
-    <!-- iOS / iPhone -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Contigo" />
-    <link rel="apple-touch-icon" href="/contigo-bot.jpeg" />
-
-    <!-- Favicon emoji -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
-
-    <!-- Fuentes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    <!-- Registrar Service Worker (PWA) -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {})
-        })
-      }
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Contigo — Aquí Estoy | Bienestar emocional y salud mental</title>
+  <meta name="description" content="Centro de bienestar emocional y salud mental. Acompañamiento psicológico profesional, presencial y en línea, en un espacio seguro y confidencial." />
+  <meta name="theme-color" content="#4ecdc4" />
+  <meta property="og:title" content="Contigo — Aquí Estoy" />
+  <meta property="og:description" content="Acompañamiento psicológico profesional, presencial y en línea, en un espacio seguro y confidencial." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234ecdc4'/%3E%3Ccircle cx='26' cy='33' r='13' fill='%23fdfbf7' fill-opacity='.92'/%3E%3Ccircle cx='40' cy='30' r='13' fill='%237fb39f' fill-opacity='.85'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
 </html>

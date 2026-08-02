@@ -10,6 +10,10 @@ import { fileURLToPath } from 'url'
 import authRoutes  from './routes/auth.js'
 import chatRoutes  from './routes/chat.js'
 import goalsRoutes from './routes/goals.js'
+import adminRoutes from './routes/admin.js'
+import staffRoutes from './routes/staff.js'
+import bcrypt from 'bcryptjs'
+import { createUser, findUserByEmail } from './store.js'
 
 dotenv.config()
 
@@ -38,6 +42,9 @@ app.use(morgan(isDev ? 'dev' : 'combined'))
 app.use(express.json({ limit: '10kb' }))
 
 // ── Rate Limiting ──────────────────────────────────────────────
+// Solo protege login/register contra fuerza bruta.
+// Las rutas autenticadas (/me, /medical) NO se limitan aquí:
+// /me se llama en cada carga de página y agotaría el límite.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, max: 20,
   message: { message: 'Demasiados intentos. Espera 15 minutos.' }
@@ -48,9 +55,32 @@ const chatLimiter = rateLimit({
 })
 
 // ── Rutas API ──────────────────────────────────────────────────
-app.use('/api/auth',  authLimiter, authRoutes)
+app.use('/api/auth/login',    authLimiter)
+app.use('/api/auth/register', authLimiter)
+app.use('/api/auth',  authRoutes)
 app.use('/api/chat',  chatLimiter, chatRoutes)
 app.use('/api/goals', goalsRoutes)
+app.use('/api/admin', adminRoutes)
+app.use('/api/staff', staffRoutes)
+
+// ── Seed de cuentas demo (solo desarrollo, store en memoria) ───
+async function seedDemoAccounts() {
+  if (!isDev) return
+  const demo = [
+    { name: 'Admin Contigo',    email: 'admin@contigo.com',     password: 'admin123',   role: 'admin' },
+    { name: 'Laura Cifuentes',  email: 'psicologa@contigo.com', password: 'contigo123', role: 'psychologist' },
+    { name: 'Marco Monitor',    email: 'monitor@contigo.com',   password: 'contigo123', role: 'monitor' },
+  ]
+  for (const d of demo) {
+    if (!findUserByEmail(d.email)) {
+      const hash = await bcrypt.hash(d.password, 10)
+      createUser({ name: d.name, email: d.email, password: hash, role: d.role })
+    }
+  }
+  console.log('👥 Cuentas demo staff creadas:')
+  demo.forEach(d => console.log(`   ${d.role.padEnd(12)} → ${d.email} / ${d.password}`))
+}
+seedDemoAccounts()
 
 app.get('/api/health', (_req, res) => res.json({
   ok: true,

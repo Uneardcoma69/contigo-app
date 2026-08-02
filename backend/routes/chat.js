@@ -1,7 +1,8 @@
 import express from 'express'
 import fetch from 'node-fetch'
 import requireAuth from '../middleware/requireAuth.js'
-import { getHistory, addMessage, clearHistory } from '../store.js'
+import { getHistory, addMessage, clearHistory, findUserById, updateRiskLevel } from '../store.js'
+import { analyzeMessage, CRISIS_MESSAGE } from '../riskAnalyzer.js'
 
 const router = express.Router()
 
@@ -63,6 +64,20 @@ router.post('/', requireAuth, async (req, res) => {
   if (!message?.trim()) return res.status(400).json({ reply: 'Mensaje vacío.' })
   if (message.length > 1000) return res.status(400).json({ reply: 'Mensaje demasiado largo.' })
 
+  // ── Análisis de riesgo (se ejecuta SIEMPRE, demo o no) ──────
+  const risk = analyzeMessage(message.trim())
+  const currentUser = findUserById(req.userId)
+  if (currentUser) {
+    updateRiskLevel(req.userId, {
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      level: risk.level,
+      score: risk.score,
+      lastMessage: message.trim(),
+      triggerWords: risk.triggerWords
+    })
+  }
+
   // DEMO MODE (Solo si no hay NINGUNA key)
   if (!process.env.OPENAI_API_KEY && !process.env.DEEPSEEK_API_KEY) {
     const raw = DEMO_RESPONSES[demoIndex % DEMO_RESPONSES.length]
@@ -70,7 +85,14 @@ router.post('/', requireAuth, async (req, res) => {
     const { cleanText, suggestedGoals } = parseGoalsFromReply(raw)
     addMessage(req.userId, 'user', message.trim())
     addMessage(req.userId, 'assistant', cleanText)
-    return res.json({ reply: cleanText, suggestedGoals, demo: true })
+
+    // Si riesgo ALTO, agregar mensaje de crisis
+    if (risk.level === 'alto') {
+      addMessage(req.userId, 'assistant', CRISIS_MESSAGE)
+      return res.json({ reply: cleanText, suggestedGoals, demo: true, crisisAlert: CRISIS_MESSAGE, riskLevel: risk.level })
+    }
+
+    return res.json({ reply: cleanText, suggestedGoals, demo: true, riskLevel: risk.level })
   }
 
   // OPENAI / DEEPSEEK MODE
@@ -115,7 +137,13 @@ router.post('/', requireAuth, async (req, res) => {
     addMessage(req.userId, 'user', message.trim())
     addMessage(req.userId, 'assistant', cleanText)
 
-    return res.json({ reply: cleanText, suggestedGoals })
+    // Si riesgo ALTO, agregar mensaje de crisis
+    if (risk.level === 'alto') {
+      addMessage(req.userId, 'assistant', CRISIS_MESSAGE)
+      return res.json({ reply: cleanText, suggestedGoals, crisisAlert: CRISIS_MESSAGE, riskLevel: risk.level })
+    }
+
+    return res.json({ reply: cleanText, suggestedGoals, riskLevel: risk.level })
 
   } catch (e) {
     console.error('Chat error:', e)

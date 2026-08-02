@@ -1,8 +1,9 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { findUserByEmail, findUserById, createUser } from '../store.js'
+import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, STAFF_ROLES } from '../store.js'
 import requireAuth from '../middleware/requireAuth.js'
+import { effectiveRole } from '../middleware/requireRole.js'
 
 const router = express.Router()
 
@@ -11,7 +12,15 @@ function createToken(userId) {
 }
 
 function sanitize(user) {
-  return { id: user._id, name: user.name, email: user.email }
+  const role = effectiveRole(user)
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role,
+    isAdmin: role === 'admin',
+    isStaff: STAFF_ROLES.includes(role)
+  }
 }
 
 router.post('/register', async (req, res) => {
@@ -59,6 +68,31 @@ router.get('/me', requireAuth, (req, res) => {
   const user = findUserById(req.userId)
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
   return res.json({ user: sanitize(user) })
+})
+
+// ── Ficha médica del propio usuario ────────────────────────────
+// GET /api/auth/medical — ver mi ficha
+router.get('/medical', requireAuth, (req, res) => {
+  const record = getMedicalRecord(req.userId)
+  return res.json({ record })
+})
+
+// PUT /api/auth/medical — crear/actualizar mi ficha (queda pendiente de validación)
+router.put('/medical', requireAuth, (req, res) => {
+  const { edad, ocupacion, contactoEmergencia, telefonoEmergencia, condiciones, medicamentos, antecedentes, motivoConsulta } = req.body || {}
+  const info = {}
+  if (edad !== undefined) info.edad = String(edad).slice(0, 10)
+  if (ocupacion !== undefined) info.ocupacion = String(ocupacion).slice(0, 120)
+  if (contactoEmergencia !== undefined) info.contactoEmergencia = String(contactoEmergencia).slice(0, 120)
+  if (telefonoEmergencia !== undefined) info.telefonoEmergencia = String(telefonoEmergencia).slice(0, 30)
+  if (condiciones !== undefined) info.condiciones = String(condiciones).slice(0, 600)
+  if (medicamentos !== undefined) info.medicamentos = String(medicamentos).slice(0, 600)
+  if (antecedentes !== undefined) info.antecedentes = String(antecedentes).slice(0, 600)
+  if (motivoConsulta !== undefined) info.motivoConsulta = String(motivoConsulta).slice(0, 600)
+  if (Object.keys(info).length === 0)
+    return res.status(400).json({ message: 'No enviaste ningún campo válido.' })
+  const record = upsertMedicalRecord(req.userId, info)
+  return res.json({ record })
 })
 
 export default router

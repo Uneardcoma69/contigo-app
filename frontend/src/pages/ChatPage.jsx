@@ -177,6 +177,12 @@ export default function ChatPage() {
       const botId = Date.now() + 1
       setMessages(prev => [...prev, { id: botId, from: 'bot', text: data.reply, timestamp: new Date().toISOString() }])
       if (data.suggestedGoals?.length > 0) setGoalSuggestions(prev => ({ ...prev, [botId]: data.suggestedGoals }))
+
+      // Si hay alerta de crisis, mostrar mensaje urgente de ayuda
+      if (data.crisisAlert) {
+        const crisisId = Date.now() + 2
+        setMessages(prev => [...prev, { id: crisisId, from: 'bot', text: data.crisisAlert, timestamp: new Date().toISOString(), isCrisis: true }])
+      }
     } catch (err) {
       if (err?.response?.status === 401) { showError('Tu sesión expiró.'); setTimeout(logout, 1500); return }
       setMessages(prev => [...prev, { id: Date.now() + 1, from: 'bot', text: err?.response?.data?.reply || 'Hubo un problema. ¿Lo intentamos de nuevo?', timestamp: new Date().toISOString() }])
@@ -207,11 +213,24 @@ export default function ChatPage() {
   })
 
   return (
-    <div className="app-layout">
-      <Header actions={<button className="btn btn--ghost btn--sm" onClick={handleClearHistory} title="Borrar historial">🗑️</button>} />
+    <div className="app-layout" style={{ position: 'relative', overflow: 'hidden' }}>
+      
+      {/* Background Blobs for Chat */}
+      <div className="anim-float" style={{
+        position: 'fixed', top: '-10%', left: '-10%', width: '40vw', height: '40vw',
+        background: 'radial-gradient(circle, var(--teal-pale) 0%, transparent 70%)',
+        borderRadius: '50%', zIndex: 0, opacity: 0.6
+      }} />
+      <div className="anim-pulse" style={{
+        position: 'fixed', bottom: '-15%', right: '-5%', width: '50vw', height: '50vw',
+        background: 'radial-gradient(circle, var(--sage-light) 0%, transparent 60%)',
+        borderRadius: '50%', zIndex: 0, opacity: 0.3
+      }} />
+
+      <Header actions={<button className="btn btn--outline btn--sm" style={{ border: 'none', background: 'transparent', color: 'var(--slate)' }} onClick={handleClearHistory} title="Borrar historial">🗑️</button>} />
       <ToastContainer toasts={toasts} />
 
-      <div className="chat-wrapper">
+      <div className="chat-wrapper" style={{ position: 'relative', zIndex: 1 }}>
         <div className="chat-messages" role="log">
           {loadingHist ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
@@ -228,7 +247,9 @@ export default function ChatPage() {
                     <div className={`chat-bubble-row chat-bubble-row--${item.from}`}>
                       {item.from === 'bot' ? <BotAvatar /> : <UserInitials name={user?.name} />}
                       <div className="chat-bubble-wrap">
-                        <div className={`chat-bubble chat-bubble--${item.from}`}>{item.text}</div>
+                        <div className={`chat-bubble chat-bubble--${item.from}${item.isCrisis ? ' chat-bubble--crisis' : ''}`}
+                          style={item.isCrisis ? { whiteSpace: 'pre-line' } : undefined}
+                        >{item.text}</div>
                         <span className="chat-time">{formatTime(item.timestamp)}</span>
                       </div>
                     </div>
@@ -246,11 +267,11 @@ export default function ChatPage() {
 
         <div className="chat-input-area">
           {messages.length <= 2 && !typing && (
-            <div className="quick-replies">
+            <div className="quick-replies anim-float">
               {QUICK_REPLIES.map(q => <button key={q} className="quick-reply" onClick={() => send(q)}>{q}</button>)}
             </div>
           )}
-          <div className="chat-input-row">
+          <div className="chat-input-row" style={{ zIndex: 2 }}>
             <div className="chat-input-wrap">
               <textarea
                 ref={inputRef}
@@ -271,7 +292,7 @@ export default function ChatPage() {
             <button className="chat-send-btn" onClick={() => send()} disabled={!text.trim() || typing || loadingHist}>
               {typing
                 ? <span className="spinner" style={{ width: 18, height: 18 }} />
-                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
               }
             </button>
           </div>

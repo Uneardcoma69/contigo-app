@@ -19,6 +19,113 @@ function getCat(id) {
   return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]
 }
 
+const MEDICAL_STATUS_LABEL = {
+  validada:  { text: '✅ Validada por tu psicólogo/a', color: '#16a34a', bg: '#f0fdf4' },
+  pendiente: { text: '⏳ Pendiente de validación', color: '#f59e0b', bg: '#fffbeb' },
+  rechazada: { text: '❌ Requiere corrección', color: '#ef4444', bg: '#fef2f2' },
+}
+
+const MEDICAL_FIELDS = [
+  { key: 'edad',               label: 'Edad',                       type: 'text' },
+  { key: 'ocupacion',          label: 'Ocupación',                  type: 'text' },
+  { key: 'contactoEmergencia', label: 'Contacto de emergencia',     type: 'text' },
+  { key: 'telefonoEmergencia', label: 'Teléfono de emergencia',     type: 'text' },
+  { key: 'condiciones',        label: 'Condiciones de salud',       type: 'textarea' },
+  { key: 'medicamentos',       label: 'Medicamentos actuales',      type: 'textarea' },
+  { key: 'antecedentes',       label: 'Antecedentes relevantes',    type: 'textarea' },
+  { key: 'motivoConsulta',     label: 'Motivo de consulta',         type: 'textarea' },
+]
+
+// Ficha médica del paciente: se registra aquí y el staff la valida
+function MedicalRecordCard({ notifySuccess, notifyError }) {
+  const [record, setRecord] = useState(null)
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({})
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    axios.get('/api/auth/medical')
+      .then(({ data }) => {
+        setRecord(data.record)
+        if (data.record?.info) setForm(data.record.info)
+      })
+      .catch(() => {})
+  }, [])
+
+  const save = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const { data } = await axios.put('/api/auth/medical', form)
+      setRecord(data.record)
+      setOpen(false)
+      notifySuccess('Ficha guardada. Tu psicólogo/a la revisará pronto. 🏥')
+    } catch (err) {
+      notifyError(err?.response?.data?.message || 'Error al guardar la ficha.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const status = record ? (MEDICAL_STATUS_LABEL[record.validationStatus] || MEDICAL_STATUS_LABEL.pendiente) : null
+
+  return (
+    <div style={{
+      marginTop: 32, background: 'var(--white)', border: '1px solid var(--border)',
+      borderRadius: 'var(--radius-lg)', padding: 24, boxShadow: 'var(--shadow-sm)'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)' }}>🏥 Mi ficha médica</h2>
+          <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--slate)' }}>
+            Esta información ayuda a tu psicólogo/a a acompañarte mejor. Es privada y solo la ve el equipo clínico.
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {status && (
+            <span style={{ padding: '4px 12px', borderRadius: 999, background: status.bg, color: status.color, fontWeight: 800, fontSize: '0.78rem' }}>
+              {status.text}
+            </span>
+          )}
+          <button className="btn btn--outline btn--sm" onClick={() => setOpen(o => !o)}>
+            {open ? 'Cerrar' : record ? 'Editar' : 'Completar ficha'}
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <form onSubmit={save} style={{ marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+          {MEDICAL_FIELDS.map(f => (
+            <div key={f.key} style={f.type === 'textarea' ? { gridColumn: '1 / -1' } : undefined}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>{f.label}</label>
+              {f.type === 'textarea' ? (
+                <textarea
+                  className="form-input"
+                  style={{ padding: '10px 14px', fontSize: '0.9rem', minHeight: 70, resize: 'vertical' }}
+                  value={form[f.key] || ''}
+                  onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                />
+              ) : (
+                <input
+                  className="form-input"
+                  style={{ padding: '10px 14px', fontSize: '0.9rem' }}
+                  value={form[f.key] || ''}
+                  onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                />
+              )}
+            </div>
+          ))}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
+              {saving ? 'Guardando...' : 'Guardar ficha'}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  )
+}
+
 // Tarjeta de categoría con sus objetivos
 function CategoryCard({ cat, goals, onToggle, onDelete }) {
   const total = goals.length
@@ -211,11 +318,24 @@ export default function GoalsPage() {
   })).filter(x => x.goals.length > 0)
 
   return (
-    <div className="app-layout">
+    <div className="app-layout" style={{ position: 'relative', overflow: 'hidden' }}>
+      
+      {/* Background Blobs for Goals */}
+      <div className="anim-pulse" style={{
+        position: 'fixed', top: '-15%', left: '-10%', width: '50vw', height: '50vw',
+        background: 'radial-gradient(circle, var(--teal-pale) 0%, transparent 60%)',
+        borderRadius: '50%', zIndex: 0, opacity: 0.7
+      }} />
+      <div className="anim-float" style={{
+        position: 'fixed', bottom: '-10%', right: '-10%', width: '60vw', height: '60vw',
+        background: 'radial-gradient(circle, var(--sage-pale) 0%, transparent 70%)',
+        borderRadius: '50%', zIndex: 0, opacity: 0.8
+      }} />
+
       <Header />
       <ToastContainer toasts={toasts} />
 
-      <main style={{ maxWidth: 720, margin: '0 auto', padding: '28px 20px' }}>
+      <main style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px', position: 'relative', zIndex: 1 }}>
 
         {/* Título */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
@@ -235,9 +355,9 @@ export default function GoalsPage() {
         {/* Resumen general */}
         {total > 0 && (
           <div style={{
-            background: 'var(--white)', border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)', padding: '18px 20px',
-            marginBottom: 20, boxShadow: 'var(--shadow-sm)'
+            background: 'var(--white)', border: 'none',
+            borderRadius: 'var(--radius-xl)', padding: '24px 28px',
+            marginBottom: 24, boxShadow: 'var(--shadow-md)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
               <span style={{ fontWeight: 700, color: 'var(--navy)' }}>Progreso total</span>
@@ -261,12 +381,12 @@ export default function GoalsPage() {
 
         {/* Formulario */}
         {showForm && (
-          <form onSubmit={handleAdd} style={{
+          <form onSubmit={handleAdd} className="anim-bubbleIn" style={{
             background: 'var(--white)',
-            border: '1.5px solid var(--teal-light)',
-            borderRadius: 'var(--radius-lg)',
-            padding: 20, marginBottom: 20,
-            boxShadow: 'var(--shadow-sm)'
+            border: '2px solid var(--teal-light)',
+            borderRadius: 'var(--radius-xl)',
+            padding: 28, marginBottom: 28,
+            boxShadow: 'var(--shadow-md)'
           }}>
             <div className="form-group" style={{ marginBottom: 14 }}>
               <label className="form-label">¿Cuál es tu objetivo?</label>
@@ -335,9 +455,9 @@ export default function GoalsPage() {
           </div>
         ) : byCat.length === 0 ? (
           <div style={{
-            textAlign: 'center', padding: '56px 20px',
-            background: 'var(--white)', borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border)'
+            textAlign: 'center', padding: '64px 24px',
+            background: 'var(--white)', borderRadius: 'var(--radius-xl)',
+            border: 'none', boxShadow: 'var(--shadow-md)'
           }}>
             <div style={{ fontSize: '3rem', marginBottom: 14 }}>🌱</div>
             <p style={{ fontWeight: 700, color: 'var(--navy)', fontSize: '1rem', margin: '0 0 6px' }}>
@@ -370,10 +490,10 @@ export default function GoalsPage() {
 
         {/* Celebración */}
         {total > 0 && done === total && (
-          <div style={{
-            marginTop: 24, textAlign: 'center', padding: '24px',
-            background: 'var(--teal-pale)', borderRadius: 'var(--radius-lg)',
-            border: '1.5px solid var(--teal-light)'
+          <div className="anim-pulse" style={{
+            marginTop: 32, textAlign: 'center', padding: '32px',
+            background: 'var(--teal-pale)', borderRadius: 'var(--radius-xl)',
+            border: '2px solid var(--teal-light)'
           }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🎉</div>
             <p style={{ fontWeight: 800, color: 'var(--teal-dark)', margin: '0 0 4px', fontSize: '1.1rem' }}>
@@ -384,6 +504,9 @@ export default function GoalsPage() {
             </p>
           </div>
         )}
+
+        {/* Ficha médica */}
+        <MedicalRecordCard notifySuccess={success} notifyError={showError} />
       </main>
     </div>
   )

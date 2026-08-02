@@ -25,7 +25,7 @@ export default function AuthForm({ mode = 'login', onSuccess, onError }) {
           password: form.password
         })
         login(data.token, data.user)
-        onSuccess?.()
+        onSuccess?.(data.user)
       } else {
         const { data } = await axios.post('/api/auth/register', {
           name: form.name.trim(),
@@ -34,7 +34,7 @@ export default function AuthForm({ mode = 'login', onSuccess, onError }) {
         })
         // Auto-login after register
         login(data.token, data.user)
-        onSuccess?.()
+        onSuccess?.(data.user)
       }
     } catch (err) {
       const msg = err?.response?.data?.message || 'Algo salió mal. Inténtalo de nuevo.'
