@@ -128,12 +128,12 @@ export default function Home() {
             <a href="#equipo">Equipo</a>
             <a href="#historias">Historias</a>
             <a href="#preguntas">Preguntas</a>
-            <Link to="/login">Iniciar sesión</Link>
-            <Link className="lp-btn lp-btn-primary nav-cta" to="/register">Crear cuenta</Link>
+            <Link className="nav-auth" to="/login">Iniciar sesión</Link>
+            <Link className="lp-btn lp-btn-primary nav-cta nav-auth" to="/register">Crear cuenta</Link>
           </nav>
 
-          <div className="header-cta" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-            <Link to="/login" style={{ fontSize: '0.94rem', fontWeight: 500, color: 'var(--navy-light)' }}>Iniciar sesión</Link>
+          <div className="header-cta">
+            <Link className="header-cta-login" to="/login">Iniciar sesión</Link>
             <Link className="lp-btn lp-btn-primary nav-cta" to="/register">Crear cuenta</Link>
           </div>
 

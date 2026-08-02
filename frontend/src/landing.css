@@ -203,6 +203,23 @@
 
 .landing .nav-cta { padding: 0.75rem 1.35rem; font-size: 0.9rem; }
 
+/* En escritorio, los accesos de cuenta van en .header-cta (derecha);
+   los .nav-auth del menú solo aparecen en el menú móvil */
+.landing .site-nav .nav-auth { display: none; }
+
+.landing .header-cta {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.landing .header-cta-login {
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: var(--navy-light);
+}
+.landing .header-cta-login:hover { color: var(--navy); text-decoration: none; }
+.landing .header-cta .nav-cta { margin-top: 0; }
+
 .landing .nav-toggle {
   display: none;
   flex-direction: column;
@@ -797,6 +814,8 @@
     font-size: 1rem;
   }
   .landing .site-nav a:not(.lp-btn)::after { display: none; }
+  .landing .site-nav .nav-auth { display: block; }
+  .landing .site-nav a.nav-cta.nav-auth { display: inline-flex; }
   .landing .nav-cta { margin-top: 1.15rem; }
   .landing .nav-toggle { display: flex; }
   .landing .header-cta { display: none; }

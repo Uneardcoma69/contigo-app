@@ -63,9 +63,11 @@ app.use('/api/goals', goalsRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/staff', staffRoutes)
 
-// ── Seed de cuentas demo (solo desarrollo, store en memoria) ───
+// ── Seed de cuentas demo ───────────────────────────────────────
+// En desarrollo siempre; en la app de escritorio via CONTIGO_SEED_DEMO.
+// Es idempotente: si las cuentas ya existen (datos persistidos), no hace nada.
 async function seedDemoAccounts() {
-  if (!isDev) return
+  if (!isDev && process.env.CONTIGO_SEED_DEMO !== 'true') return
   const demo = [
     { name: 'Admin Contigo',    email: 'admin@contigo.com',     password: 'admin123',   role: 'admin' },
     { name: 'Laura Cifuentes',  email: 'psicologa@contigo.com', password: 'contigo123', role: 'psychologist' },
@@ -116,7 +118,9 @@ app.use((err, _req, res, _next) => {
 
 app.listen(PORT, () => {
   console.log(`\n🚀 Contigo Backend → http://localhost:${PORT}`)
-  console.log(`💾 Storage: Memoria RAM (sin base de datos)`)
+  console.log(process.env.CONTIGO_DATA_DIR
+    ? `💾 Storage: Archivo JSON persistente (${process.env.CONTIGO_DATA_DIR})`
+    : `💾 Storage: Memoria RAM (sin base de datos)`)
   console.log(`🧪 Modo: ${process.env.DEEPSEEK_API_KEY ? 'DeepSeek activo 🐳' : process.env.OPENAI_API_KEY ? 'OpenAI activo ✅' : 'DEMO (sin API key)'}`)
   console.log(`🌐 Frontend: ${frontendDist}\n`)
 })

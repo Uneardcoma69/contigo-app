@@ -1,8 +1,11 @@
 // ─── In-Memory Store (reemplaza MongoDB) ─────────────────────
-// Los datos se pierden al reiniciar el servidor.
-// Perfecto para desarrollo y pruebas sin base de datos.
+// Por defecto los datos viven en memoria y se pierden al reiniciar.
+// Si CONTIGO_DATA_DIR está definido (app de escritorio), los datos
+// se guardan automáticamente en un archivo JSON y sobreviven reinicios.
 
 import { randomUUID } from 'crypto'
+import fs from 'fs'
+import path from 'path'
 
 const users          = new Map()  // Map<id, user>
 const conversations  = new Map()  // Map<userId, message[]>
@@ -12,12 +15,67 @@ const medicalRecords = new Map()  // Map<userId, medicalRecord>
 const progressNotes  = new Map()  // Map<patientId, note[]>
 const appointments   = new Map()  // Map<id, appointment>
 
+// ── Persistencia opcional a archivo JSON ───────────────────────
+const DATA_DIR  = process.env.CONTIGO_DATA_DIR || null
+const DATA_FILE = DATA_DIR ? path.join(DATA_DIR, 'contigo-data.json') : null
+const ALL_MAPS  = { users, conversations, goals, riskAlerts, medicalRecords, progressNotes, appointments }
+let lastSnapshot = ''
+
+function serialize() {
+  const dump = {}
+  for (const [name, map] of Object.entries(ALL_MAPS)) {
+    dump[name] = Array.from(map.entries())
+  }
+  return JSON.stringify(dump)
+}
+
+function saveToDisk() {
+  if (!DATA_FILE) return
+  try {
+    const snapshot = serialize()
+    if (snapshot === lastSnapshot) return   // sin cambios
+    fs.mkdirSync(DATA_DIR, { recursive: true })
+    // Escritura atómica: primero a .tmp y luego renombrar
+    const tmp = DATA_FILE + '.tmp'
+    fs.writeFileSync(tmp, snapshot)
+    fs.renameSync(tmp, DATA_FILE)
+    lastSnapshot = snapshot
+  } catch (e) {
+    console.error('⚠️ Error guardando datos:', e.message)
+  }
+}
+
+function loadFromDisk() {
+  if (!DATA_FILE || !fs.existsSync(DATA_FILE)) return
+  try {
+    const dump = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))
+    for (const [name, map] of Object.entries(ALL_MAPS)) {
+      for (const [k, v] of dump[name] || []) map.set(k, v)
+    }
+    lastSnapshot = serialize()
+    console.log(`💾 Datos cargados desde ${DATA_FILE} (${users.size} usuarios)`)
+  } catch (e) {
+    console.error('⚠️ Error cargando datos guardados:', e.message)
+  }
+}
+
+if (DATA_FILE) {
+  loadFromDisk()
+  // Guardado periódico (solo escribe si hubo cambios) + al salir
+  const interval = setInterval(saveToDisk, 3000)
+  interval.unref?.()
+  process.on('exit', saveToDisk)
+  process.on('SIGINT', () => { saveToDisk(); process.exit(0) })
+  process.on('SIGTERM', () => { saveToDisk(); process.exit(0) })
+}
+
 // Roles válidos: 'user' | 'monitor' | 'psychologist' | 'admin'
 export const ROLES = ['user', 'monitor', 'psychologist', 'admin']
 export const STAFF_ROLES = ['monitor', 'psychologist', 'admin']
 
 // ── Usuarios ───────────────────────────────────────────────────
 export function findUserByEmail(email) {
+  if (!email || typeof email !== 'string') return null
   for (const u of users.values()) {
     if (u.email === email.toLowerCase()) return u
   }
