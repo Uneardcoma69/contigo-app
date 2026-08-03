@@ -14,7 +14,7 @@ import adminRoutes from './routes/admin.js'
 import staffRoutes from './routes/staff.js'
 import contactRoutes from './routes/contact.js'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail, setUserPassword } from './store.js'
+import { createUser, findUserByEmail, setUserPassword, getStorageStatus } from './store.js'
 
 dotenv.config()
 
@@ -109,12 +109,16 @@ async function seedDemoAccounts() {
 }
 seedDemoAccounts()
 
-app.get('/api/health', (_req, res) => res.json({
-  ok: true,
-  storage: 'memory',
-  mode: process.env.DEEPSEEK_API_KEY ? 'deepseek' : process.env.OPENAI_API_KEY ? 'openai' : 'demo',
-  timestamp: new Date().toISOString()
-}))
+app.get('/api/health', (_req, res) => {
+  const almacen = getStorageStatus()
+  return res.json({
+    ok: !almacen.bloqueado,
+    storage: !almacen.persistente ? 'memory' : almacen.cifrado ? 'file-encrypted' : 'file',
+    storageBlocked: almacen.bloqueado,
+    mode: process.env.DEEPSEEK_API_KEY ? 'deepseek' : process.env.OPENAI_API_KEY ? 'openai' : 'demo',
+    timestamp: new Date().toISOString()
+  })
+})
 
 // ── Frontend estático (CRÍTICO para Railway) ───────────────────
 const frontendDist = path.join(__dirname, '..', 'frontend', 'dist')
