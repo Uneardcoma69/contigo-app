@@ -4,8 +4,9 @@ import requireAdmin from '../middleware/requireAdmin.js'
 import {
   getAllUsers, getAllRiskProfiles, getRiskProfile, getHistory, findUserById,
   findUserByEmail, createUser, setUserRole, assignPatient, getStaffMembers,
-  ROLES, STAFF_ROLES
+  getContactMessages, ROLES, STAFF_ROLES
 } from '../store.js'
+import { isDesktop, updateConfig } from '../desktopConfig.js'
 
 const router = express.Router()
 
@@ -77,6 +78,57 @@ router.get('/user/:id', requireAdmin, (req, res) => {
     user: { _id: user._id, name: user.name, email: user.email, createdAt: user.createdAt },
     risk: riskProfile || { level: 'sin_datos', score: 0, alerts: [], triggerWords: [] },
     recentMessages: chatHistory
+  })
+})
+
+// GET /api/admin/contact-messages — bandeja del formulario público
+router.get('/contact-messages', requireAdmin, (_req, res) => {
+  return res.json({ messages: getContactMessages() })
+})
+
+// ── Ajustes de la aplicación ───────────────────────────────────
+function currentProvider() {
+  if (process.env.DEEPSEEK_API_KEY) return 'deepseek'
+  if (process.env.OPENAI_API_KEY) return 'openai'
+  return 'demo'
+}
+
+// GET /api/admin/settings — estado de la IA (nunca devuelve la clave)
+router.get('/settings', requireAdmin, (_req, res) => {
+  const key = process.env.DEEPSEEK_API_KEY || ''
+  return res.json({
+    provider: currentProvider(),
+    aiConfigured: !!key,
+    keyPreview: key ? `${key.slice(0, 6)}…${key.slice(-4)}` : '',
+    canEdit: isDesktop()
+  })
+})
+
+// PUT /api/admin/settings — guardar/borrar la clave de IA
+router.put('/settings', requireAdmin, (req, res) => {
+  if (!isDesktop())
+    return res.status(400).json({ message: 'La configuración solo puede editarse desde la app de escritorio.' })
+
+  const { deepseekApiKey } = req.body || {}
+  if (typeof deepseekApiKey !== 'string')
+    return res.status(400).json({ message: 'Clave inválida.' })
+
+  const key = deepseekApiKey.trim()
+  if (key && key.length > 200)
+    return res.status(400).json({ message: 'La clave es demasiado larga.' })
+
+  if (!updateConfig({ deepseekApiKey: key }))
+    return res.status(500).json({ message: 'No se pudo guardar la configuración.' })
+
+  // Aplicar de inmediato, sin reiniciar la app
+  if (key) process.env.DEEPSEEK_API_KEY = key
+  else delete process.env.DEEPSEEK_API_KEY
+
+  return res.json({
+    provider: currentProvider(),
+    aiConfigured: !!key,
+    keyPreview: key ? `${key.slice(0, 6)}…${key.slice(-4)}` : '',
+    canEdit: true
   })
 })
 

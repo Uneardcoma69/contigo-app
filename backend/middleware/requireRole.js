@@ -54,3 +54,10 @@ export default function requireRole(...allowedRoles) {
 
 /** Staff = monitor, psicólogo o admin */
 export const requireStaff = requireRole('monitor', 'psychologist', 'admin')
+
+/**
+ * Acciones clínicas: validar fichas médicas y gestionar citas.
+ * El monitor es un rol de observación (ve pacientes, chats, alertas y
+ * puede dejar notas), pero no toma decisiones clínicas.
+ */
+export const requireClinician = requireRole('psychologist', 'admin')

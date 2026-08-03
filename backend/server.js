@@ -12,6 +12,7 @@ import chatRoutes  from './routes/chat.js'
 import goalsRoutes from './routes/goals.js'
 import adminRoutes from './routes/admin.js'
 import staffRoutes from './routes/staff.js'
+import contactRoutes from './routes/contact.js'
 import bcrypt from 'bcryptjs'
 import { createUser, findUserByEmail, setUserPassword } from './store.js'
 
@@ -53,6 +54,11 @@ const chatLimiter = rateLimit({
   windowMs: 60 * 1000, max: 30,
   message: { message: 'Enviaste muchos mensajes. Toma un respiro 🌿' }
 })
+// Formulario público: evita spam desde la landing
+const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 10,
+  message: { message: 'Recibimos varios mensajes tuyos. Intenta de nuevo más tarde.' }
+})
 
 // ── Rutas API ──────────────────────────────────────────────────
 app.use('/api/auth/login',    authLimiter)
@@ -62,6 +68,7 @@ app.use('/api/chat',  chatLimiter, chatRoutes)
 app.use('/api/goals', goalsRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/staff', staffRoutes)
+app.use('/api/contact', contactLimiter, contactRoutes)
 
 // ── Seed de cuentas ────────────────────────────────────────────
 // Desarrollo: 3 cuentas demo con contraseñas fijas.

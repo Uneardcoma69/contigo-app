@@ -730,6 +730,11 @@
   font-size: 0.92rem;
   font-weight: 500;
 }
+.landing .form-status--error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
 
 /* ---------- Footer ---------- */
 .landing .site-footer { background: var(--white); border-top: 1px solid var(--line); }

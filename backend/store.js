@@ -7,18 +7,19 @@ import { randomUUID } from 'crypto'
 import fs from 'fs'
 import path from 'path'
 
-const users          = new Map()  // Map<id, user>
-const conversations  = new Map()  // Map<userId, message[]>
-const goals          = new Map()  // Map<userId, goal[]>
-const riskAlerts     = new Map()  // Map<userId, riskProfile>
-const medicalRecords = new Map()  // Map<userId, medicalRecord>
-const progressNotes  = new Map()  // Map<patientId, note[]>
-const appointments   = new Map()  // Map<id, appointment>
+const users           = new Map()  // Map<id, user>
+const conversations   = new Map()  // Map<userId, message[]>
+const goals           = new Map()  // Map<userId, goal[]>
+const riskAlerts      = new Map()  // Map<userId, riskProfile>
+const medicalRecords  = new Map()  // Map<userId, medicalRecord>
+const progressNotes   = new Map()  // Map<patientId, note[]>
+const appointments    = new Map()  // Map<id, appointment>
+const contactMessages = new Map()  // Map<id, mensaje del formulario público>
 
 // ── Persistencia opcional a archivo JSON ───────────────────────
 const DATA_DIR  = process.env.CONTIGO_DATA_DIR || null
 const DATA_FILE = DATA_DIR ? path.join(DATA_DIR, 'contigo-data.json') : null
-const ALL_MAPS  = { users, conversations, goals, riskAlerts, medicalRecords, progressNotes, appointments }
+const ALL_MAPS  = { users, conversations, goals, riskAlerts, medicalRecords, progressNotes, appointments, contactMessages }
 let lastSnapshot = ''
 
 function serialize() {
@@ -362,4 +363,30 @@ export function updateAppointment(id, changes) {
 
 export function deleteAppointment(id) {
   return appointments.delete(id)
+}
+
+// ── Mensajes del formulario de contacto (landing) ──────────────
+export function createContactMessage({ nombre, correo, telefono, motivo, mensaje }) {
+  const id = randomUUID()
+  const msg = {
+    _id: id,
+    nombre: String(nombre).trim().slice(0, 120),
+    correo: String(correo).trim().toLowerCase().slice(0, 160),
+    telefono: telefono ? String(telefono).trim().slice(0, 30) : '',
+    motivo: motivo ? String(motivo).trim().slice(0, 80) : '',
+    mensaje: String(mensaje).trim().slice(0, 2000),
+    createdAt: new Date()
+  }
+  contactMessages.set(id, msg)
+  // Conservar solo los últimos 500 mensajes
+  if (contactMessages.size > 500) {
+    const oldest = contactMessages.keys().next().value
+    contactMessages.delete(oldest)
+  }
+  return msg
+}
+
+export function getContactMessages() {
+  return Array.from(contactMessages.values())
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }

@@ -1,5 +1,5 @@
 import express from 'express'
-import { requireStaff } from '../middleware/requireRole.js'
+import { requireStaff, requireClinician } from '../middleware/requireRole.js'
 import {
   findUserById, getPatients, getPatientsOf, getStaffMembers,
   getHistory, getGoals, getRiskProfile,
@@ -106,7 +106,8 @@ router.post('/patients/:id/notes', (req, res) => {
 })
 
 // ── PUT /api/staff/patients/:id/medical/validate ───────────────
-router.put('/patients/:id/medical/validate', (req, res) => {
+// Solo psicólogos y admin: validar una ficha es criterio clínico.
+router.put('/patients/:id/medical/validate', requireClinician, (req, res) => {
   const patient = findUserById(req.params.id)
   if (!patient || patient.role !== 'user')
     return res.status(404).json({ message: 'Paciente no encontrado.' })
@@ -145,8 +146,8 @@ router.get('/appointments', (req, res) => {
   return res.json({ appointments: sorted })
 })
 
-// POST /api/staff/appointments — crear cita
-router.post('/appointments', (req, res) => {
+// POST /api/staff/appointments — crear cita (solo psicólogos y admin)
+router.post('/appointments', requireClinician, (req, res) => {
   const { patientId, date, durationMin, modality, notes, psychologistId } = req.body || {}
   if (!patientId || !date)
     return res.status(400).json({ message: 'Paciente y fecha son requeridos.' })
@@ -182,7 +183,7 @@ router.post('/appointments', (req, res) => {
 })
 
 // PUT /api/staff/appointments/:id — editar/cambiar estado
-router.put('/appointments/:id', (req, res) => {
+router.put('/appointments/:id', requireClinician, (req, res) => {
   const appt = getAppointmentById(req.params.id)
   if (!appt) return res.status(404).json({ message: 'Cita no encontrada.' })
   if (req.userRole !== 'admin' && appt.psychologistId !== req.userId)
@@ -194,7 +195,7 @@ router.put('/appointments/:id', (req, res) => {
 })
 
 // DELETE /api/staff/appointments/:id
-router.delete('/appointments/:id', (req, res) => {
+router.delete('/appointments/:id', requireClinician, (req, res) => {
   const appt = getAppointmentById(req.params.id)
   if (!appt) return res.status(404).json({ message: 'Cita no encontrada.' })
   if (req.userRole !== 'admin' && appt.psychologistId !== req.userId)

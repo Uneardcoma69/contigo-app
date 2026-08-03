@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import '../landing.css'
 
@@ -57,6 +58,8 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const [formSent, setFormSent] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [sending, setSending] = useState(false)
   const rootRef = useRef(null)
   const statusRef = useRef(null)
 
@@ -101,18 +104,36 @@ export default function Home() {
   if (loading) return null
   if (user) return <Navigate to={user.isAdmin ? '/admin' : user.isStaff ? '/staff' : '/chat'} replace />
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const form = e.target
     if (!form.checkValidity()) {
       form.reportValidity()
       return
     }
-    form.reset()
-    setFormSent(true)
-    requestAnimationFrame(() => {
-      statusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    })
+
+    const datos = new FormData(form)
+    setSending(true)
+    setFormError('')
+    try {
+      await axios.post('/api/contact', {
+        nombre: datos.get('nombre'),
+        correo: datos.get('correo'),
+        telefono: datos.get('telefono'),
+        motivo: datos.get('motivo'),
+        mensaje: datos.get('mensaje'),
+        privacidad: datos.get('privacidad') === 'on'
+      })
+      form.reset()
+      setFormSent(true)
+      requestAnimationFrame(() => {
+        statusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+    } catch (err) {
+      setFormError(err?.response?.data?.message || 'No pudimos enviar tu mensaje. Inténtalo de nuevo en un momento.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -439,15 +460,21 @@ export default function Home() {
 
               <div className="field-consent">
                 <input id="f-privacidad" name="privacidad" type="checkbox" required />
-                <label htmlFor="f-privacidad">He leído y acepto la <a href="#contacto">política de tratamiento de datos personales</a>. Mi información será utilizada únicamente para responder esta solicitud.</label>
+                <label htmlFor="f-privacidad">He leído y acepto la <Link to="/legal/datos">política de tratamiento de datos personales</Link>. Mi información será utilizada únicamente para responder esta solicitud.</label>
               </div>
 
-              <button className="lp-btn lp-btn-primary" type="submit">Enviar mensaje</button>
+              <button className="lp-btn lp-btn-primary" type="submit" disabled={sending}>
+                {sending ? 'Enviando…' : 'Enviar mensaje'}
+              </button>
 
               {formSent && (
                 <p ref={statusRef} className="form-status" role="status">
                   Gracias por escribirnos. Recibimos tu mensaje y te responderemos en menos de 24 horas hábiles.
                 </p>
+              )}
+
+              {formError && (
+                <p className="form-status form-status--error" role="alert">{formError}</p>
               )}
             </form>
           </div>
@@ -482,11 +509,14 @@ export default function Home() {
             </ul>
           </nav>
 
-          <nav className="footer-col" aria-label="Cuenta">
+          <nav className="footer-col" aria-label="Cuenta y legal">
             <h3>Tu cuenta</h3>
             <ul>
               <li><Link to="/login">Iniciar sesión</Link></li>
               <li><Link to="/register">Crear cuenta</Link></li>
+              <li><Link to="/legal/privacidad">Política de privacidad</Link></li>
+              <li><Link to="/legal/datos">Tratamiento de datos</Link></li>
+              <li><Link to="/legal/terminos">Términos de uso</Link></li>
             </ul>
           </nav>
         </div>

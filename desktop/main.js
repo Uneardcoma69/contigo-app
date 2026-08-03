@@ -56,7 +56,11 @@ function loadConfig() {
 function markAdminPasswordShown(cfg) {
   cfg.adminPasswordShown = true
   const file = path.join(app.getPath('userData'), 'config.json')
-  fs.writeFileSync(file, JSON.stringify(cfg, null, 2))
+  // Releer antes de escribir: el backend puede haber guardado la API key
+  // desde la pantalla de Ajustes mientras el diálogo estaba abierto.
+  let onDisk = {}
+  try { onDisk = JSON.parse(fs.readFileSync(file, 'utf8')) } catch { /* ignorar */ }
+  fs.writeFileSync(file, JSON.stringify({ ...onDisk, adminPasswordShown: true }, null, 2))
 }
 
 // ── Puerto libre para el servidor local ────────────────────────

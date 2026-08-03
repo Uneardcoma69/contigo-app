@@ -10,6 +10,7 @@ import ChatPage  from './pages/ChatPage.jsx'
 import GoalsPage from './pages/GoalsPage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import StaffPage from './pages/StaffPage.jsx'
+import LegalPage from './pages/LegalPage.jsx'
 import './index.css'
 
 function Loading() {
@@ -55,6 +56,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/"         element={<Home />} />
           <Route path="/login"    element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/legal"          element={<LegalPage />} />
+          <Route path="/legal/:seccion" element={<LegalPage />} />
           <Route path="/chat"     element={<RequireAuth><ChatPage /></RequireAuth>} />
           <Route path="/goals"    element={<RequireAuth><GoalsPage /></RequireAuth>} />
           <Route path="/staff"    element={<RequireStaff><StaffPage /></RequireStaff>} />

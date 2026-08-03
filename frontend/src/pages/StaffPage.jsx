@@ -52,7 +52,7 @@ function SectionCard({ title, children, right }) {
 }
 
 /* ═══════════ Detalle de paciente (expediente) ═══════════ */
-function PatientDetail({ patientId, onClose, notify }) {
+function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [noteText, setNoteText] = useState('')
@@ -257,10 +257,16 @@ function PatientDetail({ patientId, onClose, notify }) {
                         </div>
                       ))}
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button className="btn btn--secondary btn--sm" onClick={() => validateMedical('validada')}>✅ Validar</button>
-                      <button className="btn btn--outline btn--sm" onClick={() => validateMedical('rechazada')} style={{ color: '#b91c1c' }}>❌ Rechazar</button>
-                    </div>
+                    {canManageClinical ? (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="btn btn--secondary btn--sm" onClick={() => validateMedical('validada')}>✅ Validar</button>
+                        <button className="btn btn--outline btn--sm" onClick={() => validateMedical('rechazada')} style={{ color: '#b91c1c' }}>❌ Rechazar</button>
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: '0.82rem', color: 'var(--slate)', margin: 0 }}>
+                        🔒 Solo un psicólogo/a puede validar la ficha médica.
+                      </p>
+                    )}
                   </>
                 )}
               </div>
@@ -307,7 +313,7 @@ const APPT_STATUS = {
   cancelada:  { label: 'Cancelada',  color: '#94a3b8', bg: '#f8fafc' },
 }
 
-function CalendarTab({ patients, isAdmin, notify }) {
+function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
   const [appointments, setAppointments] = useState([])
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [showForm, setShowForm] = useState(false)
@@ -398,11 +404,18 @@ function CalendarTab({ patients, isAdmin, notify }) {
           <button className="btn btn--outline btn--sm" onClick={() => moveWeek(-1)}>← Anterior</button>
           <button className="btn btn--outline btn--sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Hoy</button>
           <button className="btn btn--outline btn--sm" onClick={() => moveWeek(1)}>Siguiente →</button>
-          <button className="btn btn--primary btn--sm" onClick={() => setShowForm(s => !s)}>{showForm ? 'Cerrar' : '+ Nueva cita'}</button>
+          {canManageClinical && (
+            <button className="btn btn--primary btn--sm" onClick={() => setShowForm(s => !s)}>{showForm ? 'Cerrar' : '+ Nueva cita'}</button>
+          )}
         </div>
       }
     >
-      {showForm && (
+      {!canManageClinical && (
+        <p style={{ fontSize: '0.85rem', color: 'var(--slate)', marginTop: 0, marginBottom: 16 }}>
+          🔒 Vista de solo lectura. La gestión de citas la realiza el psicólogo/a asignado.
+        </p>
+      )}
+      {showForm && canManageClinical && (
         <form onSubmit={createAppt} style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10,
           background: 'var(--sage-pale)', padding: 16, borderRadius: 14, marginBottom: 18, alignItems: 'end'
@@ -477,7 +490,7 @@ function CalendarTab({ patients, isAdmin, notify }) {
                       <div style={{ fontWeight: 800, color: st.color }}>{time} · {a.durationMin}min</div>
                       <div style={{ fontWeight: 700, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.patientName}</div>
                       <div style={{ color: 'var(--slate)' }}>{a.modality === 'online' ? '💻' : '🏢'} {st.label}</div>
-                      {a.status === 'programada' && (
+                      {a.status === 'programada' && canManageClinical && (
                         <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
                           <button title="Completada" onClick={() => setStatus(a, 'completada')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}>✅</button>
                           <button title="Cancelar" onClick={() => setStatus(a, 'cancelada')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}>🚫</button>
@@ -689,6 +702,165 @@ function TeamTab({ notify, onChanged }) {
   )
 }
 
+/* ═══════════ Mensajes de contacto (solo admin) ═══════════ */
+function MessagesTab({ notify }) {
+  const [messages, setMessages] = useState([])
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(() => {
+    axios.get('/api/admin/contact-messages')
+      .then(({ data }) => setMessages(data.messages))
+      .catch(() => notify.error('Error al cargar los mensajes.'))
+      .finally(() => setLoaded(true))
+  }, [notify])
+
+  useEffect(() => { load() }, [load])
+
+  return (
+    <SectionCard
+      title={`📨 Mensajes de contacto (${messages.length})`}
+      right={<button className="btn btn--outline btn--sm" onClick={load}>🔄 Refrescar</button>}
+    >
+      {!loaded ? (
+        <p style={{ color: 'var(--slate)' }}>Cargando...</p>
+      ) : messages.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 32, color: 'var(--slate)' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>📭</div>
+          <p style={{ fontWeight: 700 }}>Aún no hay mensajes del formulario de contacto.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {messages.map(m => (
+            <div key={m._id} style={{
+              background: 'var(--cream)', border: '1px solid var(--border)',
+              borderRadius: 14, padding: '14px 18px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+                <div>
+                  <span style={{ fontWeight: 800, color: 'var(--navy)' }}>{m.nombre}</span>
+                  <span style={{ color: 'var(--slate)', fontSize: '0.85rem' }}> · {m.correo}</span>
+                  {m.telefono && <span style={{ color: 'var(--slate)', fontSize: '0.85rem' }}> · {m.telefono}</span>}
+                </div>
+                <span style={{ fontSize: '0.78rem', color: 'var(--slate)' }}>
+                  {new Date(m.createdAt).toLocaleString('es')}
+                </span>
+              </div>
+              {m.motivo && (
+                <span style={{
+                  display: 'inline-block', marginBottom: 8, padding: '2px 10px', borderRadius: 999,
+                  background: 'var(--teal-pale)', color: 'var(--teal-dark)', fontWeight: 700, fontSize: '0.75rem'
+                }}>{m.motivo}</span>
+              )}
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--navy)', whiteSpace: 'pre-wrap' }}>{m.mensaje}</p>
+              <a href={`mailto:${m.correo}`} className="btn btn--outline btn--sm" style={{ marginTop: 10, fontSize: '0.8rem' }}>
+                ✉️ Responder
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </SectionCard>
+  )
+}
+
+/* ═══════════ Ajustes (solo admin) ═══════════ */
+function SettingsTab({ notify }) {
+  const [settings, setSettings] = useState(null)
+  const [key, setKey] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const load = useCallback(() => {
+    axios.get('/api/admin/settings')
+      .then(({ data }) => setSettings(data))
+      .catch(() => notify.error('Error al cargar los ajustes.'))
+  }, [notify])
+
+  useEffect(() => { load() }, [load])
+
+  const save = async (nuevaClave) => {
+    setSaving(true)
+    try {
+      const { data } = await axios.put('/api/admin/settings', { deepseekApiKey: nuevaClave })
+      setSettings(data)
+      setKey('')
+      notify.success(nuevaClave ? 'Clave guardada. La IA ya está activa. 🤖' : 'Clave eliminada. El chat vuelve al modo demo.')
+    } catch (err) {
+      notify.error(err?.response?.data?.message || 'Error al guardar los ajustes.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!settings) return <SectionCard title="⚙️ Ajustes"><p style={{ color: 'var(--slate)' }}>Cargando...</p></SectionCard>
+
+  return (
+    <SectionCard title="⚙️ Ajustes de la aplicación">
+      <div style={{ marginBottom: 18 }}>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--navy)', margin: '0 0 4px' }}>
+          🤖 Asistente conversacional
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--slate)', margin: '0 0 12px' }}>
+          Sin una clave de DeepSeek, el chat responde con mensajes de ejemplo (modo demo).
+          Con la clave configurada, las respuestas las genera la IA.
+        </p>
+
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 14,
+          padding: '6px 14px', borderRadius: 999,
+          background: settings.aiConfigured ? '#f0fdf4' : 'var(--sage-pale)',
+          border: `1.5px solid ${settings.aiConfigured ? '#bbf7d0' : 'var(--sage-light)'}`,
+          color: settings.aiConfigured ? '#16a34a' : 'var(--slate)',
+          fontWeight: 800, fontSize: '0.82rem'
+        }}>
+          {settings.aiConfigured
+            ? `✅ IA activa (${settings.provider}) · clave ${settings.keyPreview}`
+            : '🧪 Modo demo (sin clave configurada)'}
+        </div>
+
+        {settings.canEdit ? (
+          <>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                type="password"
+                className="form-input"
+                style={{ padding: '10px 16px', fontSize: '0.9rem', flex: '1 1 260px' }}
+                placeholder="Pega aquí tu clave de DeepSeek (sk-...)"
+                value={key}
+                onChange={e => setKey(e.target.value)}
+                autoComplete="off"
+              />
+              <button
+                className="btn btn--primary btn--sm"
+                onClick={() => save(key.trim())}
+                disabled={saving || !key.trim()}
+              >
+                Guardar clave
+              </button>
+              {settings.aiConfigured && (
+                <button
+                  className="btn btn--outline btn--sm"
+                  onClick={() => save('')}
+                  disabled={saving}
+                  style={{ color: '#b91c1c' }}
+                >
+                  Quitar clave
+                </button>
+              )}
+            </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--slate)', marginTop: 10, marginBottom: 0 }}>
+              🔒 La clave se guarda solo en este equipo y nunca se muestra completa.
+            </p>
+          </>
+        ) : (
+          <p style={{ fontSize: '0.85rem', color: 'var(--slate)', margin: 0 }}>
+            🔒 En modo servidor, la clave se configura con variables de entorno.
+          </p>
+        )}
+      </div>
+    </SectionCard>
+  )
+}
+
 /* ═══════════ Página principal ═══════════ */
 export default function StaffPage() {
   const { user } = useAuth()
@@ -699,6 +871,10 @@ export default function StaffPage() {
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedPatient, setSelectedPatient] = useState(null)
+
+  // El monitor observa y anota, pero no valida fichas ni gestiona citas
+  const isMonitor = user?.role === 'monitor'
+  const canManageClinical = !isMonitor
 
   const loadPatients = useCallback(() => {
     axios.get('/api/staff/patients')
@@ -725,12 +901,14 @@ export default function StaffPage() {
       <main className="container--wide" style={{ padding: '32px 24px 64px' }}>
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
-            🩺 Panel de {user?.isAdmin ? 'Administración Clínica' : 'Acompañamiento'}
+            🩺 Panel de {user?.isAdmin ? 'Administración Clínica' : isMonitor ? 'Seguimiento' : 'Acompañamiento'}
           </h1>
           <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
             {user?.isAdmin
               ? 'Acceso completo: todos los pacientes, chats, citas y equipo.'
-              : 'Tus pacientes asignados, sus chats, progreso y citas.'}
+              : isMonitor
+                ? 'Seguimiento de tus pacientes asignados: chats, progreso y notas.'
+                : 'Tus pacientes asignados, sus chats, progreso y citas.'}
           </p>
         </div>
 
@@ -739,6 +917,8 @@ export default function StaffPage() {
           {tabBtn('calendar', '📅 Calendario')}
           {tabBtn('reports', '📊 Reportes')}
           {user?.isAdmin && tabBtn('team', '👥 Equipo')}
+          {user?.isAdmin && tabBtn('messages', '📨 Mensajes')}
+          {user?.isAdmin && tabBtn('settings', '⚙️ Ajustes')}
         </div>
 
         {tab === 'patients' && (
@@ -783,13 +963,20 @@ export default function StaffPage() {
           </SectionCard>
         )}
 
-        {tab === 'calendar' && <CalendarTab patients={patients} isAdmin={!!user?.isAdmin} notify={notify} />}
+        {tab === 'calendar' && <CalendarTab patients={patients} isAdmin={!!user?.isAdmin} notify={notify} canManageClinical={canManageClinical} />}
         {tab === 'reports' && <ReportsTab notify={notify} />}
         {tab === 'team' && user?.isAdmin && <TeamTab notify={notify} onChanged={loadPatients} />}
+        {tab === 'messages' && user?.isAdmin && <MessagesTab notify={notify} />}
+        {tab === 'settings' && user?.isAdmin && <SettingsTab notify={notify} />}
       </main>
 
       {selectedPatient && (
-        <PatientDetail patientId={selectedPatient} onClose={() => setSelectedPatient(null)} notify={notify} />
+        <PatientDetail
+          patientId={selectedPatient}
+          onClose={() => setSelectedPatient(null)}
+          notify={notify}
+          canManageClinical={canManageClinical}
+        />
       )}
     </div>
   )
