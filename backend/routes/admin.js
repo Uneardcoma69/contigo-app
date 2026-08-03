@@ -4,7 +4,7 @@ import requireAdmin from '../middleware/requireAdmin.js'
 import {
   getAllUsers, getAllRiskProfiles, getRiskProfile, getHistory, findUserById,
   findUserByEmail, createUser, setUserRole, assignPatient, getStaffMembers,
-  getContactMessages, ROLES, STAFF_ROLES
+  getContactMessages, setUserPassword, bumpTokenVersion, ROLES, STAFF_ROLES
 } from '../store.js'
 import { isDesktop, updateConfig } from '../desktopConfig.js'
 
@@ -174,6 +174,32 @@ router.put('/users/:id/role', requireAdmin, (req, res) => {
     return res.status(400).json({ message: 'No puedes quitarte tu propio rol de admin.' })
   setUserRole(user._id, role)
   return res.json({ user: { _id: user._id, name: user.name, email: user.email, role: user.role } })
+})
+
+// PUT /api/admin/users/:id/password — restablecer la contraseña de alguien
+// No hay servicio de correo: la recuperación la hace el administrador,
+// que entrega la contraseña temporal por un canal seguro.
+router.put('/users/:id/password', requireAdmin, async (req, res) => {
+  try {
+    const { newPassword } = req.body || {}
+    if (!newPassword || newPassword.length < 6)
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' })
+
+    const user = findUserById(req.params.id)
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
+
+    if (user._id === req.userId)
+      return res.status(400).json({ message: 'Para tu propia cuenta usa el cambio de contraseña en "Mi cuenta".' })
+
+    const hash = await bcrypt.hash(newPassword, 12)
+    setUserPassword(user._id, hash)
+    bumpTokenVersion(user._id)   // cierra las sesiones abiertas de esa persona
+
+    return res.json({ ok: true, user: { _id: user._id, name: user.name, email: user.email } })
+  } catch (e) {
+    console.error('Reset password error:', e)
+    return res.status(500).json({ message: 'Error al restablecer la contraseña.' })
+  }
 })
 
 // PUT /api/admin/patients/:id/assign — asignar paciente a un psicólogo/monitor

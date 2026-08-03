@@ -1,14 +1,20 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, getAppointmentsForPatient, STAFF_ROLES } from '../store.js'
+import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, getAppointmentsForPatient, setUserPassword, bumpTokenVersion, STAFF_ROLES } from '../store.js'
 import requireAuth from '../middleware/requireAuth.js'
 import { effectiveRole } from '../middleware/requireRole.js'
 
 const router = express.Router()
 
-function createToken(userId) {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
+// El token lleva la versión de sesión: si sube (cambio o restablecimiento
+// de contraseña), los tokens anteriores dejan de ser válidos.
+function createToken(user) {
+  return jwt.sign(
+    { id: user._id, v: user.tokenVersion || 0 },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  )
 }
 
 function sanitize(user) {
@@ -37,7 +43,7 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ message: 'Este correo ya está registrado.' })
     const hash = await bcrypt.hash(password, 12)
     const user = createUser({ name, email, password: hash })
-    const token = createToken(user._id)
+    const token = createToken(user)
     return res.status(201).json({ token, user: sanitize(user) })
   } catch (e) {
     console.error('Register error:', e)
@@ -56,7 +62,7 @@ router.post('/login', async (req, res) => {
     const ok = await bcrypt.compare(password, user.password)
     if (!ok)
       return res.status(401).json({ message: 'Correo o contraseña incorrectos.' })
-    const token = createToken(user._id)
+    const token = createToken(user)
     return res.json({ token, user: sanitize(user) })
   } catch (e) {
     console.error('Login error:', e)
@@ -68,6 +74,37 @@ router.get('/me', requireAuth, (req, res) => {
   const user = findUserById(req.userId)
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
   return res.json({ user: sanitize(user) })
+})
+
+// ── Cambiar mi propia contraseña ───────────────────────────────
+// PUT /api/auth/password
+router.put('/password', requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {}
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ message: 'Debes indicar tu contraseña actual y la nueva.' })
+    if (newPassword.length < 6)
+      return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 6 caracteres.' })
+
+    const user = findUserById(req.userId)
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
+
+    const ok = await bcrypt.compare(currentPassword, user.password)
+    if (!ok) return res.status(401).json({ message: 'Tu contraseña actual no es correcta.' })
+
+    if (await bcrypt.compare(newPassword, user.password))
+      return res.status(400).json({ message: 'La nueva contraseña debe ser distinta de la actual.' })
+
+    const hash = await bcrypt.hash(newPassword, 12)
+    setUserPassword(user._id, hash)
+    bumpTokenVersion(user._id)   // cierra las demás sesiones abiertas
+
+    // Token nuevo para que quien hizo el cambio siga dentro
+    return res.json({ token: createToken(user), user: sanitize(user) })
+  } catch (e) {
+    console.error('Change password error:', e)
+    return res.status(500).json({ message: 'Error al cambiar la contraseña.' })
+  }
 })
 
 // ── Citas del propio usuario ───────────────────────────────────

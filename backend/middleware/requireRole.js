@@ -34,6 +34,11 @@ export default function requireRole(...allowedRoles) {
         return res.status(401).json({ message: 'Usuario no encontrado.' })
       }
 
+      // Sesión invalidada por un cambio de contraseña (ver requireAuth)
+      if ((payload.v ?? 0) !== (user.tokenVersion ?? 0)) {
+        return res.status(401).json({ message: 'Tu contraseña cambió. Vuelve a iniciar sesión.' })
+      }
+
       const role = effectiveRole(user)
       if (!allowedRoles.includes(role)) {
         return res.status(403).json({ message: 'Acceso denegado. No tienes permisos suficientes.' })

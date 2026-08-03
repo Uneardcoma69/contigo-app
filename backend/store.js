@@ -96,6 +96,7 @@ export function createUser({ name, email, password, role = 'user' }) {
     password,
     role: ROLES.includes(role) ? role : 'user',
     assignedPsychologistId: null,  // solo aplica a pacientes (role 'user')
+    tokenVersion: 0,               // al subir, invalida las sesiones abiertas
     createdAt: new Date()
   }
   users.set(id, user)
@@ -109,10 +110,24 @@ export function setUserRole(id, role) {
   return user
 }
 
+/**
+ * Cambia la contraseña. No invalida sesiones por sí sola: quien cambia
+ * una contraseña de verdad debe llamar además a bumpTokenVersion().
+ * (El arranque de la app de escritorio la re-aplica en cada inicio y no
+ * debe cerrar la sesión del administrador.)
+ */
 export function setUserPassword(id, passwordHash) {
   const user = users.get(id)
   if (!user) return null
   user.password = passwordHash
+  return user
+}
+
+/** Invalida todas las sesiones abiertas de ese usuario. */
+export function bumpTokenVersion(id) {
+  const user = users.get(id)
+  if (!user) return null
+  user.tokenVersion = (user.tokenVersion || 0) + 1
   return user
 }
 

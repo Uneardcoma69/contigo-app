@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
+import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import { useToast } from '../hooks/useToast.js'
 
 const CATEGORIES = [
@@ -597,6 +598,9 @@ export default function GoalsPage() {
 
         {/* Ficha médica */}
         <MedicalRecordCard notifySuccess={success} notifyError={showError} />
+
+        {/* Mi cuenta */}
+        <ChangePasswordCard notifySuccess={success} notifyError={showError} />
       </main>
     </div>
   )

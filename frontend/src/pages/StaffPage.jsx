@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
+import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import { useToast } from '../hooks/useToast.js'
 
 const LEVEL_CONFIG = {
@@ -582,8 +583,71 @@ function ReportsTab({ notify }) {
   )
 }
 
+/* Restablecer la contraseña de otra persona (solo admin).
+   No hay servicio de correo: el admin define una contraseña temporal
+   y se la entrega por un canal seguro. */
+function ResetPasswordButton({ person, notify }) {
+  const [open, setOpen] = useState(false)
+  const [pass, setPass] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const reset = async () => {
+    if (pass.length < 6) {
+      notify.error('La contraseña debe tener al menos 6 caracteres.')
+      return
+    }
+    setSaving(true)
+    try {
+      await axios.put(`/api/admin/users/${person._id}/password`, { newPassword: pass })
+      notify.success(`Contraseña de ${person.name} restablecida. Sus sesiones se cerraron.`)
+      setPass('')
+      setOpen(false)
+    } catch (err) {
+      notify.error(err?.response?.data?.message || 'Error al restablecer la contraseña.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        className="btn btn--outline btn--sm"
+        style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+        onClick={() => setOpen(true)}
+        title={`Restablecer la contraseña de ${person.name}`}
+      >
+        🔑 Contraseña
+      </button>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+      <input
+        type="text"
+        className="form-input"
+        style={{ padding: '6px 12px', fontSize: '0.82rem', width: 190 }}
+        placeholder="Contraseña temporal"
+        value={pass}
+        onChange={e => setPass(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && reset()}
+        autoComplete="off"
+        autoFocus
+      />
+      <button className="btn btn--primary btn--sm" style={{ fontSize: '0.78rem', padding: '5px 12px' }} onClick={reset} disabled={saving}>
+        Aplicar
+      </button>
+      <button className="btn btn--ghost btn--sm" style={{ fontSize: '0.78rem', padding: '5px 10px' }} onClick={() => { setOpen(false); setPass('') }}>
+        ✕
+      </button>
+    </div>
+  )
+}
+
 /* ═══════════ Equipo (solo admin) ═══════════ */
 function TeamTab({ notify, onChanged }) {
+  const { user } = useAuth()
   const [staff, setStaff] = useState([])
   const [patients, setPatients] = useState([])
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'psychologist' })
@@ -665,6 +729,11 @@ function TeamTab({ notify, onChanged }) {
               <span style={{ padding: '3px 10px', borderRadius: 999, background: 'var(--teal-pale)', color: 'var(--teal-dark)', fontWeight: 800, fontSize: '0.75rem' }}>
                 {ROLE_LABEL[m.role]}
               </span>
+              {m._id === user?.id ? (
+                <span style={{ fontSize: '0.75rem', color: 'var(--slate)', fontWeight: 600 }}>Tu cuenta</span>
+              ) : (
+                <ResetPasswordButton person={m} notify={notify} />
+              )}
             </div>
           ))}
         </div>
@@ -693,6 +762,7 @@ function TeamTab({ notify, onChanged }) {
                     <option key={m._id} value={m._id}>{m.name} ({ROLE_LABEL[m.role]})</option>
                   ))}
                 </select>
+                <ResetPasswordButton person={p} notify={notify} />
               </div>
             ))}
           </div>
@@ -919,6 +989,7 @@ export default function StaffPage() {
           {user?.isAdmin && tabBtn('team', '👥 Equipo')}
           {user?.isAdmin && tabBtn('messages', '📨 Mensajes')}
           {user?.isAdmin && tabBtn('settings', '⚙️ Ajustes')}
+          {tabBtn('account', '🔐 Mi cuenta')}
         </div>
 
         {tab === 'patients' && (
@@ -968,6 +1039,11 @@ export default function StaffPage() {
         {tab === 'team' && user?.isAdmin && <TeamTab notify={notify} onChanged={loadPatients} />}
         {tab === 'messages' && user?.isAdmin && <MessagesTab notify={notify} />}
         {tab === 'settings' && user?.isAdmin && <SettingsTab notify={notify} />}
+        {tab === 'account' && (
+          <div style={{ marginTop: -32 }}>
+            <ChangePasswordCard notifySuccess={success} notifyError={error} />
+          </div>
+        )}
       </main>
 
       {selectedPatient && (

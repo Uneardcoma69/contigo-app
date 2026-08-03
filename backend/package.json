@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node tests/roles.test.mjs && node tests/e2e.test.mjs && node tests/citas-alertas.test.mjs && node tests/permisos-contacto-ajustes.test.mjs"
+    "test": "node tests/roles.test.mjs && node tests/e2e.test.mjs && node tests/citas-alertas.test.mjs && node tests/permisos-contacto-ajustes.test.mjs && node tests/contrasenas.test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

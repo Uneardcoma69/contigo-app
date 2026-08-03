@@ -22,8 +22,8 @@ npm --prefix backend test
   memoria y las pruebas registran usuarios con correos fijos; sin reiniciar,
   el segundo intento falla con `409 (correo ya registrado)`.
 - El limitador de intentos permite 20 inicios de sesión / registros cada 15
-  minutos por IP. La suite completa consume unos 17, así que cabe en una
-  ejecución, pero dos seguidas sin reiniciar darán `429`.
+  minutos por IP. La suite completa se acerca a ese tope, así que dos
+  ejecuciones seguidas sin reiniciar darán `429`.
 
 ## Qué cubre cada archivo
 
@@ -33,3 +33,4 @@ npm --prefix backend test
 | `e2e.test.mjs` | Recorrido completo: registro → chat con IA → análisis de riesgo → metas → ficha → seguimiento del staff |
 | `citas-alertas.test.mjs` | Citas visibles para el paciente y resumen de alertas del encabezado |
 | `permisos-contacto-ajustes.test.mjs` | Monitor como observador, formulario de contacto y ajustes de IA |
+| `contrasenas.test.mjs` | Cambio de contraseña propia, restablecimiento por el administrador e invalidación de sesiones |

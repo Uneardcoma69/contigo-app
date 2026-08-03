@@ -47,6 +47,25 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
+  // Si el token deja de valer (expiró o la contraseña cambió en otra
+  // sesión), cerramos sesión en vez de dejar la interfaz en un estado roto.
+  useEffect(() => {
+    const id = axios.interceptors.response.use(
+      res => res,
+      err => {
+        const status = err?.response?.status
+        const url = err?.config?.url || ''
+        // El 401 de un intento de inicio de sesión fallido lo maneja el formulario
+        const esIntentoDeLogin = url.includes('/auth/login')
+        if (status === 401 && !esIntentoDeLogin && localStorage.getItem('token')) {
+          logout()
+        }
+        return Promise.reject(err)
+      }
+    )
+    return () => axios.interceptors.response.eject(id)
+  }, [logout])
+
   return (
     <AuthContext.Provider value={{ user, token, loading, login, logout }}>
       {children}

@@ -45,6 +45,17 @@ export default function Login() {
             mode="login"
             onSuccess={(loggedUser) => nav(homeFor(loggedUser))}
           />
+
+          <p style={{
+            marginTop: 16, textAlign: 'center', fontSize: '0.82rem',
+            color: 'var(--slate)', lineHeight: 1.5
+          }}>
+            ¿Olvidaste tu contraseña? Escríbenos a{' '}
+            <a href="mailto:hola@contigoaquiestoy.com" style={{ color: 'var(--teal-dark)', fontWeight: 700 }}>
+              hola@contigoaquiestoy.com
+            </a>{' '}
+            y te ayudamos a restablecerla.
+          </p>
         </div>
       </main>
     </div>
