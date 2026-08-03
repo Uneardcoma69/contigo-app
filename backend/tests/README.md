@@ -29,6 +29,7 @@ npm --prefix backend test
 
 | Archivo | Cubre |
 |---|---|
+| `cifrado.test.mjs` | Cifrado del archivo de datos, migración desde texto plano y protección contra sobrescribir datos ilegibles. **No necesita el servidor.** |
 | `roles.test.mjs` | Permisos por rol, asignación de pacientes, validación de fichas, citas, reportes |
 | `e2e.test.mjs` | Recorrido completo: registro → chat con IA → análisis de riesgo → metas → ficha → seguimiento del staff |
 | `citas-alertas.test.mjs` | Citas visibles para el paciente y resumen de alertas del encabezado |

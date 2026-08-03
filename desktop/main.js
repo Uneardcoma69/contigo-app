@@ -12,7 +12,7 @@
 //     "jwtSecret": "..."       ← generado automáticamente la primera vez
 //   }
 
-import { app, BrowserWindow, shell, dialog } from 'electron'
+import { app, BrowserWindow, shell, dialog, safeStorage } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import net from 'node:net'
@@ -53,6 +53,50 @@ function loadConfig() {
   return cfg
 }
 
+/**
+ * Clave con la que se cifra el archivo de datos.
+ *
+ * La clave en sí se guarda protegida por el almacén de credenciales del
+ * sistema (DPAPI en Windows), que la ata a la cuenta de usuario: otra
+ * cuenta del equipo, o una copia del archivo en otra máquina, no puede
+ * descifrarla.
+ *
+ * Devuelve la clave en hexadecimal, o null si no se puede cifrar.
+ */
+function resolveDataKey(cfg) {
+  if (!safeStorage.isEncryptionAvailable()) {
+    console.warn('⚠️ El sistema no ofrece almacenamiento seguro: los datos quedarán sin cifrar.')
+    return null
+  }
+
+  // Ya existe una clave: intentar recuperarla
+  if (cfg.dataKeyEncrypted) {
+    try {
+      return safeStorage.decryptString(Buffer.from(cfg.dataKeyEncrypted, 'base64'))
+    } catch (e) {
+      // No generamos una clave nueva: eso dejaría los datos existentes
+      // ilegibles para siempre y sin aviso. Mejor detenerse.
+      dialog.showErrorBox(
+        'Contigo — No se pudo abrir el almacén de datos',
+        'La clave que protege tus datos no se pudo recuperar del sistema.\n\n' +
+        'Esto suele ocurrir si se restauró el equipo o cambió la cuenta de Windows.\n\n' +
+        'Los datos existentes NO se han modificado. Haz una copia de seguridad de:\n' +
+        path.join(app.getPath('userData'), 'contigo-data.json')
+      )
+      return null
+    }
+  }
+
+  // Primera vez: generar y proteger una clave nueva
+  const key = crypto.randomBytes(32).toString('hex')
+  const protegida = safeStorage.encryptString(key).toString('base64')
+  const file = path.join(app.getPath('userData'), 'config.json')
+  let onDisk = {}
+  try { onDisk = JSON.parse(fs.readFileSync(file, 'utf8')) } catch { /* ignorar */ }
+  fs.writeFileSync(file, JSON.stringify({ ...onDisk, dataKeyEncrypted: protegida }, null, 2))
+  return key
+}
+
 function markAdminPasswordShown(cfg) {
   cfg.adminPasswordShown = true
   const file = path.join(app.getPath('userData'), 'config.json')
@@ -85,6 +129,10 @@ async function startEmbeddedServer(cfg) {
   process.env.CONTIGO_DATA_DIR = app.getPath('userData')       // datos persistentes
   process.env.CONTIGO_ADMIN_PASSWORD = cfg.adminPassword       // admin con contraseña propia de esta instalación
   if (cfg.deepseekApiKey) process.env.DEEPSEEK_API_KEY = cfg.deepseekApiKey
+
+  // Cifrado del archivo de datos (conversaciones y fichas médicas)
+  const dataKey = resolveDataKey(cfg)
+  if (dataKey) process.env.CONTIGO_DATA_KEY = dataKey
 
   // Importar el servidor Express (escucha al importarse)
   const serverPath = path.join(__dirname, '..', 'backend', 'server.js')
