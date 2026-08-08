@@ -14,7 +14,7 @@ import adminRoutes from './routes/admin.js'
 import staffRoutes from './routes/staff.js'
 import contactRoutes from './routes/contact.js'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail, setUserPassword, getStorageStatus } from './store.js'
+import { createUser, findUserByEmail, setUserPassword, getStorageStatus, flushToDisk } from './store.js'
 
 dotenv.config()
 
@@ -145,11 +145,29 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ message: 'Error interno del servidor' })
 })
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
+  const almacen = getStorageStatus()
   console.log(`\n🚀 Contigo Backend → http://localhost:${PORT}`)
-  console.log(process.env.CONTIGO_DATA_DIR
-    ? `💾 Storage: Archivo JSON persistente (${process.env.CONTIGO_DATA_DIR})`
-    : `💾 Storage: Memoria RAM (sin base de datos)`)
+  console.log(!almacen.persistente
+    ? `💾 Almacenamiento: SQLite en memoria (se pierde al reiniciar)`
+    : `💾 Almacenamiento: SQLite en archivo${almacen.cifrado ? ' cifrado 🔒' : ''} (${process.env.CONTIGO_DATA_DIR})`)
   console.log(`🧪 Modo: ${process.env.DEEPSEEK_API_KEY ? 'DeepSeek activo 🐳' : process.env.OPENAI_API_KEY ? 'OpenAI activo ✅' : 'DEMO (sin API key)'}`)
   console.log(`🌐 Frontend: ${frontendDist}\n`)
 })
+
+// ── Apagado ordenado ───────────────────────────────────────────
+// No se llama a process.exit(): con una base de sql.js abierta, en Windows
+// eso aborta el proceso con un fallo de aserción de libuv. En su lugar se
+// guardan los datos y se cierra el servidor para que el bucle de eventos
+// se vacíe y el proceso termine por su cuenta.
+let apagando = false
+function apagar(señal) {
+  if (apagando) return
+  apagando = true
+  console.log(`\n${señal} recibida: guardando datos y cerrando...`)
+  flushToDisk()
+  server.close(() => console.log('👋 Servidor cerrado.'))
+  server.closeAllConnections?.()
+}
+process.on('SIGINT', () => apagar('SIGINT'))
+process.on('SIGTERM', () => apagar('SIGTERM'))

@@ -103,5 +103,13 @@ check('Admin crea staff', newStaff.status === 201 && newStaff.data.user.role ===
 const denied = await api('POST', '/admin/staff', { token: psyToken, body: { name: 'X', email: 'x@x.com', password: 'xxxxxx', role: 'monitor' } })
 check('Psicóloga bloqueada en /admin (403)', denied.status === 403)
 
+// 20. Cambio de rol: la respuesta debe traer el rol NUEVO, no el anterior
+const nuevoId = newStaff.data.user?._id
+const cambio = await api('PUT', `/admin/users/${nuevoId}/role`, { token: adminToken, body: { role: 'monitor' } })
+check('Cambio de rol devuelve el rol actualizado', cambio.status === 200 && cambio.data.user.role === 'monitor', JSON.stringify(cambio.data))
+const listaStaff = await api('GET', '/admin/staff', { token: adminToken })
+check('El cambio de rol persiste en la lista de equipo',
+  listaStaff.data.staff?.find(m => m._id === nuevoId)?.role === 'monitor')
+
 console.log(failures === 0 ? '\n🎉 TODAS LAS PRUEBAS PASARON' : `\n💥 ${failures} pruebas fallaron`)
 process.exit(failures === 0 ? 0 : 1)

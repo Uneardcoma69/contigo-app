@@ -172,8 +172,15 @@ router.put('/users/:id/role', requireAdmin, (req, res) => {
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
   if (user._id === req.userId && role !== 'admin')
     return res.status(400).json({ message: 'No puedes quitarte tu propio rol de admin.' })
-  setUserRole(user._id, role)
-  return res.json({ user: { _id: user._id, name: user.name, email: user.email, role: user.role } })
+  const actualizado = setUserRole(user._id, role)
+  return res.json({
+    user: {
+      _id: actualizado._id,
+      name: actualizado.name,
+      email: actualizado.email,
+      role: actualizado.role
+    }
+  })
 })
 
 // PUT /api/admin/users/:id/password — restablecer la contraseña de alguien

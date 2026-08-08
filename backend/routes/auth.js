@@ -97,10 +97,12 @@ router.put('/password', requireAuth, async (req, res) => {
 
     const hash = await bcrypt.hash(newPassword, 12)
     setUserPassword(user._id, hash)
-    bumpTokenVersion(user._id)   // cierra las demás sesiones abiertas
+    // Se usa el usuario ya actualizado: el token nuevo debe llevar la
+    // versión de sesión recién incrementada, o nacería inválido.
+    const actualizado = bumpTokenVersion(user._id)   // cierra las demás sesiones abiertas
 
     // Token nuevo para que quien hizo el cambio siga dentro
-    return res.json({ token: createToken(user), user: sanitize(user) })
+    return res.json({ token: createToken(actualizado), user: sanitize(actualizado) })
   } catch (e) {
     console.error('Change password error:', e)
     return res.status(500).json({ message: 'Error al cambiar la contraseña.' })

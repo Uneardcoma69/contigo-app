@@ -248,14 +248,28 @@ Ubicación: `%APPDATA%\Contigo\config.json`
 
 ## 🔒 Almacenamiento y privacidad
 
-Contigo no usa base de datos. El almacén (`backend/store.js`) mantiene los datos en
-memoria y, según cómo se ejecute, los respalda en disco:
+Contigo usa **SQLite** a través de `sql.js` (SQLite compilado a WebAssembly). El almacén
+(`backend/store.js`) mantiene la base en memoria y, según cómo se ejecute, la respalda en disco:
 
 | Escenario | Qué pasa con los datos |
 |---|---|
-| Modo servidor (sin `CONTIGO_DATA_DIR`) | Viven solo en memoria RAM. **Se pierden al reiniciar el proceso.** |
-| App de escritorio | Se guardan en `%APPDATA%\Contigo\contigo-data.json`, **cifrado con AES-256-GCM**. |
-| Con `CONTIGO_DATA_DIR` pero sin `CONTIGO_DATA_KEY` | Se guardan en el archivo, pero sin cifrar. |
+| Modo servidor (sin `CONTIGO_DATA_DIR`) | La base vive solo en memoria. **Se pierde al reiniciar el proceso.** |
+| App de escritorio | Se guarda en `%APPDATA%\Contigo\contigo-data.json`, **cifrado con AES-256-GCM**. |
+| Con `CONTIGO_DATA_DIR` pero sin `CONTIGO_DATA_KEY` | Se guarda como base SQLite, sin cifrar. |
+
+El esquema tiene ocho tablas con claves foráneas e índices: `users`, `messages`, `goals`,
+`risk_profiles`, `risk_alerts`, `medical_records`, `progress_notes`, `appointments` y
+`contact_messages`. Toda la aplicación accede a los datos por las funciones que exporta
+`store.js`; ninguna ruta escribe SQL directamente.
+
+> **Por qué `sql.js` y no `better-sqlite3`:** el proyecto ejecuta el mismo backend bajo dos
+> runtimes con ABI distinto —el Node del sistema (pruebas y `npm run dev`) y el Node embebido
+> en Electron (app de escritorio)—. Un módulo nativo tendría que recompilarse por separado para
+> cada uno; WebAssembly es portable entre ambos sin compilar nada.
+
+Si al abrir la aplicación se encuentra un archivo con el formato anterior (volcado JSON), se
+**migra automáticamente** a SQLite conservando los identificadores, y se deja una copia del
+original como `contigo-data.json.pre-sql-backup`.
 
 Detalles del cifrado en escritorio:
 
@@ -446,7 +460,7 @@ cabecera `Authorization: Bearer <token>`.
 | Escritorio | Electron 33 + electron-builder 25 (instalador NSIS) |
 | IA | DeepSeek (`deepseek-chat`) u OpenAI (`gpt-4o-mini`); modo demo si no hay clave |
 | Autenticación | JWT (7 días) + bcryptjs |
-| Almacenamiento | En memoria, con archivo JSON cifrado (AES-256-GCM) en escritorio |
+| Almacenamiento | SQLite vía sql.js (WebAssembly), con archivo cifrado (AES-256-GCM) en escritorio |
 | Seguridad | Helmet, CSP, CORS, express-rate-limit |
 | Despliegue web | Railway (`railway.toml`) |
 
@@ -456,10 +470,11 @@ cabecera `Authorization: Bearer <token>`.
 
 Lo que hoy no está resuelto, dicho sin rodeos:
 
-- **En modo servidor los datos viven solo en memoria.** Si el proceso se reinicia, se
-  pierde todo: usuarios, conversaciones, fichas y citas. La persistencia solo está
-  disponible cuando se define `CONTIGO_DATA_DIR`, que es lo que hace la app de
-  escritorio. Un despliegue web serio necesita una base de datos real.
+- **En modo servidor los datos viven solo en memoria.** Aunque el motor ya es SQLite, sin
+  `CONTIGO_DATA_DIR` la base no se respalda en disco y se pierde al reiniciar el proceso. La
+  app de escritorio sí define esa variable. Para un despliegue web con varias personas hace
+  falta apuntar `CONTIGO_DATA_DIR` a un volumen persistente (el sistema de archivos de
+  Railway es efímero por defecto).
 - **No hay recuperación de contraseña por correo.** No existe servicio de envío de
   correos: si alguien pierde su contraseña, el administrador debe restablecerla desde
   la pestaña Equipo y entregarla por un canal seguro.
