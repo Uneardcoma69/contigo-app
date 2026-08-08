@@ -4,37 +4,9 @@ import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
+import RiskBadge from '../components/RiskBadge.jsx'
 import { useToast } from '../hooks/useToast.js'
-
-const LEVEL_CONFIG = {
-  alto:      { label: 'Alto',      emoji: '🔴', color: '#ef4444', bg: '#fef2f2', border: '#fecaca' },
-  medio:     { label: 'Medio',     emoji: '🟡', color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
-  bajo:      { label: 'Bajo',      emoji: '🟢', color: '#22c55e', bg: '#f0fdf4', border: '#bbf7d0' },
-  sin_datos: { label: 'Sin datos', emoji: '⚪', color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
-}
-
-const MEDICAL_STATUS = {
-  validada:  { label: 'Validada',  emoji: '✅', color: '#16a34a', bg: '#f0fdf4' },
-  pendiente: { label: 'Pendiente', emoji: '⏳', color: '#f59e0b', bg: '#fffbeb' },
-  rechazada: { label: 'Rechazada', emoji: '❌', color: '#ef4444', bg: '#fef2f2' },
-  sin_ficha: { label: 'Sin ficha', emoji: '📄', color: '#94a3b8', bg: '#f8fafc' },
-}
-
-const ROLE_LABEL = { psychologist: 'Psicólogo/a', monitor: 'Monitor/a', admin: 'Admin', user: 'Paciente' }
-
-function RiskBadge({ level }) {
-  const cfg = LEVEL_CONFIG[level] || LEVEL_CONFIG.sin_datos
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '4px 12px', borderRadius: 999,
-      background: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.border}`,
-      fontWeight: 800, fontSize: '0.78rem', whiteSpace: 'nowrap'
-    }}>
-      {cfg.emoji} {cfg.label}
-    </span>
-  )
-}
+import { LEVEL_CONFIG, MEDICAL_STATUS, APPT_STATUS, ROLE_LABEL } from '../constants.js'
 
 function SectionCard({ title, children, right }) {
   return (
@@ -306,12 +278,6 @@ function startOfWeek(d) {
   date.setDate(date.getDate() - day)
   date.setHours(0, 0, 0, 0)
   return date
-}
-
-const APPT_STATUS = {
-  programada: { label: 'Programada', color: 'var(--teal-dark)', bg: 'var(--teal-pale)' },
-  completada: { label: 'Completada', color: '#16a34a', bg: '#f0fdf4' },
-  cancelada:  { label: 'Cancelada',  color: '#94a3b8', bg: '#f8fafc' },
 }
 
 function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {

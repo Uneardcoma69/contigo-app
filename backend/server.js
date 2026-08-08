@@ -46,8 +46,11 @@ app.use(express.json({ limit: '10kb' }))
 // Solo protege login/register contra fuerza bruta.
 // Las rutas autenticadas (/me, /medical) NO se limitan aquí:
 // /me se llama en cada carga de página y agotaría el límite.
+// En desarrollo el tope es alto: la suite de pruebas hace bastantes
+// inicios de sesión seguidos y con el tope de producción las últimas
+// fallaban con 429, aparentando errores que no existían.
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, max: 20,
+  windowMs: 15 * 60 * 1000, max: isDev ? 500 : 20,
   message: { message: 'Demasiados intentos. Espera 15 minutos.' }
 })
 const chatLimiter = rateLimit({

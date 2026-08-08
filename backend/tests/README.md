@@ -21,9 +21,9 @@ npm --prefix backend test
 - **Reinicia el backend antes de cada ejecución completa.** Los datos viven en
   memoria y las pruebas registran usuarios con correos fijos; sin reiniciar,
   el segundo intento falla con `409 (correo ya registrado)`.
-- El limitador de intentos permite 20 inicios de sesión / registros cada 15
-  minutos por IP. La suite completa se acerca a ese tope, así que dos
-  ejecuciones seguidas sin reiniciar darán `429`.
+- El limitador de intentos permite 20 inicios de sesión o registros cada 15
+  minutos por IP **en producción**, pero 500 en desarrollo. Con el tope de
+  producción las últimas suites fallaban con `429` y parecían errores reales.
 
 ## Qué cubre cada archivo
 

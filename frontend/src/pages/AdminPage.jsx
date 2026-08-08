@@ -4,14 +4,9 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
+import RiskBadge from '../components/RiskBadge.jsx'
 import { useToast } from '../hooks/useToast.js'
-
-const LEVEL_CONFIG = {
-  alto:      { label: 'Alto',      emoji: '🔴', color: '#ef4444', bg: '#fef2f2', border: '#fecaca' },
-  medio:     { label: 'Medio',     emoji: '🟡', color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
-  bajo:      { label: 'Bajo',      emoji: '🟢', color: '#22c55e', bg: '#f0fdf4', border: '#bbf7d0' },
-  sin_datos: { label: 'Sin datos', emoji: '⚪', color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
-}
+import { LEVEL_CONFIG } from '../constants.js'
 
 function StatCard({ label, count, emoji, color, bg, border, total }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0
@@ -28,20 +23,6 @@ function StatCard({ label, count, emoji, color, bg, border, total }) {
       <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--navy)' }}>{label}</div>
       <div style={{ fontSize: '0.78rem', color: 'var(--slate)', fontWeight: 600 }}>{pct}% del total</div>
     </div>
-  )
-}
-
-function RiskBadge({ level }) {
-  const cfg = LEVEL_CONFIG[level] || LEVEL_CONFIG.sin_datos
-  return (
-    <span className={level === 'alto' ? 'risk-badge risk-badge--pulse' : 'risk-badge'} style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '4px 12px', borderRadius: 999,
-      background: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.border}`,
-      fontWeight: 800, fontSize: '0.78rem', whiteSpace: 'nowrap'
-    }}>
-      {cfg.emoji} {cfg.label}
-    </span>
   )
 }
 

@@ -115,7 +115,7 @@ export default function Header({ actions }) {
             {actions}
             <div className="header__user" style={{ paddingLeft: 16, borderLeft: '2px solid var(--border)', marginLeft: 8 }}>
               <div className="header__avatar">{initials(user.name)}</div>
-              <span style={{ display: 'none' }} className="hide-on-mobile">{user.name.split(' ')[0]}</span>
+              <span className="hide-on-mobile">{user.name.split(' ')[0]}</span>
             </div>
             <button className="btn btn--icon" onClick={logout} title="Cerrar sesión" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', marginLeft: '4px' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>

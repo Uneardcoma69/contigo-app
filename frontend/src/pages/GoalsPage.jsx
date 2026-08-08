@@ -6,6 +6,7 @@ import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import { useToast } from '../hooks/useToast.js'
+import { APPT_STATUS } from '../constants.js'
 
 const CATEGORIES = [
   { id: 'general',   label: 'General',   emoji: '⭐', color: '#f6ad55' },
@@ -18,12 +19,6 @@ const CATEGORIES = [
 
 function getCat(id) {
   return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]
-}
-
-const APPT_STATUS_LABEL = {
-  programada: { text: 'Programada', color: 'var(--teal-dark)', bg: 'var(--teal-pale)' },
-  completada: { text: 'Completada', color: '#16a34a', bg: '#f0fdf4' },
-  cancelada:  { text: 'Cancelada',  color: '#94a3b8', bg: '#f8fafc' },
 }
 
 // Citas del paciente: agendadas por su psicólogo/a
@@ -77,7 +72,7 @@ function MyAppointmentsCard() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {[...upcoming.slice(1), ...past.slice().reverse().slice(0, 5)].map(a => {
-          const st = APPT_STATUS_LABEL[a.status] || APPT_STATUS_LABEL.programada
+          const st = APPT_STATUS[a.status] || APPT_STATUS.programada
           return (
             <div key={a._id} style={{
               display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
@@ -94,7 +89,7 @@ function MyAppointmentsCard() {
                 marginLeft: 'auto', padding: '2px 10px', borderRadius: 999,
                 background: st.bg, color: st.color, fontWeight: 800, fontSize: '0.75rem'
               }}>
-                {st.text}
+                {st.label}
               </span>
             </div>
           )
