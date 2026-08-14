@@ -3,19 +3,31 @@ import axios from 'axios'
 
 const AuthContext = createContext(null)
 
+/**
+ * Aplica (o quita) la cabecera de sesión de axios.
+ *
+ * Tiene que ser síncrono, no un efecto: React ejecuta los efectos de hijo
+ * a padre, así que un panel recién montado lanzaba su primera petición
+ * antes de que el efecto de este proveedor pusiera la cabecera. Esa
+ * petición volvía 401 y el interceptor de abajo cerraba la sesión, con lo
+ * que iniciar sesión desde el formulario devolvía a la pantalla de acceso.
+ */
+function aplicarCabecera(token) {
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  } else {
+    delete axios.defaults.headers.common['Authorization']
+  }
+}
+
+// Al cargar el módulo, antes del primer render, para que la sesión
+// guardada valga desde la primera petición.
+aplicarCabecera(localStorage.getItem('token'))
+
 export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null)
   const [token, setToken]     = useState(() => localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
-
-  // Set axios default header
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    } else {
-      delete axios.defaults.headers.common['Authorization']
-    }
-  }, [token])
 
   // Verify token on mount
   useEffect(() => {
@@ -26,6 +38,7 @@ export function AuthProvider({ children }) {
         setUser(data.user)
       } catch {
         localStorage.removeItem('token')
+        aplicarCabecera(null)
         setToken(null)
         setUser(null)
       } finally {
@@ -37,12 +50,14 @@ export function AuthProvider({ children }) {
 
   const login = useCallback((tokenStr, userData) => {
     localStorage.setItem('token', tokenStr)
+    aplicarCabecera(tokenStr)   // antes de que la vista de destino se monte
     setToken(tokenStr)
     setUser(userData)
   }, [])
 
   const logout = useCallback(() => {
     localStorage.removeItem('token')
+    aplicarCabecera(null)
     setToken(null)
     setUser(null)
   }, [])
