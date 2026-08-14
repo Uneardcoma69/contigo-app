@@ -18,6 +18,7 @@ import { randomUUID, randomBytes, createCipheriv, createDecipheriv } from 'crypt
 import { createRequire } from 'module'
 import initSqlJs from 'sql.js'
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 
 const require = createRequire(import.meta.url)
@@ -26,6 +27,12 @@ const require = createRequire(import.meta.url)
 const DATA_DIR    = process.env.CONTIGO_DATA_DIR || null
 const DATA_FILE   = DATA_DIR ? path.join(DATA_DIR, 'contigo-data.json') : null
 const BACKUP_FILE = DATA_FILE ? DATA_FILE + '.pre-sql-backup' : null
+const LOCK_FILE   = DATA_FILE ? DATA_FILE + '.lock' : null
+
+// Cada cuánto se refresca el candado y a partir de cuándo se considera
+// abandonado (por ejemplo, tras un corte de luz).
+const LOCK_REFRESH_MS = 5000
+const LOCK_STALE_MS   = 20000
 
 // Si la lectura del archivo falla, dejamos de guardar: sobrescribirlo
 // con una base vacía borraría todos los expedientes.
@@ -240,6 +247,60 @@ function esSqlite(bytes) {
   return bytes.length >= 16 && bytes.subarray(0, 15).toString('latin1') === 'SQLite format 3'
 }
 
+// ── Candado de instancia única ─────────────────────────────────
+// La base entera vive en memoria y se reescribe completa en cada
+// guardado. Con dos procesos sobre el mismo archivo, el último en
+// escribir borraría lo que hizo el otro, sin ningún aviso. El candado
+// hace visible ese choque en vez de perder expedientes en silencio.
+let lockTimer = null
+
+function tomarCandado() {
+  if (!LOCK_FILE) return true
+  try {
+    if (fs.existsSync(LOCK_FILE)) {
+      const previo = JSON.parse(fs.readFileSync(LOCK_FILE, 'utf8'))
+      const antiguedad = Date.now() - (previo.heartbeat || 0)
+      if (antiguedad < LOCK_STALE_MS && previo.pid !== process.pid) {
+        console.error('\n⛔ Otro proceso ya está usando este archivo de datos.')
+        console.error(`   Archivo: ${DATA_FILE}`)
+        console.error(`   En uso por: pid ${previo.pid}${previo.host ? ' en ' + previo.host : ''}`)
+        console.error('   Esta aplicación guarda la base completa en cada escritura, así que')
+        console.error('   dos instancias se pisarían. El guardado queda desactivado aquí.')
+        console.error('   Si despliegas en la nube, deja una sola réplica.\n')
+        return false
+      }
+    }
+    escribirCandado()
+    lockTimer = setInterval(escribirCandado, LOCK_REFRESH_MS)
+    lockTimer.unref?.()
+    return true
+  } catch (e) {
+    // Un candado ilegible no debe impedir arrancar: se avisa y sigue.
+    console.warn('⚠️ No se pudo comprobar el candado del archivo:', e.message)
+    return true
+  }
+}
+
+function escribirCandado() {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true })
+    fs.writeFileSync(LOCK_FILE, JSON.stringify({
+      pid: process.pid,
+      host: os.hostname(),
+      heartbeat: Date.now()
+    }))
+  } catch { /* si falla, el guardado normal ya reportará el problema */ }
+}
+
+function soltarCandado() {
+  if (!LOCK_FILE) return
+  try {
+    if (lockTimer) clearInterval(lockTimer)
+    const actual = JSON.parse(fs.readFileSync(LOCK_FILE, 'utf8'))
+    if (actual.pid === process.pid) fs.unlinkSync(LOCK_FILE)
+  } catch { /* nada que soltar */ }
+}
+
 // ── Guardado y carga ───────────────────────────────────────────
 function saveToDisk() {
   if (!DATA_FILE || persistenceBlocked || !dirty || !db) return
@@ -448,6 +509,12 @@ function migrarDesdeVolcado(volcado) {
 }
 
 // ── Arranque ───────────────────────────────────────────────────
+// El candado va antes de cargar: si otro proceso ya tiene el archivo,
+// esta instancia trabaja en memoria y no escribe nada.
+if (DATA_FILE && !tomarCandado()) {
+  persistenceBlocked = true
+}
+
 loadFromDisk()
 
 if (DATA_FILE) {
@@ -457,7 +524,7 @@ if (DATA_FILE) {
   // de aserción de libuv. El apagado ordenado lo coordina server.js.
   const intervalo = setInterval(saveToDisk, 3000)
   intervalo.unref?.()
-  process.on('exit', saveToDisk)
+  process.on('exit', () => { saveToDisk(); soltarCandado() })
 }
 
 /** Estado de la persistencia, para diagnóstico desde la interfaz. */

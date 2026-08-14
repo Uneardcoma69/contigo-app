@@ -7,3 +7,29 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+
+# Una sola instancia, y no es negociable: la base entera vive en memoria
+# y se reescribe completa en cada guardado, así que dos réplicas se
+# pisarían y se perderían expedientes. El candado del almacén detecta el
+# choque y desactiva el guardado, pero es mejor no llegar a eso.
+numReplicas = 1
+
+# ─────────────────────────────────────────────────────────────────
+# Variables que hay que definir en el panel de Railway (no aquí, para
+# no versionar secretos):
+#
+#   NODE_ENV=production
+#   JWT_SECRET=<cadena larga y aleatoria>
+#   CONTIGO_ADMIN_PASSWORD=<contraseña del primer administrador>
+#   TRUST_PROXY=1
+#   CONTIGO_DATA_DIR=/data            ← ruta del volumen persistente
+#   CONTIGO_DATA_KEY=<64 caracteres hex>   opcional, cifra el archivo
+#   CONTIGO_ALLOWED_ORIGINS=https://tu-dominio
+#   DEEPSEEK_API_KEY=<clave>          opcional, activa la IA real
+#
+# Sin CONTIGO_DATA_DIR apuntando a un volumen montado, los datos viven
+# solo en memoria y se pierden en cada despliegue o reinicio.
+#
+# Si defines CONTIGO_DATA_KEY, guarda esa clave en un lugar seguro: sin
+# ella el archivo queda ilegible y no hay forma de recuperarlo.
+# ─────────────────────────────────────────────────────────────────

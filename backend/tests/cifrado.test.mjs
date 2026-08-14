@@ -3,7 +3,7 @@
 // No necesitan el servidor: ejecutan el store en procesos hijos con
 // distintas variables de entorno.
 
-import { execFileSync } from 'child_process'
+import { spawnSync } from 'child_process'
 import { createCipheriv, randomBytes } from 'crypto'
 import fs from 'fs'
 import os from 'os'
@@ -30,15 +30,20 @@ function nuevoDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'contigo-test-'))
 }
 
-/** Ejecuta código con el store cargado, en un proceso aparte. */
+/**
+ * Ejecuta código con el store cargado, en un proceso aparte.
+ * Devuelve la salida estándar y la de error juntas: los avisos del
+ * almacén (archivo ilegible, candado en uso) se escriben en stderr.
+ */
 function conStore(dir, clave, codigo) {
   const script = `import * as store from '${STORE}'\n${codigo}`
   const env = { ...process.env, CONTIGO_DATA_DIR: dir }
   if (clave) env.CONTIGO_DATA_KEY = clave
   else delete env.CONTIGO_DATA_KEY
-  return execFileSync(process.execPath, ['--input-type=module', '-e', script], {
-    env, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe']
+  const r = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+    env, encoding: 'utf8'
   })
+  return (r.stdout || '') + (r.stderr || '')
 }
 
 /** Abre el archivo como base SQLite y devuelve los correos registrados. */
@@ -229,6 +234,39 @@ console.log('\n── Migración desde el formato anterior (cifrado) ──')
   const contenido = fs.readFileSync(archivo, 'utf8')
   check('Sigue cifrado después de migrar', contenido.includes('contigo-cifrado'))
   check('Ningún correo queda en claro', !contenido.includes('pedro.heredado@ejemplo.com'))
+
+  fs.rmSync(dir, { recursive: true, force: true })
+}
+
+console.log('\n── Candado: una sola instancia por archivo ──')
+{
+  const dir = nuevoDir()
+  const archivo = path.join(dir, 'contigo-data.json')
+  const candado = archivo + '.lock'
+
+  conStore(dir, null, `store.createUser({ name: 'Primero', email: 'primero@ejemplo.com', password: 'hash' })`)
+  const original = fs.readFileSync(archivo)
+
+  // Simular que otro proceso vivo tiene el archivo tomado
+  fs.writeFileSync(candado, JSON.stringify({ pid: 999999, host: 'otro-equipo', heartbeat: Date.now() }))
+
+  const salida = conStore(dir, null, `
+    store.createUser({ name: 'Segunda instancia', email: 'segunda@ejemplo.com', password: 'hash' })
+    console.log('estado:', JSON.stringify(store.getStorageStatus()))
+  `)
+  check('Detecta que otro proceso tiene el archivo', salida.includes('Otro proceso ya está usando'), salida.trim().split('\n').pop())
+  check('La segunda instancia no guarda nada', salida.includes('"bloqueado":true'))
+  check('El archivo de la primera queda intacto', fs.readFileSync(archivo).equals(original))
+
+  // Un candado viejo (proceso caído) no debe bloquear para siempre
+  fs.writeFileSync(candado, JSON.stringify({ pid: 999999, host: 'otro-equipo', heartbeat: Date.now() - 60000 }))
+  const salida2 = conStore(dir, null, `
+    store.createUser({ name: 'Tras reinicio', email: 'reinicio@ejemplo.com', password: 'hash' })
+    console.log('estado:', JSON.stringify(store.getStorageStatus()))
+  `)
+  check('Un candado abandonado no bloquea el arranque', salida2.includes('"bloqueado":false'), salida2.trim().split('\n').pop())
+  check('Tras retomar el candado sí guarda', correosEnArchivo(archivo).includes('reinicio@ejemplo.com'))
+  check('El candado se libera al terminar', !fs.existsSync(candado))
 
   fs.rmSync(dir, { recursive: true, force: true })
 }

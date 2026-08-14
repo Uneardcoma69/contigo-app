@@ -14,7 +14,7 @@ import adminRoutes from './routes/admin.js'
 import staffRoutes from './routes/staff.js'
 import contactRoutes from './routes/contact.js'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail, setUserPassword, getStorageStatus, flushToDisk } from './store.js'
+import { createUser, findUserByEmail, setUserPassword, getStorageStatus, flushToDisk, getAllUsers } from './store.js'
 
 dotenv.config()
 
@@ -24,6 +24,20 @@ const __dirname  = path.dirname(__filename)
 const app   = express()
 const PORT  = process.env.PORT || 3000
 const isDev = process.env.NODE_ENV !== 'production'
+
+// Desarrollo local declarado a propósito. No es lo mismo que `isDev`:
+// si NODE_ENV no llega definida —lo habitual al desplegar— `isDev` da
+// verdadero, y con eso se sembraban cuentas de prueba con contraseñas
+// conocidas en un servidor público.
+const esDesarrolloLocal = process.env.NODE_ENV === 'development'
+
+// ── Detrás de un proxy (Railway, Nginx, etc.) ──────────────────
+// Sin esto, todas las peticiones parecen venir de la IP del proxy y el
+// limitador de intentos las mete en el mismo cupo: una sola persona
+// equivocándose de contraseña dejaría fuera a todas las demás.
+if (process.env.TRUST_PROXY) {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY) || 1)
+}
 
 // ── Seguridad ──────────────────────────────────────────────────
 app.use(helmet({
@@ -38,7 +52,15 @@ app.use(helmet({
     }
   }
 }))
-app.use(cors({ origin: true, credentials: true }))
+// En producción conviene limitar el origen al dominio propio. Con la
+// variable sin definir se refleja el origen, que es lo que necesita la
+// app de escritorio cuando apunta a un servidor central.
+const origenesPermitidos = (process.env.CONTIGO_ALLOWED_ORIGINS || '')
+  .split(',').map(o => o.trim()).filter(Boolean)
+app.use(cors({
+  origin: origenesPermitidos.length > 0 ? origenesPermitidos : true,
+  credentials: true
+}))
 app.use(morgan(isDev ? 'dev' : 'combined'))
 app.use(express.json({ limit: '10kb' }))
 
@@ -73,29 +95,46 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/staff', staffRoutes)
 app.use('/api/contact', contactLimiter, contactRoutes)
 
-// ── Seed de cuentas ────────────────────────────────────────────
-// Desarrollo: 3 cuentas demo con contraseñas fijas.
-// App de escritorio (CONTIGO_ADMIN_PASSWORD): SOLO se crea el admin con
-// la contraseña aleatoria generada por la app en la primera ejecución.
-// El resto del staff se crea desde la pestaña Equipo del panel admin.
-// Idempotente: si el admin ya existe, se sincroniza su contraseña con
-// la de config.json para que siempre coincidan.
+// ── Cuentas iniciales ──────────────────────────────────────────
+// Hay dos caminos, y ninguno crea contraseñas conocidas por accidente:
+//
+//  1. CONTIGO_ADMIN_PASSWORD — crea SOLO la cuenta de administrador con
+//     la contraseña indicada. Es lo que usa la app de escritorio (la
+//     genera al azar) y también el camino correcto en un servidor.
+//     Idempotente: si el admin ya existe, sincroniza su contraseña.
+//
+//  2. Cuentas de prueba con contraseñas fijas — únicamente en desarrollo
+//     local declarado (NODE_ENV=development) o pidiéndolo a propósito
+//     con CONTIGO_SEED_DEMO=true.
+//
+// El resto del equipo se crea desde la pestaña Equipo del panel admin.
 async function seedDemoAccounts() {
-  const desktopAdminPass = process.env.CONTIGO_ADMIN_PASSWORD
+  const adminPass = process.env.CONTIGO_ADMIN_PASSWORD
 
-  if (desktopAdminPass) {
-    const hash = await bcrypt.hash(desktopAdminPass, 10)
+  if (adminPass) {
+    const hash = await bcrypt.hash(adminPass, 10)
     const existing = findUserByEmail('admin@contigo.com')
     if (existing) {
       setUserPassword(existing._id, hash)
     } else {
       createUser({ name: 'Administrador', email: 'admin@contigo.com', password: hash, role: 'admin' })
     }
-    console.log('👤 Cuenta admin lista (admin@contigo.com, contraseña en config.json)')
+    console.log('👤 Cuenta admin lista (admin@contigo.com)')
     return
   }
 
-  if (!isDev && process.env.CONTIGO_SEED_DEMO !== 'true') return
+  const sembrarDemo = esDesarrolloLocal || process.env.CONTIGO_SEED_DEMO === 'true'
+  if (!sembrarDemo) {
+    // Sin cuentas y sin forma de entrar: mejor decirlo claro que dejar
+    // a alguien adivinando por qué no puede iniciar sesión.
+    if (getAllUsers().length === 0) {
+      console.warn('\n⚠️  No hay ninguna cuenta y no se creó ninguna automáticamente.')
+      console.warn('   Define CONTIGO_ADMIN_PASSWORD con una contraseña segura y reinicia')
+      console.warn('   para crear la cuenta de administrador.\n')
+    }
+    return
+  }
+
   const demo = [
     { name: 'Admin Contigo',    email: 'admin@contigo.com',     password: 'admin123',   role: 'admin' },
     { name: 'Laura Cifuentes',  email: 'psicologa@contigo.com', password: 'contigo123', role: 'psychologist' },
@@ -109,6 +148,9 @@ async function seedDemoAccounts() {
   }
   console.log('👥 Cuentas demo staff creadas:')
   demo.forEach(d => console.log(`   ${d.role.padEnd(12)} → ${d.email} / ${d.password}`))
+  if (!esDesarrolloLocal) {
+    console.warn('⚠️  Estas contraseñas son públicas. No dejes CONTIGO_SEED_DEMO=true en un servidor.')
+  }
 }
 seedDemoAccounts()
 
