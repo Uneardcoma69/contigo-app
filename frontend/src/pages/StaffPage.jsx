@@ -367,7 +367,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
     <SectionCard
       title={`📅 Semana ${fmtRange}`}
       right={
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button className="btn btn--outline btn--sm" onClick={() => moveWeek(-1)}>← Anterior</button>
           <button className="btn btn--outline btn--sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Hoy</button>
           <button className="btn btn--outline btn--sm" onClick={() => moveWeek(1)}>Siguiente →</button>
@@ -426,7 +426,10 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
         </form>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, overflowX: 'auto', minWidth: 0 }}>
+      {/* Cada día no baja de 90px: con 1fr puro las columnas se encogían
+          a 40px en un teléfono y no se podía leer ninguna cita. Si no
+          caben, la rejilla se desplaza en horizontal. */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(90px, 1fr))', gap: 8, overflowX: 'auto', minWidth: 0, paddingBottom: 4 }}>
         {days.map((day, i) => {
           const isToday = day.toDateString() === today.toDateString()
           const dayAppts = apptsOf(day)

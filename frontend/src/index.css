@@ -96,17 +96,25 @@ body {
 }
 
 /* ─── Header ─────────────────────────────────────────────────── */
+/* Todo el aspecto de la barra vive aquí, no en estilos en línea del
+   componente: en línea ganan siempre y las reglas para pantallas
+   pequeñas no podían reducir el espaciado. */
 .header {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--border-light);
-  padding: 16px 32px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  margin: 16px auto;
+  max-width: 1200px;
+  width: calc(100% - 32px);
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   position: sticky;
-  top: 0;
+  top: 16px;
   z-index: 100;
   box-shadow: var(--shadow-sm);
   transition: all var(--transition);
@@ -673,6 +681,38 @@ body {
 .anim-float { animation: float 5s ease-in-out infinite; }
 .anim-pulse { animation: pulse-soft 4s ease-in-out infinite; }
 
+/* ─── Navegación del encabezado ──────────────────────────────── */
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+}
+
+.header__nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+.header__alerta-riesgo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  white-space: nowrap;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  color: #b91c1c;
+  font-weight: 800;
+  font-size: 0.8rem;
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
 /* ─── Avisos en formularios ──────────────────────────────────── */
 .alert {
   display: flex;
@@ -853,7 +893,7 @@ body {
 
 /* ─── Responsive Adjustments ─────────────────────────────────── */
 @media (max-width: 600px) {
-  .header { padding: 12px 16px; }
+  .header { padding: 12px 14px; width: calc(100% - 20px); margin: 10px auto; top: 10px; }
   .header__title { font-size: 1.1rem; }
   .auth-card { padding: 32px 24px; border-radius: var(--radius-lg); }
   .chat-bubble-wrap { max-width: 88%; }
@@ -863,6 +903,31 @@ body {
   .admin-dashboard { padding: 24px 16px 48px; }
   .admin-modal { padding: 20px; max-height: 94vh; }
   .heatmap-grid { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); }
+
+  /* En pantalla angosta la barra no cabía y el avatar y el botón de
+     cerrar sesión quedaban fuera, sin posibilidad de alcanzarlos
+     (la página no se desplaza en horizontal). Se deja solo el icono
+     de cada sección; el nombre sigue anunciado por aria-label. */
+  .header__nav-texto { display: none; }
+  .header__nav { gap: 2px; margin-right: 2px; }
+  .header__actions { gap: 6px; }
+  .header__nav-link { padding: 8px 10px; font-size: 1.05rem; }
+  .header__alerta-riesgo { padding: 5px 9px; }
+  .header__brand img,
+  .header__brand > div:first-child { width: 38px !important; height: 38px !important; }
+  .header__subtitle { display: none; }
+  .header__user { padding-left: 10px !important; margin-left: 4px !important; }
+  .header__avatar { width: 34px; height: 34px; font-size: 0.8rem; }
+  /* Área de toque cómoda: los 40px que quedaban se acercan al mínimo
+     que se recomienda para el dedo (44px). */
+  .header .btn--icon { padding: 11px; }
+}
+
+/* Pantallas muy angostas: se prescinde también del nombre de la marca */
+@media (max-width: 380px) {
+  .header { padding: 10px 12px; }
+  .header__title { display: none; }
+  .header__nav-link { padding: 8px 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

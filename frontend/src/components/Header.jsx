@@ -27,38 +27,31 @@ export default function Header({ actions }) {
     return () => { active = false; clearInterval(interval) }
   }, [user?.isStaff])
 
-  const navLink = (to, label) => (
+  // El icono y el texto van separados para poder ocultar la palabra en
+  // pantallas angostas sin que el enlace pierda su nombre accesible.
+  const navLink = (to, icono, texto) => (
     <Link
       to={to}
+      aria-label={texto}
+      className="header__nav-link"
       style={{
         fontSize: '0.95rem',
         fontWeight: 700,
         color: location.pathname === to ? 'var(--teal-dark)' : 'var(--slate)',
         textDecoration: 'none',
-        padding: '8px 16px',
         borderRadius: 'var(--radius-pill)',
         background: location.pathname === to ? 'var(--teal-pale)' : 'transparent',
         border: location.pathname === to ? '1px solid var(--teal-light)' : '1px solid transparent',
         transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
       }}
     >
-      {label}
+      <span aria-hidden="true">{icono}</span>
+      <span className="header__nav-texto">{texto}</span>
     </Link>
   )
 
   return (
-    <header className="header" style={{
-      margin: '16px auto',
-      maxWidth: '1200px',
-      borderRadius: 'var(--radius-pill)',
-      padding: '12px 24px',
-      border: '1px solid var(--border-light)',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      top: '16px',
-      boxShadow: 'var(--shadow-sm)'
-    }}>
+    <header className="header">
       <Link to="/" className="header__brand">
         <img
           src="/contigo-bot.jpeg"
@@ -95,23 +88,23 @@ export default function Header({ actions }) {
       <div className="header__actions">
         {user ? (
           <>
-            <div style={{ display: 'flex', gap: '8px', marginRight: '8px', alignItems: 'center' }}>
-              {!user.isStaff && navLink('/chat',  '💬 Chat')}
-              {!user.isStaff && navLink('/goals', '🎯 Metas')}
-              {user.isStaff && navLink('/staff', '🩺 Panel Staff')}
-              {user.isAdmin && navLink('/admin', '🛡️ Admin')}
+            <nav className="header__nav" aria-label="Secciones">
+              {!user.isStaff && navLink('/chat',  '💬', 'Chat')}
+              {!user.isStaff && navLink('/goals', '🎯', 'Metas')}
+              {user.isStaff && navLink('/staff', '🩺', 'Panel Staff')}
+              {user.isAdmin && navLink('/admin', '🛡️', 'Admin')}
               {user.isStaff && riskAlert.alto > 0 && (
-                <Link to={user.isAdmin ? '/admin' : '/staff'} title={`${riskAlert.alto} paciente(s) en riesgo alto`} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  padding: '5px 12px', borderRadius: 999, textDecoration: 'none',
-                  background: '#fef2f2', border: '1.5px solid #fecaca',
-                  color: '#b91c1c', fontWeight: 800, fontSize: '0.8rem',
-                  animation: 'pulse-soft 1.6s ease-in-out infinite'
-                }}>
-                  🔴 {riskAlert.alto} en riesgo alto
+                <Link
+                  to={user.isAdmin ? '/admin' : '/staff'}
+                  className="header__alerta-riesgo"
+                  aria-label={`${riskAlert.alto} paciente(s) en riesgo alto`}
+                  title={`${riskAlert.alto} paciente(s) en riesgo alto`}
+                >
+                  <span aria-hidden="true">🔴 {riskAlert.alto}</span>
+                  <span className="header__nav-texto">en riesgo alto</span>
                 </Link>
               )}
-            </div>
+            </nav>
             {actions}
             <div className="header__user" style={{ paddingLeft: 16, borderLeft: '2px solid var(--border)', marginLeft: 8 }}>
               <div className="header__avatar">{initials(user.name)}</div>
