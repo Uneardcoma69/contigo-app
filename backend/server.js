@@ -31,6 +31,33 @@ const isDev = process.env.NODE_ENV !== 'production'
 // conocidas en un servidor público.
 const esDesarrolloLocal = process.env.NODE_ENV === 'development'
 
+// ── Comprobación del secreto de sesión ─────────────────────────
+// Con él se firman los tokens: quien lo conozca puede fabricarse uno de
+// administrador. El valor de ejemplo está publicado en el repositorio,
+// así que copiarlo tal cual equivale a no tener secreto.
+const SECRETO_DE_EJEMPLO = 'cambia_esto_por_un_secreto_muy_largo_y_seguro_123456789'
+;(function comprobarSecreto() {
+  const s = process.env.JWT_SECRET
+  const problema =
+    !s ? 'no está definido'
+    : s === SECRETO_DE_EJEMPLO ? 'es el valor de ejemplo, que es público'
+    : s.length < 32 ? `es demasiado corto (${s.length} caracteres, mínimo 32)`
+    : null
+
+  if (!problema) return
+
+  const comoGenerarlo = 'node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"'
+  if (!s || !esDesarrolloLocal) {
+    console.error(`\n⛔ JWT_SECRET ${problema}.`)
+    console.error('   Con este valor, cualquiera podría falsificar una sesión de administrador.')
+    console.error('   Genera uno con:')
+    console.error(`   ${comoGenerarlo}\n`)
+    process.exit(1)
+  }
+  console.warn(`\n⚠️  JWT_SECRET ${problema}. Aceptable solo en desarrollo local.`)
+  console.warn(`   Para producción genera uno con: ${comoGenerarlo}\n`)
+})()
+
 // ── Detrás de un proxy (Railway, Nginx, etc.) ──────────────────
 // Sin esto, todas las peticiones parecen venir de la IP del proxy y el
 // limitador de intentos las mete en el mismo cupo: una sola persona
