@@ -4,9 +4,11 @@ import requireAdmin from '../middleware/requireAdmin.js'
 import {
   getAllUsers, getAllRiskProfiles, getRiskProfile, getHistory, findUserById,
   findUserByEmail, createUser, setUserRole, assignPatient, getStaffMembers,
-  getContactMessages, setUserPassword, bumpTokenVersion, ROLES, STAFF_ROLES
+  getContactMessages, setUserPassword, bumpTokenVersion,
+  getAuditLog, AUDIT_ACTIONS, ROLES, STAFF_ROLES
 } from '../store.js'
 import { isDesktop, updateConfig } from '../desktopConfig.js'
+import { auditar } from '../auditoria.js'
 
 const router = express.Router()
 
@@ -74,6 +76,9 @@ router.get('/user/:id', requireAdmin, (req, res) => {
     timestamp: m.createdAt
   }))
 
+  // Este detalle incluye los últimos mensajes del chat
+  auditar(req, 'alertas.ver-detalle', { targetId: user._id, targetName: user.name })
+
   return res.json({
     user: { _id: user._id, name: user.name, email: user.email, createdAt: user.createdAt },
     risk: riskProfile || { level: 'sin_datos', score: 0, alerts: [], triggerWords: [] },
@@ -132,6 +137,22 @@ router.put('/settings', requireAdmin, (req, res) => {
   })
 })
 
+// ── Registro de auditoría ──────────────────────────────────────
+// GET /api/admin/audit-log — quién consultó o modificó qué, y cuándo.
+// Consultar el propio registro no se audita: llenaría la bitácora de
+// entradas sobre sí misma sin aportar nada.
+router.get('/audit-log', requireAdmin, (req, res) => {
+  const { actorId, targetId, action, limit, offset } = req.query
+  const resultado = getAuditLog({
+    actorId: actorId || undefined,
+    targetId: targetId || undefined,
+    action: action || undefined,
+    limit: limit ? Number(limit) : 100,
+    offset: offset ? Number(offset) : 0
+  })
+  return res.json({ ...resultado, acciones: AUDIT_ACTIONS })
+})
+
 // ── Gestión de equipo ──────────────────────────────────────────
 
 // GET /api/admin/staff — lista de staff
@@ -154,6 +175,9 @@ router.post('/staff', requireAdmin, async (req, res) => {
 
     const hash = await bcrypt.hash(password, 12)
     const user = createUser({ name, email, password: hash, role })
+    auditar(req, 'staff.crear', {
+      targetId: user._id, targetName: user.name, details: `Rol: ${user.role} · ${user.email}`
+    })
     return res.status(201).json({
       user: { _id: user._id, name: user.name, email: user.email, role: user.role }
     })
@@ -172,7 +196,11 @@ router.put('/users/:id/role', requireAdmin, (req, res) => {
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
   if (user._id === req.userId && role !== 'admin')
     return res.status(400).json({ message: 'No puedes quitarte tu propio rol de admin.' })
+  const rolAnterior = user.role
   const actualizado = setUserRole(user._id, role)
+  auditar(req, 'rol.cambiar', {
+    targetId: user._id, targetName: user.name, details: `${rolAnterior} → ${role}`
+  })
   return res.json({
     user: {
       _id: actualizado._id,
@@ -201,6 +229,8 @@ router.put('/users/:id/password', requireAdmin, async (req, res) => {
     const hash = await bcrypt.hash(newPassword, 12)
     setUserPassword(user._id, hash)
     bumpTokenVersion(user._id)   // cierra las sesiones abiertas de esa persona
+    // Se registra el hecho, nunca la contraseña
+    auditar(req, 'contrasena.restablecer', { targetId: user._id, targetName: user.name })
 
     return res.json({ ok: true, user: { _id: user._id, name: user.name, email: user.email } })
   } catch (e) {
@@ -212,9 +242,17 @@ router.put('/users/:id/password', requireAdmin, async (req, res) => {
 // PUT /api/admin/patients/:id/assign — asignar paciente a un psicólogo/monitor
 router.put('/patients/:id/assign', requireAdmin, (req, res) => {
   const { staffId } = req.body || {}   // null para desasignar
+  const antes = findUserById(req.params.id)
+  const responsableAnterior = antes?.assignedPsychologistId
+    ? findUserById(antes.assignedPsychologistId)?.name : null
   const patient = assignPatient(req.params.id, staffId ?? null)
   if (!patient)
     return res.status(400).json({ message: 'Paciente o miembro de staff inválido.' })
+  const nuevoResponsable = staffId ? findUserById(staffId)?.name : null
+  auditar(req, 'paciente.asignar', {
+    targetId: patient._id, targetName: patient.name,
+    details: `${responsableAnterior || 'sin asignar'} → ${nuevoResponsable || 'sin asignar'}`
+  })
   return res.json({
     patient: {
       _id: patient._id,

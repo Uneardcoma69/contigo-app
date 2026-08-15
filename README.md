@@ -59,6 +59,7 @@ Existen cuatro roles. El campo interno se llama `role` y sus valores válidos so
 | Ver la bandeja del formulario de contacto | No | No | No | Sí |
 | Cambiar los ajustes de IA de la aplicación | No | No | No | Sí |
 | Panel de alertas con mapa de calor (`/admin`) | No | No | No | Sí |
+| Leer el registro de auditoría | No | No | No | Sí |
 
 ### Las dos reglas que definen todo
 
@@ -159,7 +160,24 @@ npm run desktop          # electron .
 | `/admin` | Solo admin — panel de alertas |
 
 El panel `/staff` muestra las pestañas Pacientes, Calendario, Reportes y Mi cuenta a
-todo el equipo, y añade Equipo, Mensajes y Ajustes cuando quien entra es admin.
+todo el equipo, y añade Equipo, Mensajes, Auditoría y Ajustes cuando quien entra es
+admin.
+
+### Registro de auditoría
+
+Queda constancia de quién consultó o modificó información clínica: abrir un
+expediente, validar una ficha, crear o borrar una cita, cambiar un rol, asignar un
+paciente o restablecer una contraseña. Cada entrada guarda la fecha, quién actuó con
+su rol, sobre quién y un detalle de la acción.
+
+Solo el administrador puede leerlo, en la pestaña **Auditoría** del panel, con
+filtros por acción, por profesional y por paciente. **Las entradas solo se añaden**:
+no hay ninguna ruta para editarlas ni borrarlas, porque un registro alterable no
+sirve para rendir cuentas. Los nombres se copian en el momento del hecho, así que si
+una cuenta se renombra después, el registro sigue diciendo lo que era entonces.
+
+Se conservan las últimas 20 000 entradas; al recortar, el servidor lo avisa en
+consola. Consultar el propio registro no genera entradas nuevas.
 
 ---
 
@@ -258,8 +276,8 @@ Contigo usa **SQLite** a través de `sql.js` (SQLite compilado a WebAssembly). E
 | Con `CONTIGO_DATA_DIR` pero sin `CONTIGO_DATA_KEY` | Se guarda como base SQLite, sin cifrar. |
 
 El esquema tiene ocho tablas con claves foráneas e índices: `users`, `messages`, `goals`,
-`risk_profiles`, `risk_alerts`, `medical_records`, `progress_notes`, `appointments` y
-`contact_messages`. Toda la aplicación accede a los datos por las funciones que exporta
+`risk_profiles`, `risk_alerts`, `medical_records`, `progress_notes`, `appointments`,
+`contact_messages` y `audit_log`. Toda la aplicación accede a los datos por las funciones que exporta
 `store.js`; ninguna ruta escribe SQL directamente.
 
 > **Por qué `sql.js` y no `better-sqlite3`:** el proyecto ejecuta el mismo backend bajo dos
@@ -379,6 +397,7 @@ npm --prefix backend test
 | `citas-alertas.test.mjs` | Citas visibles para el paciente y resumen de alertas del encabezado |
 | `permisos-contacto-ajustes.test.mjs` | Monitor como observador, formulario de contacto y ajustes de IA |
 | `contrasenas.test.mjs` | Cambio de contraseña propia, restablecimiento por el admin e invalidación de sesiones |
+| `auditoria.test.mjs` | Qué queda registrado, quién puede leerlo y que no se pueda alterar |
 
 ---
 
@@ -439,6 +458,7 @@ cabecera `Authorization: Bearer <token>`.
 | `PUT /admin/users/:id/password` | Restablece la contraseña de otra persona y cierra sus sesiones |
 | `PUT /admin/patients/:id/assign` | Asigna o desasigna un paciente a un miembro del equipo |
 | `GET /admin/contact-messages` | Bandeja del formulario público |
+| `GET /admin/audit-log` | Registro de auditoría, con filtros `action`, `actorId`, `targetId` y paginación |
 | `GET /admin/settings` | Estado de la IA; nunca devuelve la clave completa |
 | `PUT /admin/settings` | Guarda o borra la clave de IA (**solo en la app de escritorio**) |
 
@@ -483,9 +503,6 @@ Lo que hoy no está resuelto, dicho sin rodeos:
 - **El análisis de riesgo es por palabras clave.** No entiende contexto, ironía ni
   negaciones; genera falsos positivos y falsos negativos. Es una ayuda de triaje, no
   un diagnóstico.
-- **Sin registro de auditoría.** No queda constancia de qué miembro del equipo
-  consultó qué expediente y cuándo, algo esperable en un sistema con información
-  clínica.
 - **Solo se genera instalador para Windows.** El cifrado depende de `safeStorage` de
   Electron, que en Windows usa DPAPI; en otros sistemas habría que validar el
   comportamiento.

@@ -1,5 +1,6 @@
 import express from 'express'
 import { requireStaff, requireClinician } from '../middleware/requireRole.js'
+import { auditar } from '../auditoria.js'
 import {
   findUserById, getPatients, getPatientsOf, getStaffMembers,
   getHistory, getGoals, getRiskProfile,
@@ -57,6 +58,10 @@ router.get('/patients/:id', (req, res) => {
   if (!canAccessPatient(req, patient))
     return res.status(403).json({ message: 'Este paciente no está asignado a ti.' })
 
+  // Abrir un expediente da acceso a las conversaciones y a la ficha
+  // médica: es la consulta que más importa dejar registrada.
+  auditar(req, 'expediente.ver', { targetId: patient._id, targetName: patient.name })
+
   const risk = getRiskProfile(patient._id)
   const chat = getHistory(patient._id).slice(-200).map(m => ({
     role: m.role, content: m.content, timestamp: m.createdAt
@@ -102,6 +107,7 @@ router.post('/patients/:id/notes', (req, res) => {
     authorName: req.user.name,
     text
   })
+  auditar(req, 'nota.crear', { targetId: patient._id, targetName: patient.name })
   return res.status(201).json({ note })
 })
 
@@ -125,6 +131,10 @@ router.put('/patients/:id/medical/validate', requireClinician, (req, res) => {
     note
   })
   if (!record) return res.status(404).json({ message: 'El paciente aún no ha registrado su ficha médica.' })
+  auditar(req, 'ficha.validar', {
+    targetId: patient._id, targetName: patient.name,
+    details: `Estado: ${status}${note ? ` · Nota: ${String(note).slice(0, 120)}` : ''}`
+  })
   return res.json({ record })
 })
 
@@ -179,6 +189,10 @@ router.post('/appointments', requireClinician, (req, res) => {
     return res.status(409).json({ message: 'Ya existe una cita en ese horario.' })
 
   const appt = createAppointment({ patientId, psychologistId: targetPsy, date: when, durationMin: dur, modality, notes })
+  auditar(req, 'cita.crear', {
+    targetId: patient._id, targetName: patient.name,
+    details: `${when.toISOString()} · ${dur} min · ${appt.modality}`
+  })
   return res.status(201).json({ appointment: apptWithNames(appt) })
 })
 
@@ -191,6 +205,11 @@ router.put('/appointments/:id', requireClinician, (req, res) => {
 
   const { date, durationMin, modality, status, notes } = req.body || {}
   const updated = updateAppointment(appt._id, { date, durationMin, modality, status, notes })
+  const paciente = findUserById(appt.patientId)
+  auditar(req, 'cita.editar', {
+    targetId: appt.patientId, targetName: paciente?.name,
+    details: status ? `Nuevo estado: ${status}` : 'Cambió fecha, duración, modalidad o notas'
+  })
   return res.json({ appointment: apptWithNames(updated) })
 })
 
@@ -200,7 +219,12 @@ router.delete('/appointments/:id', requireClinician, (req, res) => {
   if (!appt) return res.status(404).json({ message: 'Cita no encontrada.' })
   if (req.userRole !== 'admin' && appt.psychologistId !== req.userId)
     return res.status(403).json({ message: 'Esta cita no es tuya.' })
+  const paciente = findUserById(appt.patientId)
   deleteAppointment(appt._id)
+  auditar(req, 'cita.eliminar', {
+    targetId: appt.patientId, targetName: paciente?.name,
+    details: `Cita del ${appt.date}`
+  })
   return res.json({ ok: true })
 })
 

@@ -768,6 +768,100 @@ function TeamTab({ notify, onChanged }) {
 }
 
 /* ═══════════ Mensajes de contacto (solo admin) ═══════════ */
+/* ═══════════ Registro de auditoría (solo admin) ═══════════ */
+function AuditTab({ notify }) {
+  const [datos, setDatos] = useState(null)
+  const [filtro, setFiltro] = useState('')
+  const [pagina, setPagina] = useState(0)
+  const porPagina = 50
+
+  const load = useCallback(() => {
+    const params = new URLSearchParams({ limit: porPagina, offset: pagina * porPagina })
+    if (filtro) params.set('action', filtro)
+    axios.get(`/api/admin/audit-log?${params}`)
+      .then(({ data }) => setDatos(data))
+      .catch(() => notify.error('Error al cargar el registro.'))
+  }, [notify, filtro, pagina])
+
+  useEffect(() => { load() }, [load])
+
+  if (!datos) return <SectionCard title="📋 Registro de auditoría"><p style={{ color: 'var(--slate)' }}>Cargando...</p></SectionCard>
+
+  const totalPaginas = Math.ceil(datos.total / porPagina)
+  const fmt = d => new Date(d).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+
+  return (
+    <SectionCard
+      title={`📋 Registro de auditoría (${datos.total})`}
+      right={
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <select
+            className="form-input"
+            style={{ padding: '7px 12px', width: 'auto', fontSize: '0.85rem' }}
+            value={filtro}
+            onChange={e => { setFiltro(e.target.value); setPagina(0) }}
+            aria-label="Filtrar por tipo de acción"
+          >
+            <option value="">Todas las acciones</option>
+            {Object.entries(datos.acciones || {}).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          <button className="btn btn--outline btn--sm" onClick={load}>🔄 Refrescar</button>
+        </div>
+      }
+    >
+      <p style={{ fontSize: '0.85rem', color: 'var(--slate)', marginTop: 0, marginBottom: 16 }}>
+        Queda constancia de quién consultó o modificó información clínica. Las entradas
+        solo se añaden: no pueden editarse ni borrarse desde la aplicación.
+      </p>
+
+      {datos.entries.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 32, color: 'var(--slate)' }}>
+          <div style={{ fontSize: '2.2rem', marginBottom: 8 }}>🗒️</div>
+          <p style={{ fontWeight: 500 }}>Todavía no hay actividad registrada.</p>
+        </div>
+      ) : (
+        <>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="alert-table">
+              <thead>
+                <tr>
+                  <th>Cuándo</th>
+                  <th>Quién</th>
+                  <th>Hizo qué</th>
+                  <th>Sobre quién</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {datos.entries.map(e => (
+                  <tr key={e._id}>
+                    <td style={{ whiteSpace: 'nowrap', color: 'var(--slate)', fontSize: '0.82rem' }}>{fmt(e.createdAt)}</td>
+                    <td>
+                      <div style={{ fontWeight: 500 }}>{e.actorName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{ROLE_LABEL[e.actorRole] || e.actorRole}</div>
+                    </td>
+                    <td style={{ fontSize: '0.85rem' }}>{e.actionLabel}</td>
+                    <td style={{ fontSize: '0.85rem' }}>{e.targetName || '—'}</td>
+                    <td style={{ fontSize: '0.8rem', color: 'var(--slate)', maxWidth: 240 }}>{e.details || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPaginas > 1 && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', marginTop: 16 }}>
+              <button className="btn btn--outline btn--sm" disabled={pagina === 0} onClick={() => setPagina(p => p - 1)}>← Anterior</button>
+              <span style={{ fontSize: '0.85rem', color: 'var(--slate)' }}>Página {pagina + 1} de {totalPaginas}</span>
+              <button className="btn btn--outline btn--sm" disabled={pagina + 1 >= totalPaginas} onClick={() => setPagina(p => p + 1)}>Siguiente →</button>
+            </div>
+          )}
+        </>
+      )}
+    </SectionCard>
+  )
+}
+
 function MessagesTab({ notify }) {
   const [messages, setMessages] = useState([])
   const [loaded, setLoaded] = useState(false)
@@ -983,6 +1077,7 @@ export default function StaffPage() {
           {tabBtn('reports', '📊 Reportes')}
           {user?.isAdmin && tabBtn('team', '👥 Equipo')}
           {user?.isAdmin && tabBtn('messages', '📨 Mensajes')}
+          {user?.isAdmin && tabBtn('audit', '📋 Auditoría')}
           {user?.isAdmin && tabBtn('settings', '⚙️ Ajustes')}
           {tabBtn('account', '🔐 Mi cuenta')}
         </div>
@@ -1033,6 +1128,7 @@ export default function StaffPage() {
         {tab === 'reports' && <ReportsTab notify={notify} />}
         {tab === 'team' && user?.isAdmin && <TeamTab notify={notify} onChanged={loadPatients} />}
         {tab === 'messages' && user?.isAdmin && <MessagesTab notify={notify} />}
+        {tab === 'audit' && user?.isAdmin && <AuditTab notify={notify} />}
         {tab === 'settings' && user?.isAdmin && <SettingsTab notify={notify} />}
         {tab === 'account' && (
           <div style={{ marginTop: -32 }}>

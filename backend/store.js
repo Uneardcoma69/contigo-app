@@ -166,12 +166,37 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_contact_created ON contact_messages(created_at);
+
+-- Quién consultó o modificó qué, y cuándo. Solo se añade: no hay forma
+-- de editar ni borrar entradas desde la aplicación, porque un registro
+-- que se puede alterar no sirve para rendir cuentas.
+-- Los nombres se guardan copiados a propósito: si una cuenta se
+-- renombra, el registro debe seguir diciendo lo que era en su momento.
+CREATE TABLE IF NOT EXISTS audit_log (
+  id TEXT PRIMARY KEY,
+  created_at TEXT NOT NULL,
+  actor_id TEXT,
+  actor_name TEXT NOT NULL,
+  actor_role TEXT NOT NULL,
+  action TEXT NOT NULL,
+  target_id TEXT,
+  target_name TEXT,
+  details TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor_id);
+CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_log(target_id);
 `
 
 // Topes de conservación (antes se aplicaban recortando arrays en JS)
 const MAX_MESSAGES_PER_USER = 500
 const MAX_ALERTS_PER_USER   = 50
 const MAX_CONTACT_MESSAGES  = 500
+
+// El registro de auditoría se conserva mucho más tiempo que el resto:
+// su valor está justamente en poder mirar atrás. El tope existe solo
+// para que el archivo no crezca sin límite, y al recortar se avisa.
+const MAX_AUDIT_ENTRIES = 20000
 
 // Roles válidos: 'user' | 'monitor' | 'psychologist' | 'admin'
 // Se declaran antes del arranque: la migración de datos heredados los
@@ -1033,4 +1058,78 @@ export function getContactMessages() {
     mensaje: f.mensaje,
     createdAt: f.created_at
   }))
+}
+
+// ── Registro de auditoría ──────────────────────────────────────
+// Deja constancia de quién consultó o modificó información clínica.
+// Solo se añade; no existe función para editar ni borrar entradas.
+
+/** Acciones que se registran, con su descripción para la interfaz. */
+export const AUDIT_ACTIONS = {
+  'expediente.ver':        'Consultó un expediente',
+  'ficha.validar':         'Validó o rechazó una ficha médica',
+  'nota.crear':            'Añadió una nota de progreso',
+  'cita.crear':            'Agendó una cita',
+  'cita.editar':           'Modificó una cita',
+  'cita.eliminar':         'Eliminó una cita',
+  'paciente.asignar':      'Cambió la asignación de un paciente',
+  'rol.cambiar':           'Cambió el rol de una cuenta',
+  'contrasena.restablecer':'Restableció la contraseña de otra persona',
+  'staff.crear':           'Creó una cuenta del equipo',
+  'alertas.ver-detalle':   'Abrió el detalle de un usuario en el panel de alertas',
+}
+
+export function recordAudit({ actorId, actorName, actorRole, action, targetId, targetName, details }) {
+  run(
+    `INSERT INTO audit_log
+       (id, created_at, actor_id, actor_name, actor_role, action, target_id, target_name, details)
+     VALUES (?,?,?,?,?,?,?,?,?)`,
+    [randomUUID(), ahora(), actorId ?? null, actorName ?? '(desconocido)', actorRole ?? '',
+     action, targetId ?? null, targetName ?? null, details ?? '']
+  )
+
+  const total = one('SELECT COUNT(*) AS n FROM audit_log')?.n ?? 0
+  if (total > MAX_AUDIT_ENTRIES) {
+    run(
+      `DELETE FROM audit_log WHERE id NOT IN (
+         SELECT id FROM audit_log ORDER BY created_at DESC, rowid DESC LIMIT ${MAX_AUDIT_ENTRIES}
+       )`
+    )
+    console.warn(`⚠️ Registro de auditoría recortado a las ${MAX_AUDIT_ENTRIES} entradas más recientes.`)
+  }
+}
+
+/**
+ * Lee el registro, de lo más reciente a lo más antiguo.
+ * Admite filtrar por quién actuó, sobre quién, o por tipo de acción.
+ */
+export function getAuditLog({ actorId, targetId, action, limit = 100, offset = 0 } = {}) {
+  const condiciones = []
+  const params = []
+  if (actorId)  { condiciones.push('actor_id = ?');  params.push(actorId) }
+  if (targetId) { condiciones.push('target_id = ?'); params.push(targetId) }
+  if (action)   { condiciones.push('action = ?');    params.push(action) }
+  const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : ''
+
+  const total = one(`SELECT COUNT(*) AS n FROM audit_log ${where}`, params)?.n ?? 0
+  const filas = all(
+    `SELECT * FROM audit_log ${where} ORDER BY created_at DESC, rowid DESC LIMIT ? OFFSET ?`,
+    [...params, Math.min(Number(limit) || 100, 500), Number(offset) || 0]
+  )
+
+  return {
+    total,
+    entries: filas.map(f => ({
+      _id: f.id,
+      createdAt: f.created_at,
+      actorId: f.actor_id,
+      actorName: f.actor_name,
+      actorRole: f.actor_role,
+      action: f.action,
+      actionLabel: AUDIT_ACTIONS[f.action] || f.action,
+      targetId: f.target_id,
+      targetName: f.target_name,
+      details: f.details
+    }))
+  }
 }
