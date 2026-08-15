@@ -227,7 +227,7 @@ export default function ChatPage() {
         borderRadius: '50%', zIndex: 0, opacity: 0.3
       }} />
 
-      <Header actions={<button className="btn btn--outline btn--sm" style={{ border: 'none', background: 'transparent', color: 'var(--slate)' }} onClick={handleClearHistory} title="Borrar historial">🗑️</button>} />
+      <Header actions={<button className="btn btn--outline btn--sm" style={{ border: 'none', background: 'transparent', color: 'var(--slate)' }} onClick={handleClearHistory} aria-label="Borrar el historial de conversación" title="Borrar historial">🗑️</button>} />
       <ToastContainer toasts={toasts} />
 
       <div className="chat-wrapper" style={{ position: 'relative', zIndex: 1 }}>

@@ -375,6 +375,8 @@ export default function GoalsPage() {
   }
 
   const handleDelete = async (id) => {
+    const meta = goals.find(g => g._id === id)
+    if (!window.confirm(`¿Eliminar "${meta?.title ?? 'este objetivo'}"?`)) return
     try {
       await axios.delete(`/api/goals/${id}`)
       setGoals(prev => prev.filter(g => g._id !== id))

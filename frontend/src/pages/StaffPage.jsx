@@ -96,7 +96,12 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <RiskBadge level={data.risk.level} />
-                <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--slate)' }}>✕</button>
+                <button
+                  onClick={onClose}
+                  aria-label="Cerrar el expediente"
+                  title="Cerrar"
+                  style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--slate)', lineHeight: 1, padding: 4 }}
+                >✕</button>
               </div>
             </div>
 
@@ -345,6 +350,12 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
   }
 
   const removeAppt = async (appt) => {
+    // Eliminar una cita no tiene vuelta atrás y afecta también al
+    // paciente, así que se confirma antes.
+    const cuando = new Date(appt.date).toLocaleString('es', {
+      weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+    })
+    if (!window.confirm(`¿Eliminar la cita de ${appt.patientName} del ${cuando}?\n\nEsta acción no se puede deshacer.`)) return
     try {
       await axios.delete(`/api/staff/appointments/${appt._id}`)
       notify.info('Cita eliminada.')
@@ -461,10 +472,25 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
                       <div style={{ fontWeight: 500, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.patientName}</div>
                       <div style={{ color: 'var(--slate)' }}>{a.modality === 'online' ? '💻' : '🏢'} {st.label}</div>
                       {a.status === 'programada' && canManageClinical && (
-                        <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                          <button title="Completada" onClick={() => setStatus(a, 'completada')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}>✅</button>
-                          <button title="Cancelar" onClick={() => setStatus(a, 'cancelada')} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}>🚫</button>
-                          <button title="Eliminar" onClick={() => removeAppt(a)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}>🗑️</button>
+                        <div style={{ display: 'flex', gap: 2, marginTop: 6 }}>
+                          <button
+                            className="cita-accion"
+                            aria-label={`Marcar como completada la cita de ${a.patientName}`}
+                            title="Marcar como completada"
+                            onClick={() => setStatus(a, 'completada')}
+                          >✅</button>
+                          <button
+                            className="cita-accion"
+                            aria-label={`Cancelar la cita de ${a.patientName}`}
+                            title="Cancelar"
+                            onClick={() => setStatus(a, 'cancelada')}
+                          >🚫</button>
+                          <button
+                            className="cita-accion"
+                            aria-label={`Eliminar la cita de ${a.patientName}`}
+                            title="Eliminar"
+                            onClick={() => removeAppt(a)}
+                          >🗑️</button>
                         </div>
                       )}
                     </div>

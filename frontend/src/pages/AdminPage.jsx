@@ -83,7 +83,7 @@ function UserDetailModal({ user, onClose }) {
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--slate)' }}>{user.email}</p>
             </div>
           </div>
-          <button onClick={onClose} style={{
+          <button onClick={onClose} aria-label="Cerrar el detalle" title="Cerrar" style={{
             background: 'none', border: 'none', fontSize: '1.5rem',
             cursor: 'pointer', color: 'var(--slate)', padding: 4
           }}>✕</button>

@@ -899,6 +899,29 @@ h1, h2, h3, h4 {
 .alert-table__row--danger { background: rgba(254, 242, 242, 0.6); }
 .alert-table__row--danger:hover { background: #fef2f2; }
 
+/* Acciones sobre una cita del calendario.
+   Iban con padding 0 y letra de 0.8rem: unos 13 px de área de toque,
+   tres juntas y una de ellas destructiva. */
+.cita-accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+.cita-accion:hover {
+  background: var(--white);
+  border-color: var(--line-strong);
+}
+
 /* ─── Ventana de detalle ─────────────────────────────────────── */
 .admin-modal-overlay {
   position: fixed;

@@ -335,7 +335,7 @@ contigo-improved/
 └── frontend/
     ├── vite.config.js      # Puerto 5173 y proxy /api → localhost:3000
     ├── index.html
-    ├── public/             # Imagen del bot, manifest.json, sw.js
+    ├── public/             # Imagen del bot
     └── src/
         ├── main.jsx        # Rutas y guards (RequireAuth, RequireStaff, RequireAdmin)
         ├── context/        # AuthContext
@@ -489,9 +489,9 @@ Lo que hoy no está resuelto, dicho sin rodeos:
 - **Solo se genera instalador para Windows.** El cifrado depende de `safeStorage` de
   Electron, que en Windows usa DPAPI; en otros sistemas habría que validar el
   comportamiento.
-- **El archivo `public/manifest.json` y el service worker siguen en el repositorio,
-  pero la aplicación ya no los registra**, así que hoy no funciona como PWA
-  instalable.
+- **No funciona como PWA instalable.** Se eliminaron el `manifest.json` y el service
+  worker que quedaban sin usar; si algún día se quiere que la versión web se instale
+  desde el navegador, hay que volver a añadirlos y registrarlos.
 
 ---
 

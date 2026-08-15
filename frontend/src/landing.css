@@ -5,16 +5,15 @@
 
 .landing {
   /* Tokens propios de la landing (los de color ya existen en :root) */
-  --teal-ink: #1f756f;
-  --line: #eee8dd;
-  --line-strong: #ddd4c6;
-  --radius-s: 12px;
-  --radius-m: 18px;
-  --radius-l: 24px;
-  --shadow-soft: 0 1px 2px rgba(26, 43, 60, 0.04), 0 12px 32px -20px rgba(26, 43, 60, 0.16);
-  --shadow-lift: 0 18px 44px -24px rgba(26, 43, 60, 0.22);
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Fraunces", Georgia, serif;
+  /* Los colores, líneas, sombras y fuentes vienen de index.css, que ya
+     define el mismo sistema para toda la aplicación. Aquí solo quedan
+     los nombres propios de la portada. */
+  --radius-s: var(--radius-sm);
+  --radius-m: var(--radius-lg);
+  --radius-l: var(--radius-xl);
+  --shadow-soft: var(--shadow-md);
+  --shadow-lift: var(--shadow-lg);
+  --font-body: var(--font);
   --header-h: 76px;
 
   background: var(--bg-color);
