@@ -36,7 +36,7 @@ export default function Header({ actions }) {
       className="header__nav-link"
       style={{
         fontSize: '0.95rem',
-        fontWeight: 700,
+        fontWeight: 500,
         color: location.pathname === to ? 'var(--teal-dark)' : 'var(--slate)',
         textDecoration: 'none',
         borderRadius: 'var(--radius-pill)',
@@ -57,12 +57,11 @@ export default function Header({ actions }) {
           src="/contigo-bot.jpeg"
           alt="Contigo"
           style={{
-            width: 48,
-            height: 48,
+            width: 40,
+            height: 40,
             borderRadius: '50%',
             objectFit: 'cover',
-            border: '3px solid var(--white)',
-            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid var(--line)',
             flexShrink: 0
           }}
           onError={(e) => {
@@ -71,10 +70,9 @@ export default function Header({ actions }) {
           }}
         />
         <div style={{
-          display: 'none', width: 48, height: 48, borderRadius: '50%',
-          background: 'linear-gradient(135deg, var(--teal-light), var(--sage-light))',
-          border: '3px solid var(--white)', boxShadow: 'var(--shadow-sm)',
-          alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+          display: 'none', width: 40, height: 40, borderRadius: '50%',
+          background: 'var(--sage-pale)', border: '1px solid var(--line)',
+          alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
           flexShrink: 0
         }}>
           🌱
@@ -106,7 +104,7 @@ export default function Header({ actions }) {
               )}
             </nav>
             {actions}
-            <div className="header__user" style={{ paddingLeft: 16, borderLeft: '2px solid var(--border)', marginLeft: 8 }}>
+            <div className="header__user" style={{ paddingLeft: 16, borderLeft: '1px solid var(--line)', marginLeft: 8 }}>
               <div className="header__avatar">{initials(user.name)}</div>
               <span className="hide-on-mobile">{user.name.split(' ')[0]}</span>
             </div>

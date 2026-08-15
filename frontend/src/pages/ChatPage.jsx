@@ -42,7 +42,7 @@ function BotAvatar() {
     <img
       src="/contigo-bot.jpeg"
       alt="Contigo"
-      style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.8)', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}
+      style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--line)', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}
     />
   )
 }
@@ -67,7 +67,7 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
   return (
     <div style={{
       margin: '4px 0 4px 38px',
-      background: 'linear-gradient(135deg, var(--teal-pale), var(--white))',
+      background: 'var(--teal-pale)',
       border: '1.5px solid var(--teal-light)',
       borderRadius: 'var(--radius)',
       padding: '14px 16px',
@@ -77,7 +77,7 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <img src="/contigo-bot.jpeg" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
-        <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--teal-dark)' }}>
+        <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 500, color: 'var(--teal-dark)' }}>
           Objetivos sugeridos para ti
         </p>
       </div>
@@ -98,8 +98,8 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
               disabled={added.includes(i) || loading === i}
               style={{
                 padding: '4px 12px', borderRadius: 999, border: 'none',
-                background: added.includes(i) ? 'var(--sage)' : 'linear-gradient(135deg, var(--teal), var(--teal-dark))',
-                color: 'white', fontSize: '0.75rem', fontWeight: 700,
+                background: added.includes(i) ? 'var(--sage)' : 'var(--teal)',
+                color: 'white', fontSize: '0.75rem', fontWeight: 500,
                 cursor: added.includes(i) ? 'default' : 'pointer', flexShrink: 0, transition: 'all 0.2s'
               }}
             >

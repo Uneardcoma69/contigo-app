@@ -48,20 +48,20 @@ function MyAppointmentsCard() {
       marginTop: 32, background: 'var(--white)', border: '1px solid var(--border)',
       borderRadius: 'var(--radius-lg)', padding: 24, boxShadow: 'var(--shadow-sm)'
     }}>
-      <h2 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)' }}>📅 Mis citas</h2>
+      <h2 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>📅 Mis citas</h2>
       <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: 'var(--slate)' }}>
         Agendadas por tu psicólogo/a. Si necesitas cambiar una, escríbele con anticipación.
       </p>
 
       {next && (
         <div style={{
-          background: 'var(--teal-pale)', border: '2px solid var(--teal-light)',
+          background: 'var(--teal-pale)', border: '1px solid var(--teal-light)',
           borderRadius: 16, padding: '16px 20px', marginBottom: 14
         }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--teal-dark)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--teal-dark)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
             ✨ Tu próxima cita
           </div>
-          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--navy)', textTransform: 'capitalize' }}>
+          <div style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--navy)', textTransform: 'capitalize' }}>
             {fmtDate(next.date)} · {fmtTime(next.date)}
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--slate)', marginTop: 2 }}>
@@ -79,7 +79,7 @@ function MyAppointmentsCard() {
               padding: '10px 14px', background: 'var(--cream)',
               border: '1px solid var(--border)', borderRadius: 12, fontSize: '0.85rem'
             }}>
-              <span style={{ fontWeight: 700, color: 'var(--navy)', textTransform: 'capitalize' }}>
+              <span style={{ fontWeight: 500, color: 'var(--navy)', textTransform: 'capitalize' }}>
                 {fmtDate(a.date)} · {fmtTime(a.date)}
               </span>
               <span style={{ color: 'var(--slate)' }}>
@@ -87,7 +87,7 @@ function MyAppointmentsCard() {
               </span>
               <span style={{
                 marginLeft: 'auto', padding: '2px 10px', borderRadius: 999,
-                background: st.bg, color: st.color, fontWeight: 800, fontSize: '0.75rem'
+                background: st.bg, color: st.color, fontWeight: 600, fontSize: '0.75rem'
               }}>
                 {st.label}
               </span>
@@ -156,14 +156,14 @@ function MedicalRecordCard({ notifySuccess, notifyError }) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)' }}>🏥 Mi ficha médica</h2>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>🏥 Mi ficha médica</h2>
           <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--slate)' }}>
             Esta información ayuda a tu psicólogo/a a acompañarte mejor. Es privada y solo la ve el equipo clínico.
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {status && (
-            <span style={{ padding: '4px 12px', borderRadius: 999, background: status.bg, color: status.color, fontWeight: 800, fontSize: '0.78rem' }}>
+            <span style={{ padding: '4px 12px', borderRadius: 999, background: status.bg, color: status.color, fontWeight: 600, fontSize: '0.78rem' }}>
               {status.text}
             </span>
           )}
@@ -177,7 +177,7 @@ function MedicalRecordCard({ notifySuccess, notifyError }) {
         <form onSubmit={save} style={{ marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
           {MEDICAL_FIELDS.map(f => (
             <div key={f.key} style={f.type === 'textarea' ? { gridColumn: '1 / -1' } : undefined}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>{f.label}</label>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>{f.label}</label>
               {f.type === 'textarea' ? (
                 <textarea
                   className="form-input"
@@ -240,7 +240,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
             {cat.emoji}
           </span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--navy)' }}>
+            <div style={{ fontWeight: 500, fontSize: '0.95rem', color: 'var(--navy)' }}>
               {cat.label}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>
@@ -249,7 +249,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
           </div>
         </div>
         <div style={{
-          fontWeight: 800, fontSize: '1.1rem',
+          fontWeight: 600, fontSize: '1.1rem',
           color: pct === 100 ? '#38a169' : 'var(--navy)'
         }}>
           {pct}%
@@ -284,7 +284,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
                 background: goal.completed ? cat.color : 'var(--white)',
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.75rem', color: 'white', fontWeight: 700,
+                fontSize: '0.75rem', color: 'white', fontWeight: 500,
                 transition: 'all 0.2s'
               }}
             >
@@ -423,7 +423,7 @@ export default function GoalsPage() {
         {/* Título */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
               🎯 Mis objetivos
             </h1>
             <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
@@ -443,8 +443,8 @@ export default function GoalsPage() {
             marginBottom: 24, boxShadow: 'var(--shadow-md)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontWeight: 700, color: 'var(--navy)' }}>Progreso total</span>
-              <span style={{ fontWeight: 800, color: 'var(--teal-dark)', fontSize: '1.1rem' }}>
+              <span style={{ fontWeight: 500, color: 'var(--navy)' }}>Progreso total</span>
+              <span style={{ fontWeight: 600, color: 'var(--teal-dark)', fontSize: '1.1rem' }}>
                 {pct}%
               </span>
             </div>
@@ -466,7 +466,7 @@ export default function GoalsPage() {
         {showForm && (
           <form onSubmit={handleAdd} className="anim-bubbleIn" style={{
             background: 'var(--white)',
-            border: '2px solid var(--teal-light)',
+            border: '1px solid var(--teal-light)',
             borderRadius: 'var(--radius-xl)',
             padding: 28, marginBottom: 28,
             boxShadow: 'var(--shadow-md)'
@@ -496,7 +496,7 @@ export default function GoalsPage() {
                       border: `2px solid ${category === cat.id ? cat.color : 'var(--border)'}`,
                       background: category === cat.id ? `${cat.color}20` : 'var(--white)',
                       color: category === cat.id ? 'var(--navy)' : 'var(--slate)',
-                      fontWeight: category === cat.id ? 700 : 400,
+                      fontWeight: category === cat.id ? 600 : 400,
                       fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.15s'
                     }}
                   >
@@ -520,10 +520,10 @@ export default function GoalsPage() {
           ].map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)} style={{
               padding: '5px 12px', borderRadius: 999,
-              border: filter === f.id ? '2px solid var(--teal)' : '2px solid var(--border)',
+              border: filter === f.id ? '1px solid var(--teal)' : '1px solid var(--line)',
               background: filter === f.id ? 'var(--teal-pale)' : 'var(--white)',
               color: filter === f.id ? 'var(--teal-dark)' : 'var(--slate)',
-              fontWeight: filter === f.id ? 700 : 400,
+              fontWeight: filter === f.id ? 600 : 400,
               fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.15s'
             }}>
               {f.label}
@@ -543,7 +543,7 @@ export default function GoalsPage() {
             border: 'none', boxShadow: 'var(--shadow-md)'
           }}>
             <div style={{ fontSize: '3rem', marginBottom: 14 }}>🌱</div>
-            <p style={{ fontWeight: 700, color: 'var(--navy)', fontSize: '1rem', margin: '0 0 6px' }}>
+            <p style={{ fontWeight: 500, color: 'var(--navy)', fontSize: '1rem', margin: '0 0 6px' }}>
               {filter === 'todas' ? '¡Aquí empezará tu camino!' : 'No hay objetivos aquí'}
             </p>
             <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '0 0 20px' }}>
@@ -576,10 +576,10 @@ export default function GoalsPage() {
           <div className="anim-pulse" style={{
             marginTop: 32, textAlign: 'center', padding: '32px',
             background: 'var(--teal-pale)', borderRadius: 'var(--radius-xl)',
-            border: '2px solid var(--teal-light)'
+            border: '1px solid var(--teal-light)'
           }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🎉</div>
-            <p style={{ fontWeight: 800, color: 'var(--teal-dark)', margin: '0 0 4px', fontSize: '1.1rem' }}>
+            <p style={{ fontWeight: 600, color: 'var(--teal-dark)', margin: '0 0 4px', fontSize: '1.1rem' }}>
               ¡Completaste todos tus objetivos!
             </p>
             <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: 0 }}>

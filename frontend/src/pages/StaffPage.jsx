@@ -16,7 +16,7 @@ function SectionCard({ title, children, right }) {
       marginBottom: 24
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-        <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--navy)' }}>{title}</h2>
+        <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, color: 'var(--navy)' }}>{title}</h2>
         {right}
       </div>
       {children}
@@ -89,7 +89,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 900, color: 'var(--navy)' }}>
+                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 600, color: 'var(--navy)' }}>
                   {data.patient.name}
                 </h2>
                 <p style={{ margin: '2px 0 0', fontSize: '0.85rem', color: 'var(--slate)' }}>{data.patient.email}</p>
@@ -103,8 +103,8 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
             {/* Progreso */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 160px', background: 'var(--white)', borderRadius: 14, padding: '12px 16px', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--slate)' }}>PROGRESO DE METAS</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--navy)' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--slate)' }}>PROGRESO DE METAS</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 600, color: 'var(--navy)' }}>
                   {data.progress.completedGoals}/{data.progress.totalGoals} <span style={{ fontSize: '0.9rem', color: 'var(--teal-dark)' }}>({data.progress.pct}%)</span>
                 </div>
                 <div style={{ height: 8, background: 'var(--sage-pale)', borderRadius: 999, marginTop: 6, overflow: 'hidden' }}>
@@ -112,8 +112,8 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                 </div>
               </div>
               <div style={{ flex: '1 1 160px', background: 'var(--white)', borderRadius: 14, padding: '12px 16px', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--slate)' }}>ALERTAS DE RIESGO</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 900, color: LEVEL_CONFIG[data.risk.level]?.color }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--slate)' }}>ALERTAS DE RIESGO</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 600, color: LEVEL_CONFIG[data.risk.level]?.color }}>
                   {data.risk.alerts?.length || 0}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>score máx: {data.risk.score}</div>
@@ -140,7 +140,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                     alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
                     maxWidth: '85%'
                   }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: m.role === 'user' ? 'var(--teal-dark)' : 'var(--slate)', marginBottom: 2 }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: m.role === 'user' ? 'var(--teal-dark)' : 'var(--slate)', marginBottom: 2 }}>
                       {m.role === 'user' ? '👤 Paciente' : '🤖 Contigo'} · {new Date(m.timestamp).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </div>
                     {m.content}
@@ -160,7 +160,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                   }}>
                     <span style={{ fontSize: '1.1rem' }}>{g.completed ? '✅' : '⭕'}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', textDecoration: g.completed ? 'line-through' : 'none', color: g.completed ? 'var(--slate)' : 'var(--navy)' }}>{g.title}</div>
+                      <div style={{ fontWeight: 500, fontSize: '0.9rem', textDecoration: g.completed ? 'line-through' : 'none', color: g.completed ? 'var(--slate)' : 'var(--navy)' }}>{g.title}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{g.category} · creada {new Date(g.createdAt).toLocaleDateString('es')}</div>
                     </div>
                   </div>
@@ -188,7 +188,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                   {data.notes.length === 0 && <p style={{ color: 'var(--slate)', textAlign: 'center', padding: 16 }}>Sin notas todavía.</p>}
                   {data.notes.slice().reverse().map(n => (
                     <div key={n._id} style={{ padding: '10px 14px', background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, fontSize: '0.88rem' }}>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--teal-dark)', marginBottom: 2 }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--teal-dark)', marginBottom: 2 }}>
                         {n.authorName} · {new Date(n.createdAt).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </div>
                       {n.text}
@@ -211,7 +211,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                       {(() => {
                         const st = MEDICAL_STATUS[data.medicalRecord.validationStatus] || MEDICAL_STATUS.pendiente
                         return (
-                          <span style={{ padding: '4px 12px', borderRadius: 999, background: st.bg, color: st.color, fontWeight: 800, fontSize: '0.8rem' }}>
+                          <span style={{ padding: '4px 12px', borderRadius: 999, background: st.bg, color: st.color, fontWeight: 600, fontSize: '0.8rem' }}>
                             {st.emoji} {st.label}
                           </span>
                         )
@@ -225,7 +225,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: 16 }}>
                       {Object.entries(data.medicalRecord.info).map(([k, v]) => (
                         <div key={k} style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px' }}>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{k}</div>
                           <div style={{ fontSize: '0.9rem', color: 'var(--navy)', fontWeight: 600 }}>{v || '—'}</div>
                         </div>
                       ))}
@@ -388,7 +388,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
           background: 'var(--sage-pale)', padding: 16, borderRadius: 14, marginBottom: 18, alignItems: 'end'
         }}>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Paciente</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Paciente</label>
             <select className="form-input" style={{ padding: '10px 14px' }} value={form.patientId} onChange={e => setForm(f => ({ ...f, patientId: e.target.value }))}>
               <option value="">Selecciona...</option>
               {patients.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
@@ -396,7 +396,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
           </div>
           {isAdmin && (
             <div>
-              <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Psicólogo/a</label>
+              <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Psicólogo/a</label>
               <select className="form-input" style={{ padding: '10px 14px' }} value={form.psychologistId} onChange={e => setForm(f => ({ ...f, psychologistId: e.target.value }))}>
                 <option value="">Yo mismo/a</option>
                 {team.map(t => <option key={t._id} value={t._id}>{t.name} ({ROLE_LABEL[t.role]})</option>)}
@@ -404,19 +404,19 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
             </div>
           )}
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Fecha</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Fecha</label>
             <input type="date" className="form-input" style={{ padding: '10px 14px' }} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Hora</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Hora</label>
             <input type="time" className="form-input" style={{ padding: '10px 14px' }} value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Duración (min)</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Duración (min)</label>
             <input type="number" min="20" max="180" step="5" className="form-input" style={{ padding: '10px 14px' }} value={form.durationMin} onChange={e => setForm(f => ({ ...f, durationMin: e.target.value }))} />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Modalidad</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Modalidad</label>
             <select className="form-input" style={{ padding: '10px 14px' }} value={form.modality} onChange={e => setForm(f => ({ ...f, modality: e.target.value }))}>
               <option value="online">En línea</option>
               <option value="presencial">Presencial</option>
@@ -440,10 +440,10 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
               borderRadius: 12, padding: 8, minHeight: 130
             }}>
               <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--slate)', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--slate)', textTransform: 'uppercase' }}>
                   {day.toLocaleDateString('es', { weekday: 'short' })}
                 </div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 900, color: isToday ? 'var(--teal-dark)' : 'var(--navy)' }}>
+                <div style={{ fontSize: '1.05rem', fontWeight: 600, color: isToday ? 'var(--teal-dark)' : 'var(--navy)' }}>
                   {day.getDate()}
                 </div>
               </div>
@@ -457,8 +457,8 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
                       borderLeft: `3px solid ${st.color}`,
                       borderRadius: 8, padding: '6px 8px', fontSize: '0.72rem'
                     }}>
-                      <div style={{ fontWeight: 800, color: st.color }}>{time} · {a.durationMin}min</div>
-                      <div style={{ fontWeight: 700, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.patientName}</div>
+                      <div style={{ fontWeight: 600, color: st.color }}>{time} · {a.durationMin}min</div>
+                      <div style={{ fontWeight: 500, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.patientName}</div>
                       <div style={{ color: 'var(--slate)' }}>{a.modality === 'online' ? '💻' : '🏢'} {st.label}</div>
                       {a.status === 'programada' && canManageClinical && (
                         <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
@@ -496,8 +496,8 @@ function ReportsTab({ notify }) {
   const s = report.summary
   const statBox = (label, value, sub, color = 'var(--navy)') => (
     <div style={{ flex: '1 1 150px', background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 18px' }}>
-      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
-      <div style={{ fontSize: '1.6rem', fontWeight: 900, color }}>{value}</div>
+      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+      <div style={{ fontSize: '1.6rem', fontWeight: 600, color }}>{value}</div>
       {sub && <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{sub}</div>}
     </div>
   )
@@ -533,12 +533,12 @@ function ReportsTab({ notify }) {
               const med = MEDICAL_STATUS[p.medical] || MEDICAL_STATUS.sin_ficha
               return (
                 <tr key={p._id} style={{ borderTop: '1px solid var(--border)' }}>
-                  <td style={{ padding: '10px', fontWeight: 700 }}>{p.name}</td>
+                  <td style={{ padding: '10px', fontWeight: 500 }}>{p.name}</td>
                   <td style={{ padding: '10px' }}><RiskBadge level={p.level} /></td>
-                  <td style={{ padding: '10px', fontWeight: 700 }}>{p.alerts}</td>
+                  <td style={{ padding: '10px', fontWeight: 500 }}>{p.alerts}</td>
                   <td style={{ padding: '10px' }}>{p.goalsCompleted}/{p.goals} ({p.goalsPct}%)</td>
                   <td style={{ padding: '10px' }}>
-                    <span style={{ color: med.color, fontWeight: 700 }}>{med.emoji} {med.label}</span>
+                    <span style={{ color: med.color, fontWeight: 500 }}>{med.emoji} {med.label}</span>
                   </td>
                   <td style={{ padding: '10px' }}>{p.notes}</td>
                 </tr>
@@ -660,19 +660,19 @@ function TeamTab({ notify, onChanged }) {
       <SectionCard title="👥 Crear cuenta de staff">
         <form onSubmit={createStaff} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, alignItems: 'end' }}>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Nombre</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Nombre</label>
             <input className="form-input" style={{ padding: '10px 14px' }} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Correo</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Correo</label>
             <input type="email" className="form-input" style={{ padding: '10px 14px' }} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Contraseña</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Contraseña</label>
             <input type="password" className="form-input" style={{ padding: '10px 14px' }} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
           </div>
           <div>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700 }}>Rol</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Rol</label>
             <select className="form-input" style={{ padding: '10px 14px' }} value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
               <option value="psychologist">Psicólogo/a</option>
               <option value="monitor">Monitor/a</option>
@@ -686,16 +686,16 @@ function TeamTab({ notify, onChanged }) {
           {staff.map(m => (
             <div key={m._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)' }}>
               <div style={{
-                width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--teal), var(--sage))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '0.85rem'
+                width: 36, height: 36, borderRadius: '50%', background: 'var(--teal-pale)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, fontSize: '0.85rem'
               }}>
                 {m.name[0]?.toUpperCase()}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{m.name}</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{m.name}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{m.email}</div>
               </div>
-              <span style={{ padding: '3px 10px', borderRadius: 999, background: 'var(--teal-pale)', color: 'var(--teal-dark)', fontWeight: 800, fontSize: '0.75rem' }}>
+              <span style={{ padding: '3px 10px', borderRadius: 999, background: 'var(--teal-pale)', color: 'var(--teal-dark)', fontWeight: 600, fontSize: '0.75rem' }}>
                 {ROLE_LABEL[m.role]}
               </span>
               {m._id === user?.id ? (
@@ -716,7 +716,7 @@ function TeamTab({ notify, onChanged }) {
             {patients.map(p => (
               <div key={p._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 180px' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{p.name}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{p.email}</div>
                 </div>
                 <RiskBadge level={p.risk.level} />
@@ -765,7 +765,7 @@ function MessagesTab({ notify }) {
       ) : messages.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 32, color: 'var(--slate)' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>📭</div>
-          <p style={{ fontWeight: 700 }}>Aún no hay mensajes del formulario de contacto.</p>
+          <p style={{ fontWeight: 500 }}>Aún no hay mensajes del formulario de contacto.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -776,7 +776,7 @@ function MessagesTab({ notify }) {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
                 <div>
-                  <span style={{ fontWeight: 800, color: 'var(--navy)' }}>{m.nombre}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--navy)' }}>{m.nombre}</span>
                   <span style={{ color: 'var(--slate)', fontSize: '0.85rem' }}> · {m.correo}</span>
                   {m.telefono && <span style={{ color: 'var(--slate)', fontSize: '0.85rem' }}> · {m.telefono}</span>}
                 </div>
@@ -787,7 +787,7 @@ function MessagesTab({ notify }) {
               {m.motivo && (
                 <span style={{
                   display: 'inline-block', marginBottom: 8, padding: '2px 10px', borderRadius: 999,
-                  background: 'var(--teal-pale)', color: 'var(--teal-dark)', fontWeight: 700, fontSize: '0.75rem'
+                  background: 'var(--teal-pale)', color: 'var(--teal-dark)', fontWeight: 500, fontSize: '0.75rem'
                 }}>{m.motivo}</span>
               )}
               <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--navy)', whiteSpace: 'pre-wrap' }}>{m.mensaje}</p>
@@ -835,7 +835,7 @@ function SettingsTab({ notify }) {
   return (
     <SectionCard title="⚙️ Ajustes de la aplicación">
       <div style={{ marginBottom: 18 }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--navy)', margin: '0 0 4px' }}>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--navy)', margin: '0 0 4px' }}>
           🤖 Asistente conversacional
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--slate)', margin: '0 0 12px' }}>
@@ -849,7 +849,7 @@ function SettingsTab({ notify }) {
           background: settings.aiConfigured ? '#f0fdf4' : 'var(--sage-pale)',
           border: `1.5px solid ${settings.aiConfigured ? '#bbf7d0' : 'var(--sage-light)'}`,
           color: settings.aiConfigured ? '#16a34a' : 'var(--slate)',
-          fontWeight: 800, fontSize: '0.82rem'
+          fontWeight: 600, fontSize: '0.82rem'
         }}>
           {settings.aiConfigured
             ? `✅ IA activa (${settings.provider}) · clave ${settings.keyPreview}`
@@ -939,7 +939,7 @@ export default function StaffPage() {
 
       <main className="container--wide" style={{ padding: '32px 24px 64px' }}>
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
             🩺 Panel de {user?.isAdmin ? 'Administración Clínica' : isMonitor ? 'Seguimiento' : 'Acompañamiento'}
           </h1>
           <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
@@ -971,7 +971,7 @@ export default function StaffPage() {
             ) : patients.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 32, color: 'var(--slate)' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🌿</div>
-                <p style={{ fontWeight: 700 }}>
+                <p style={{ fontWeight: 500 }}>
                   {user?.isAdmin ? 'No hay pacientes registrados aún.' : 'Aún no tienes pacientes asignados.'}
                 </p>
                 {!user?.isAdmin && <p style={{ fontSize: '0.85rem' }}>Pide al administrador que te asigne pacientes.</p>}
@@ -989,7 +989,7 @@ export default function StaffPage() {
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--navy)' }}>{p.name}</span>
+                      <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--navy)' }}>{p.name}</span>
                       <RiskBadge level={p.risk.level} />
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--slate)' }}>{p.email}</div>

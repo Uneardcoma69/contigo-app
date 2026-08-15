@@ -14,7 +14,7 @@ export default function RiskBadge({ level }) {
         display: 'inline-flex', alignItems: 'center', gap: 5,
         padding: '4px 12px', borderRadius: 999,
         background: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.border}`,
-        fontWeight: 800, fontSize: '0.78rem', whiteSpace: 'nowrap'
+        fontWeight: 600, fontSize: '0.78rem', whiteSpace: 'nowrap'
       }}
     >
       {cfg.emoji} {cfg.label}

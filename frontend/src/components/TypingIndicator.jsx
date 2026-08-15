@@ -9,7 +9,7 @@ export default function TypingIndicator() {
           height: 30,
           borderRadius: '50%',
           objectFit: 'cover',
-          border: '2px solid var(--teal-light)',
+          border: '1px solid var(--teal-light)',
           flexShrink: 0
         }}
       />

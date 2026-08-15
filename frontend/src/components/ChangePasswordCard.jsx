@@ -53,7 +53,7 @@ export default function ChangePasswordCard({ notifySuccess, notifyError }) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)' }}>🔐 Mi cuenta</h2>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>🔐 Mi cuenta</h2>
           <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--slate)' }}>
             {user?.name} · {user?.email}
           </p>
@@ -66,7 +66,7 @@ export default function ChangePasswordCard({ notifySuccess, notifyError }) {
       {open && (
         <form onSubmit={submit} style={{ marginTop: 18, display: 'grid', gap: 12, maxWidth: 420 }}>
           <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>
               Contraseña actual
             </label>
             <input
@@ -75,7 +75,7 @@ export default function ChangePasswordCard({ notifySuccess, notifyError }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>
               Nueva contraseña <span style={{ fontWeight: 400, color: 'var(--slate-light)' }}>(mínimo 6 caracteres)</span>
             </label>
             <input
@@ -84,7 +84,7 @@ export default function ChangePasswordCard({ notifySuccess, notifyError }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--navy)', display: 'block', marginBottom: 4 }}>
               Repite la nueva contraseña
             </label>
             <input

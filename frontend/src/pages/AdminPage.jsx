@@ -18,9 +18,9 @@ function StatCard({ label, count, emoji, color, bg, border, total }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <span style={{ fontSize: '1.8rem' }}>{emoji}</span>
-        <span style={{ fontSize: '2rem', fontWeight: 900, color }}>{count}</span>
+        <span style={{ fontSize: '2rem', fontWeight: 600, color }}>{count}</span>
       </div>
-      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--navy)' }}>{label}</div>
+      <div style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--navy)' }}>{label}</div>
       <div style={{ fontSize: '0.78rem', color: 'var(--slate)', fontWeight: 600 }}>{pct}% del total</div>
     </div>
   )
@@ -39,7 +39,7 @@ function HeatmapGrid({ users, onSelectUser }) {
             title={`${u.name} — ${cfg.label}`}
             style={{
               background: cfg.color,
-              border: u.risk.level === 'alto' ? `2px solid ${cfg.color}` : '2px solid transparent',
+              border: u.risk.level === 'alto' ? `2px solid ${cfg.color}` : '1px solid transparent',
             }}
           >
             <span className="heatmap-cell__initial">
@@ -71,15 +71,15 @@ function UserDetailModal({ user, onClose }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              width: 48, height: 48, borderRadius: '50%',
-              background: `linear-gradient(135deg, ${cfg.color}, ${cfg.border})`,
+              width: 44, height: 44, borderRadius: '50%',
+              background: cfg.bg, border: `1px solid ${cfg.border}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: 800, fontSize: '1.2rem'
+              color: cfg.color, fontWeight: 600, fontSize: '1.05rem'
             }}>
               {user.name?.[0]?.toUpperCase() || '?'}
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--navy)' }}>{user.name}</h2>
+              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 600, color: 'var(--navy)' }}>{user.name}</h2>
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--slate)' }}>{user.email}</p>
             </div>
           </div>
@@ -105,13 +105,13 @@ function UserDetailModal({ user, onClose }) {
             {/* Palabras clave detectadas */}
             {detail.risk?.triggerWords?.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--navy)', marginBottom: 8 }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>
                   🔍 Palabras clave detectadas
                 </h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {detail.risk.triggerWords.map((w, i) => (
                     <span key={i} style={{
-                      padding: '3px 10px', borderRadius: 999, fontSize: '0.78rem', fontWeight: 700,
+                      padding: '3px 10px', borderRadius: 999, fontSize: '0.78rem', fontWeight: 500,
                       background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca'
                     }}>{w}</span>
                   ))}
@@ -122,7 +122,7 @@ function UserDetailModal({ user, onClose }) {
             {/* Historial de alertas */}
             {detail.risk?.alerts?.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--navy)', marginBottom: 8 }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>
                   ⚠️ Historial de alertas ({detail.risk.alerts.length})
                 </h3>
                 <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -151,7 +151,7 @@ function UserDetailModal({ user, onClose }) {
             {/* Mensajes recientes */}
             {detail.recentMessages?.length > 0 && (
               <div>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--navy)', marginBottom: 8 }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>
                   💬 Mensajes recientes
                 </h3>
                 <div style={{ maxHeight: 250, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -163,7 +163,7 @@ function UserDetailModal({ user, onClose }) {
                       fontSize: '0.82rem'
                     }}>
                       <span style={{
-                        fontWeight: 700, fontSize: '0.75rem',
+                        fontWeight: 500, fontSize: '0.75rem',
                         color: m.role === 'user' ? 'var(--teal-dark)' : 'var(--slate)'
                       }}>
                         {m.role === 'user' ? '👤 Usuario' : '🤖 Contigo'}
@@ -240,7 +240,7 @@ export default function AdminPage() {
         <Header />
         <div style={{ textAlign: 'center', padding: 80 }}>
           <div style={{ fontSize: '3rem', marginBottom: 12 }}>🔒</div>
-          <p style={{ fontWeight: 700, color: 'var(--navy)' }}>Acceso denegado</p>
+          <p style={{ fontWeight: 500, color: 'var(--navy)' }}>Acceso denegado</p>
           <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Solo el administrador puede ver este panel.</p>
         </div>
       </div>
@@ -265,7 +265,7 @@ export default function AdminPage() {
         {/* Título */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
               🛡️ Panel de Alertas
             </h1>
             <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
@@ -301,7 +301,7 @@ export default function AdminPage() {
           border: '1px solid var(--border)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>
               🗺️ Mapa de Calor
             </h2>
             <div style={{ display: 'flex', gap: 12, fontSize: '0.75rem', color: 'var(--slate)', fontWeight: 600 }}>
@@ -328,7 +328,7 @@ export default function AdminPage() {
           padding: '24px', boxShadow: 'var(--shadow-md)',
           border: '1px solid var(--border)', overflowX: 'auto'
         }}>
-          <h2 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--navy)' }}>
+          <h2 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>
             📋 Lista de Prioridad
           </h2>
 
@@ -356,21 +356,21 @@ export default function AdminPage() {
                           width: 32, height: 32, borderRadius: '50%',
                           background: `${LEVEL_CONFIG[u.risk.level]?.color || '#94a3b8'}20`,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.8rem', fontWeight: 800, color: 'var(--navy)', flexShrink: 0
+                          fontSize: '0.8rem', fontWeight: 600, color: 'var(--navy)', flexShrink: 0
                         }}>
                           {u.name?.[0]?.toUpperCase() || '?'}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>{u.name}</div>
+                          <div style={{ fontWeight: 500, fontSize: '0.88rem' }}>{u.name}</div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{u.email}</div>
                         </div>
                       </div>
                     </td>
                     <td><RiskBadge level={u.risk.level} /></td>
-                    <td style={{ fontWeight: 800, color: LEVEL_CONFIG[u.risk.level]?.color || 'var(--slate)' }}>
+                    <td style={{ fontWeight: 600, color: LEVEL_CONFIG[u.risk.level]?.color || 'var(--slate)' }}>
                       {u.risk.score}
                     </td>
-                    <td style={{ fontWeight: 700 }}>{u.risk.alertCount}</td>
+                    <td style={{ fontWeight: 500 }}>{u.risk.alertCount}</td>
                     <td style={{ fontSize: '0.82rem', color: 'var(--slate)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {u.risk.lastMessage ? `"${u.risk.lastMessage.slice(0, 60)}${u.risk.lastMessage.length > 60 ? '...' : ''}"` : '—'}
                     </td>

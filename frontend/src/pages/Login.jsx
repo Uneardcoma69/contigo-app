@@ -51,7 +51,7 @@ export default function Login() {
             color: 'var(--slate)', lineHeight: 1.5
           }}>
             ¿Olvidaste tu contraseña? Escríbenos a{' '}
-            <a href="mailto:hola@contigoaquiestoy.com" style={{ color: 'var(--teal-dark)', fontWeight: 700 }}>
+            <a href="mailto:hola@contigoaquiestoy.com" style={{ color: 'var(--teal-dark)', fontWeight: 500 }}>
               hola@contigoaquiestoy.com
             </a>{' '}
             y te ayudamos a restablecerla.
