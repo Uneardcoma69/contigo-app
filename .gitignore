@@ -53,3 +53,6 @@ yarn-error.log*
 .claude/
 coverage/
 .nyc_output/
+
+# Skills instaladas en el entorno (no son parte del proyecto)
+.agents/

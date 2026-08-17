@@ -10,16 +10,34 @@ import { LEVEL_CONFIG, MEDICAL_STATUS, APPT_STATUS, ROLE_LABEL } from '../consta
 
 function SectionCard({ title, children, right }) {
   return (
-    <div style={{
-      background: 'var(--white)', borderRadius: 'var(--radius-lg)',
-      padding: 24, boxShadow: 'var(--shadow-md)', border: '1px solid var(--border)',
-      marginBottom: 24
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-        <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, color: 'var(--navy)' }}>{title}</h2>
+    <section className="panel">
+      <div className="panel__head">
+        <h2 className="panel__title">{title}</h2>
         {right}
       </div>
       {children}
+    </section>
+  )
+}
+
+/** Métrica breve: una cifra con su etiqueta y, si aporta, un pie. */
+function Stat({ label, value, foot, color }) {
+  return (
+    <div className="stat">
+      <div className="stat__label">{label}</div>
+      <div className="stat__value" style={color ? { color } : undefined}>{value}</div>
+      {foot && <div className="stat__foot">{foot}</div>}
+    </div>
+  )
+}
+
+/** Mensaje cuando todavía no hay nada que mostrar. */
+function Empty({ icon = '🌿', title, text }) {
+  return (
+    <div className="empty">
+      <div className="empty__icon" aria-hidden="true">{icon}</div>
+      <p className="empty__title">{title}</p>
+      {text && <p className="empty__text">{text}</p>}
     </div>
   )
 }
@@ -68,64 +86,57 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
 
   const tabBtn = (id, label) => (
     <button
-      className={`btn btn--sm ${tab === id ? 'btn--primary' : 'btn--ghost'}`}
+      role="tab"
+      aria-selected={tab === id}
+      className="tab"
       onClick={() => setTab(id)}
-      style={{ fontSize: '0.82rem' }}
     >{label}</button>
   )
 
   return (
-    <div className="admin-modal-overlay" onClick={onClose} style={{
-      position: 'fixed', inset: 0, background: 'rgba(26,43,60,0.45)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--bg-color)', borderRadius: 'var(--radius-lg)',
-        width: 'min(860px, 100%)', maxHeight: '90vh', overflowY: 'auto', padding: 28
-      }}>
+    <div className="admin-modal-overlay" onClick={onClose}>
+      <div className="admin-modal admin-modal--wide" onClick={e => e.stopPropagation()}>
         {loading || !data ? (
-          <div style={{ textAlign: 'center', padding: 60 }}>Cargando expediente...</div>
+          <div className="empty"><p className="empty__title">Cargando expediente…</p></div>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <div className="expediente__head">
               <div>
-                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 600, color: 'var(--navy)' }}>
-                  {data.patient.name}
-                </h2>
-                <p style={{ margin: '2px 0 0', fontSize: '0.85rem', color: 'var(--slate)' }}>{data.patient.email}</p>
+                <h2 className="expediente__nombre">{data.patient.name}</h2>
+                <p className="meta">{data.patient.email}</p>
               </div>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <div className="row gap-3">
                 <RiskBadge level={data.risk.level} />
                 <button
+                  className="icon-btn"
                   onClick={onClose}
                   aria-label="Cerrar el expediente"
                   title="Cerrar"
-                  style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--slate)', lineHeight: 1, padding: 4 }}
                 >✕</button>
               </div>
             </div>
 
             {/* Progreso */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 160px', background: 'var(--white)', borderRadius: 14, padding: '12px 16px', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--slate)' }}>PROGRESO DE METAS</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 600, color: 'var(--navy)' }}>
-                  {data.progress.completedGoals}/{data.progress.totalGoals} <span style={{ fontSize: '0.9rem', color: 'var(--teal-dark)' }}>({data.progress.pct}%)</span>
+            <div className="row gap-3" style={{ marginBottom: 'var(--space-4)' }}>
+              <div className="stat">
+                <div className="stat__label">Progreso de metas</div>
+                <div className="stat__value">
+                  {data.progress.completedGoals}/{data.progress.totalGoals}{' '}
+                  <span className="stat__pct">({data.progress.pct}%)</span>
                 </div>
-                <div style={{ height: 8, background: 'var(--sage-pale)', borderRadius: 999, marginTop: 6, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${data.progress.pct}%`, background: 'linear-gradient(90deg, var(--teal), var(--sage))', borderRadius: 999 }} />
+                <div className="progress" role="progressbar" aria-valuenow={data.progress.pct} aria-valuemin="0" aria-valuemax="100">
+                  <div className="progress__fill" style={{ width: `${data.progress.pct}%` }} />
                 </div>
               </div>
-              <div style={{ flex: '1 1 160px', background: 'var(--white)', borderRadius: 14, padding: '12px 16px', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--slate)' }}>ALERTAS DE RIESGO</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 600, color: LEVEL_CONFIG[data.risk.level]?.color }}>
-                  {data.risk.alerts?.length || 0}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>score máx: {data.risk.score}</div>
-              </div>
+              <Stat
+                label="Alertas de riesgo"
+                value={data.risk.alerts?.length || 0}
+                foot={`score máx: ${data.risk.score}`}
+                color={LEVEL_CONFIG[data.risk.level]?.color}
+              />
             </div>
 
-            <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+            <div className="tabs" role="tablist" aria-label="Secciones del expediente">
               {tabBtn('chat', '💬 Chat')}
               {tabBtn('goals', '🎯 Metas')}
               {tabBtn('notes', '📝 Notas')}
@@ -520,12 +531,8 @@ function ReportsTab({ notify }) {
   if (!report) return <SectionCard title="📊 Reportes"><p style={{ color: 'var(--slate)' }}>Generando reporte...</p></SectionCard>
 
   const s = report.summary
-  const statBox = (label, value, sub, color = 'var(--navy)') => (
-    <div style={{ flex: '1 1 150px', background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 18px' }}>
-      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--slate)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
-      <div style={{ fontSize: '1.6rem', fontWeight: 600, color }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{sub}</div>}
-    </div>
+  const statBox = (label, value, sub, color) => (
+    <Stat label={label} value={value} foot={sub} color={color} />
   )
 
   return (
@@ -740,10 +747,10 @@ function TeamTab({ notify, onChanged }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {patients.map(p => (
-              <div key={p._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 180px' }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{p.email}</div>
+              <div key={p._id} className="row-item">
+                <div className="row-item__main">
+                  <div className="row-item__titulo">{p.name}</div>
+                  <div className="meta">{p.email}</div>
                 </div>
                 <RiskBadge level={p.risk.level} />
                 <select
@@ -815,10 +822,7 @@ function AuditTab({ notify }) {
       </p>
 
       {datos.entries.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 32, color: 'var(--slate)' }}>
-          <div style={{ fontSize: '2.2rem', marginBottom: 8 }}>🗒️</div>
-          <p style={{ fontWeight: 500 }}>Todavía no hay actividad registrada.</p>
-        </div>
+        <Empty icon="🗒️" title="Todavía no hay actividad registrada." />
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>
@@ -883,10 +887,7 @@ function MessagesTab({ notify }) {
       {!loaded ? (
         <p style={{ color: 'var(--slate)' }}>Cargando...</p>
       ) : messages.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 32, color: 'var(--slate)' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>📭</div>
-          <p style={{ fontWeight: 500 }}>Aún no hay mensajes del formulario de contacto.</p>
-        </div>
+        <Empty icon="📭" title="Aún no hay mensajes del formulario de contacto." />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {messages.map(m => (
@@ -1044,11 +1045,14 @@ export default function StaffPage() {
 
   useEffect(() => { loadPatients() }, [loadPatients])
 
+  // Las pestañas viven en un carril; la activa se eleva sobre él en vez
+  // de pintarse de color, que es menos ruidoso cuando son siete.
   const tabBtn = (id, label) => (
     <button
-      className={`btn btn--sm ${tab === id ? 'btn--primary' : 'btn--outline'}`}
+      role="tab"
+      aria-selected={tab === id}
+      className="tab"
       onClick={() => setTab(id)}
-      style={{ fontSize: '0.85rem' }}
     >{label}</button>
   )
 
@@ -1057,21 +1061,21 @@ export default function StaffPage() {
       <Header />
       <ToastContainer toasts={toasts} />
 
-      <main className="container--wide" style={{ padding: '32px 24px 64px' }}>
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
-            🩺 Panel de {user?.isAdmin ? 'Administración Clínica' : isMonitor ? 'Seguimiento' : 'Acompañamiento'}
+      <main className="container--wide page">
+        <header className="page-head">
+          <h1 className="page-head__title">
+            Panel de {user?.isAdmin ? 'administración clínica' : isMonitor ? 'seguimiento' : 'acompañamiento'}
           </h1>
-          <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
+          <p className="page-head__sub">
             {user?.isAdmin
               ? 'Acceso completo: todos los pacientes, chats, citas y equipo.'
               : isMonitor
                 ? 'Seguimiento de tus pacientes asignados: chats, progreso y notas.'
                 : 'Tus pacientes asignados, sus chats, progreso y citas.'}
           </p>
-        </div>
+        </header>
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div className="tabs" role="tablist" aria-label="Secciones del panel">
           {tabBtn('patients', '🧑‍⚕️ Pacientes')}
           {tabBtn('calendar', '📅 Calendario')}
           {tabBtn('reports', '📊 Reportes')}
@@ -1090,32 +1094,28 @@ export default function StaffPage() {
             {loading ? (
               <p style={{ color: 'var(--slate)', textAlign: 'center', padding: 24 }}>Cargando...</p>
             ) : patients.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 32, color: 'var(--slate)' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🌿</div>
-                <p style={{ fontWeight: 500 }}>
-                  {user?.isAdmin ? 'No hay pacientes registrados aún.' : 'Aún no tienes pacientes asignados.'}
-                </p>
-                {!user?.isAdmin && <p style={{ fontSize: '0.85rem' }}>Pide al administrador que te asigne pacientes.</p>}
-              </div>
+              <Empty
+                title={user?.isAdmin ? 'No hay pacientes registrados aún.' : 'Aún no tienes pacientes asignados.'}
+                text={!user?.isAdmin ? 'Pide al administrador que te asigne pacientes.' : undefined}
+              />
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+              <div className="card-grid">
                 {patients.map(p => (
                   <button
                     key={p._id}
+                    className="paciente-card"
                     onClick={() => setSelectedPatient(p._id)}
-                    style={{
-                      textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
-                      background: 'var(--cream)', border: '1px solid var(--border)',
-                      borderRadius: 14, padding: '14px 16px', transition: 'transform 0.15s ease'
-                    }}
+                    aria-label={`Abrir el expediente de ${p.name}`}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--navy)' }}>{p.name}</span>
+                    <div className="paciente-card__top">
+                      <span className="paciente-card__nombre">{p.name}</span>
                       <RiskBadge level={p.risk.level} />
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--slate)' }}>{p.email}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--slate)', marginTop: 6 }}>
-                      ⚠️ {p.risk.alertCount} alertas · {p.risk.lastAnalysis ? `último análisis ${new Date(p.risk.lastAnalysis).toLocaleDateString('es')}` : 'sin actividad'}
+                    <div className="meta">{p.email}</div>
+                    <div className="meta paciente-card__pie">
+                      {p.risk.alertCount} alertas · {p.risk.lastAnalysis
+                        ? `último análisis ${new Date(p.risk.lastAnalysis).toLocaleDateString('es')}`
+                        : 'sin actividad'}
                     </div>
                   </button>
                 ))}
