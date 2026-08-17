@@ -1,30 +1,55 @@
-# Dependencies
+# ─── Dependencias ──────────────────────────────────────────────
 node_modules/
 
-# Environment variables (contienen secretos)
+# ─── Secretos ──────────────────────────────────────────────────
+# Se ignora cualquier .env salvo la plantilla de ejemplo.
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 
-# Build output
+# Configuración de la app de escritorio: contiene el secreto de sesión,
+# la contraseña del administrador y la clave de cifrado protegida.
+# Vive en %APPDATA%/Contigo, pero no debe subirse nunca.
+config.json
+!frontend/**/config.json
+!.claude/**/config.json
+
+# ─── Datos de pacientes ────────────────────────────────────────
+# El archivo del almacén guarda conversaciones sobre salud mental y
+# fichas médicas. Normalmente vive en %APPDATA%, pero si alguien apunta
+# CONTIGO_DATA_DIR a esta carpeta al hacer pruebas, no debe acabar en el
+# repositorio: una vez en el historial de git, ya no se puede quitar.
+contigo-data.json
+contigo-data.json.*
+*.sqlite
+*.sqlite3
+*.db
+
+# Archivos que el almacén crea al lado del principal
+*.lock
+*.tmp
+*.pre-sql-backup
+*.backup-pre-sql-*
+
+# ─── Compilados y empaquetados ─────────────────────────────────
 frontend/dist/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-
-# Logs
-*.log
-npm-debug.log*
-
-# Claude Code (config local y worktrees)
-.claude/
-
-# Builds de escritorio
 release/
 installers/
-node_modules/
+
+# ─── Sistema y editores ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# ─── Registros ─────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# ─── Herramientas ──────────────────────────────────────────────
+.claude/
+coverage/
+.nyc_output/
