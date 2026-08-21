@@ -11,6 +11,8 @@ import GoalsPage from './pages/GoalsPage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import StaffPage from './pages/StaffPage.jsx'
 import LegalPage from './pages/LegalPage.jsx'
+import EnPreparacion from './pages/EnPreparacion.jsx'
+import { MODO_VITRINA } from './config.js'
 import './index.css'
 
 function Loading() {
@@ -54,8 +56,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <Routes>
           <Route path="/"         element={<Home />} />
-          <Route path="/login"    element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Sin servidor detrás, entrar o registrarse no puede funcionar:
+              se explica en qué punto está el proyecto en vez de mostrar
+              un formulario que va a fallar. */}
+          <Route path="/login"    element={MODO_VITRINA ? <EnPreparacion /> : <Login />} />
+          <Route path="/register" element={MODO_VITRINA ? <EnPreparacion /> : <Register />} />
           <Route path="/legal"          element={<LegalPage />} />
           <Route path="/legal/:seccion" element={<LegalPage />} />
           <Route path="/chat"     element={<RequireAuth><ChatPage /></RequireAuth>} />

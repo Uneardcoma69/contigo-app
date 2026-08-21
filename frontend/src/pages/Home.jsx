@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
+import { MODO_VITRINA, CORREO_CONTACTO } from '../config.js'
 import '../landing.css'
 
 const services = [
@@ -40,6 +41,19 @@ const faqs = [
   { q: '¿Cuánto dura un proceso terapéutico?', a: 'Depende de cada persona y de sus objetivos. Algunos procesos toman pocas semanas; otros, varios meses. Lo revisamos contigo de forma periódica y transparente.' },
   { q: '¿Mi información es confidencial?', a: 'Sí. Toda tu información está protegida por el secreto profesional y por nuestra política de tratamiento de datos personales.' },
 ]
+
+/**
+ * Llamada a la acción principal.
+ * En modo vitrina lleva al formulario de contacto de esta misma página;
+ * se usa un ancla normal y no <Link>, porque React Router no desplaza
+ * hasta una sección cuando ya estás en esa ruta.
+ */
+function AccionPrincipal({ className, children }) {
+  if (MODO_VITRINA) {
+    return <a className={className} href="#contacto">Solicitar acceso</a>
+  }
+  return <Link className={className} to="/register">{children}</Link>
+}
 
 function Brand() {
   return (
@@ -113,6 +127,28 @@ export default function Home() {
     }
 
     const datos = new FormData(form)
+
+    // Sin servidor detrás no hay a dónde enviar el mensaje. En vez de
+    // fallar, se abre el correo del visitante con el texto ya redactado.
+    if (MODO_VITRINA) {
+      const cuerpo = [
+        `Nombre: ${datos.get('nombre')}`,
+        `Correo: ${datos.get('correo')}`,
+        datos.get('telefono') ? `Teléfono: ${datos.get('telefono')}` : null,
+        datos.get('motivo') ? `Motivo: ${datos.get('motivo')}` : null,
+        '',
+        datos.get('mensaje')
+      ].filter(Boolean).join('\n')
+
+      window.location.href = `mailto:${CORREO_CONTACTO}`
+        + `?subject=${encodeURIComponent('Contacto desde el sitio')}`
+        + `&body=${encodeURIComponent(cuerpo)}`
+
+      form.reset()
+      setFormSent(true)
+      return
+    }
+
     setSending(true)
     setFormError('')
     try {
@@ -149,13 +185,13 @@ export default function Home() {
             <a href="#equipo">Equipo</a>
             <a href="#historias">Historias</a>
             <a href="#preguntas">Preguntas</a>
-            <Link className="nav-auth" to="/login">Iniciar sesión</Link>
-            <Link className="lp-btn lp-btn-primary nav-cta nav-auth" to="/register">Crear cuenta</Link>
+            {!MODO_VITRINA && <Link className="nav-auth" to="/login">Iniciar sesión</Link>}
+            <AccionPrincipal className="lp-btn lp-btn-primary nav-cta nav-auth">Crear cuenta</AccionPrincipal>
           </nav>
 
           <div className="header-cta">
-            <Link className="header-cta-login" to="/login">Iniciar sesión</Link>
-            <Link className="lp-btn lp-btn-primary nav-cta" to="/register">Crear cuenta</Link>
+            {!MODO_VITRINA && <Link className="header-cta-login" to="/login">Iniciar sesión</Link>}
+            <AccionPrincipal className="lp-btn lp-btn-primary nav-cta">Crear cuenta</AccionPrincipal>
           </div>
 
           <button
@@ -185,7 +221,7 @@ export default function Home() {
                 o en línea, con un proceso a tu ritmo y en total confidencialidad.
               </p>
               <div className="hero-actions reveal" style={{ '--rd': '0.18s' }}>
-                <Link className="lp-btn lp-btn-primary" to="/register">Comenzar mi proceso</Link>
+                <AccionPrincipal className="lp-btn lp-btn-primary">Comenzar mi proceso</AccionPrincipal>
                 <a className="lp-btn lp-btn-secondary" href="#servicios">Conocer los servicios</a>
               </div>
               <ul className="hero-trust reveal" style={{ '--rd': '0.24s' }}>
@@ -362,7 +398,7 @@ export default function Home() {
                 <h2 id="cta-title">Dar el primer paso también es cuidarse</h2>
                 <p>Crea tu cuenta para empezar tu proceso, o escríbenos tus dudas. Te responderemos con calma, con claridad y sin ningún compromiso.</p>
                 <div className="cta-actions">
-                  <Link className="lp-btn lp-btn-on-dark" to="/register">Crear mi cuenta</Link>
+                  <AccionPrincipal className="lp-btn lp-btn-on-dark">Crear mi cuenta</AccionPrincipal>
                   <a className="lp-btn lp-btn-ghost-dark" href="#preguntas">Ver preguntas frecuentes</a>
                 </div>
               </div>
@@ -469,7 +505,9 @@ export default function Home() {
 
               {formSent && (
                 <p ref={statusRef} className="form-status" role="status">
-                  Gracias por escribirnos. Recibimos tu mensaje y te responderemos en menos de 24 horas hábiles.
+                  {MODO_VITRINA
+                    ? `Abrimos tu correo con el mensaje listo para enviar. Si no se abrió, escríbenos a ${CORREO_CONTACTO}.`
+                    : 'Gracias por escribirnos. Recibimos tu mensaje y te responderemos en menos de 24 horas hábiles.'}
                 </p>
               )}
 
@@ -512,8 +550,9 @@ export default function Home() {
           <nav className="footer-col" aria-label="Cuenta y legal">
             <h3>Tu cuenta</h3>
             <ul>
-              <li><Link to="/login">Iniciar sesión</Link></li>
-              <li><Link to="/register">Crear cuenta</Link></li>
+              {!MODO_VITRINA && <li><Link to="/login">Iniciar sesión</Link></li>}
+              {!MODO_VITRINA && <li><Link to="/register">Crear cuenta</Link></li>}
+              {MODO_VITRINA && <li><a href={`mailto:${CORREO_CONTACTO}`}>Escríbenos</a></li>}
               <li><Link to="/legal/privacidad">Política de privacidad</Link></li>
               <li><Link to="/legal/datos">Tratamiento de datos</Link></li>
               <li><Link to="/legal/terminos">Términos de uso</Link></li>
