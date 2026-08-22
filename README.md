@@ -521,6 +521,7 @@ issue o contacta al autor.
 
 2025 Contigo — Aquí Estoy.
 
-Este código es privado y confidencial. Solo puede ser visto y modificado por miembros
-autorizados del equipo de desarrollo. Queda prohibida su copia, distribución o uso
-comercial sin permiso explícito del autor Uneard (Santiago Turriago Laverde).
+Este repositorio es público para fines de revisión y consulta (portafolio, procesos de
+postulación, evaluación técnica), pero el código sigue siendo propiedad de su autor,
+Uneard (Santiago Turriago Laverde). Queda prohibida su copia, distribución, modificación
+o uso comercial sin permiso explícito del autor.
