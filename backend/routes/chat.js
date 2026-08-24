@@ -97,7 +97,7 @@ router.post('/', requireAuth, async (req, res) => {
 
   // OPENAI / DEEPSEEK MODE
   try {
-    const history = getHistory(req.userId).slice(-20).map(m => ({
+    const history = getHistory(req.userId, 20).map(m => ({
       role: m.role, content: m.content
     }))
 
@@ -153,7 +153,7 @@ router.post('/', requireAuth, async (req, res) => {
 
 // GET /api/chat/history
 router.get('/history', requireAuth, (req, res) => {
-  const msgs = getHistory(req.userId).slice(-100).map(m => ({
+  const msgs = getHistory(req.userId, 100).map(m => ({
     id: m._id,
     from: m.role === 'user' ? 'user' : 'bot',
     text: m.content,

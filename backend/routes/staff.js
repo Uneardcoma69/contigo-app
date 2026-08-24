@@ -7,7 +7,9 @@ import {
   getMedicalRecord, validateMedicalRecord,
   getProgressNotes, addProgressNote,
   createAppointment, getAppointmentById, getAllAppointments,
-  getAppointmentsForStaff, updateAppointment, deleteAppointment
+  getAppointmentsForStaff, updateAppointment, deleteAppointment,
+  getRiskSummaries, getGoalStats, getNoteCounts, getMedicalStatuses,
+  STAFF_ROLES
 } from '../store.js'
 
 const router = express.Router()
@@ -24,8 +26,21 @@ function canAccessPatient(req, patient) {
   return patient.assignedPsychologistId === req.userId
 }
 
-function patientSummary(p) {
-  const risk = getRiskProfile(p._id)
+/**
+ * Los pacientes que este profesional puede ver: todos si es admin, los
+ * asignados en cualquier otro caso. La regla vivía repetida como ternario
+ * en cada ruta; tenerla en un solo sitio evita que una ruta nueva se
+ * quede con una versión distinta.
+ */
+function patientsInScope(req) {
+  return req.userRole === 'admin' ? getPatients() : getPatientsOf(req.userId)
+}
+
+const SIN_RIESGO = { level: 'sin_datos', score: 0, lastAnalysis: null, alertCount: 0 }
+const LEVEL_ORDER = { alto: 0, medio: 1, bajo: 2, sin_datos: 3 }
+
+function patientSummary(p, resumenes) {
+  const risk = resumenes.get(p._id)
   return {
     _id: p._id,
     name: p.name,
@@ -36,16 +51,16 @@ function patientSummary(p) {
       level: risk.level,
       score: risk.score,
       lastAnalysis: risk.lastAnalysis,
-      alertCount: risk.alerts.length
-    } : { level: 'sin_datos', score: 0, lastAnalysis: null, alertCount: 0 }
+      alertCount: risk.alertCount
+    } : SIN_RIESGO
   }
 }
 
 // ── GET /api/staff/patients — mis pacientes (o todos si admin) ──
 router.get('/patients', (req, res) => {
-  const patients = req.userRole === 'admin' ? getPatients() : getPatientsOf(req.userId)
-  const LEVEL_ORDER = { alto: 0, medio: 1, bajo: 2, sin_datos: 3 }
-  const list = patients.map(patientSummary)
+  const patients = patientsInScope(req)
+  const resumenes = getRiskSummaries()
+  const list = patients.map(p => patientSummary(p, resumenes))
     .sort((a, b) => LEVEL_ORDER[a.risk.level] - LEVEL_ORDER[b.risk.level])
   return res.json({ patients: list })
 })
@@ -63,7 +78,7 @@ router.get('/patients/:id', (req, res) => {
   auditar(req, 'expediente.ver', { targetId: patient._id, targetName: patient.name })
 
   const risk = getRiskProfile(patient._id)
-  const chat = getHistory(patient._id).slice(-200).map(m => ({
+  const chat = getHistory(patient._id, 200).map(m => ({
     role: m.role, content: m.content, timestamp: m.createdAt
   }))
   const goals = getGoals(patient._id)
@@ -149,10 +164,29 @@ function apptWithNames(a) {
   }
 }
 
+/**
+ * Una cita solo es tuya si la agendaste tú Y el paciente sigue asignado a ti.
+ *
+ * La comprobación anterior miraba únicamente `psychologistId`, que queda
+ * congelado al crear la cita. Reasignar un paciente a otro profesional
+ * cortaba el acceso a su expediente pero no a sus citas anteriores, que
+ * llevan notas clínicas: el psicólogo saliente seguía viéndolas, editándolas
+ * y borrándolas indefinidamente.
+ */
+function canAccessAppointment(req, appt) {
+  if (req.userRole === 'admin') return true
+  if (appt.psychologistId !== req.userId) return false
+  const patient = findUserById(appt.patientId)
+  return !!patient && canAccessPatient(req, patient)
+}
+
 // GET /api/staff/appointments — mis citas (admin: todas)
 router.get('/appointments', (req, res) => {
   const list = req.userRole === 'admin' ? getAllAppointments() : getAppointmentsForStaff(req.userId)
-  const sorted = list.map(apptWithNames).sort((a, b) => new Date(a.date) - new Date(b.date))
+  const sorted = list
+    .filter(a => canAccessAppointment(req, a))
+    .map(apptWithNames)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
   return res.json({ appointments: sorted })
 })
 
@@ -166,10 +200,23 @@ router.post('/appointments', requireClinician, (req, res) => {
   if (!patient || patient.role !== 'user')
     return res.status(404).json({ message: 'Paciente no encontrado.' })
 
-  // El admin puede agendar a nombre de otro psicólogo; el resto solo a su nombre
-  const targetPsy = (req.userRole === 'admin' && psychologistId) ? psychologistId : req.userId
-  if (!canAccessPatient(req, patient) && req.userRole !== 'admin')
+  // El admin puede agendar a nombre de otro profesional; el resto solo a su
+  // nombre. El identificador que llega en el cuerpo se valida como cualquier
+  // otro dato de entrada: sin esto se podía dejar como "psicólogo" de la cita
+  // a una cuenta de paciente, o a alguien que no acompaña a esa persona.
+  let targetPsy = req.userId
+  if (req.userRole === 'admin' && psychologistId) {
+    const psy = findUserById(psychologistId)
+    if (!psy || !STAFF_ROLES.includes(psy.role))
+      return res.status(400).json({ message: 'El profesional indicado no pertenece al equipo.' })
+    // Agendar para alguien a quien el paciente no está asignado crearía una
+    // cita que esa persona no podría abrir (ver canAccessAppointment).
+    if (psy.role !== 'admin' && patient.assignedPsychologistId !== psy._id)
+      return res.status(400).json({ message: 'Asigna primero el paciente a ese profesional.' })
+    targetPsy = psy._id
+  } else if (!canAccessPatient(req, patient)) {
     return res.status(403).json({ message: 'Este paciente no está asignado a ti.' })
+  }
 
   const when = new Date(date)
   if (isNaN(when.getTime()))
@@ -200,10 +247,15 @@ router.post('/appointments', requireClinician, (req, res) => {
 router.put('/appointments/:id', requireClinician, (req, res) => {
   const appt = getAppointmentById(req.params.id)
   if (!appt) return res.status(404).json({ message: 'Cita no encontrada.' })
-  if (req.userRole !== 'admin' && appt.psychologistId !== req.userId)
+  if (!canAccessAppointment(req, appt))
     return res.status(403).json({ message: 'Esta cita no es tuya.' })
 
   const { date, durationMin, modality, status, notes } = req.body || {}
+  // Al crear se valida la fecha; al editar no se hacía, y una fecha ilegible
+  // llegaba hasta `toISOString()` y salía como un 500 sin explicación.
+  if (date !== undefined && isNaN(new Date(date).getTime()))
+    return res.status(400).json({ message: 'Fecha inválida.' })
+
   const updated = updateAppointment(appt._id, { date, durationMin, modality, status, notes })
   const paciente = findUserById(appt.patientId)
   auditar(req, 'cita.editar', {
@@ -217,7 +269,7 @@ router.put('/appointments/:id', requireClinician, (req, res) => {
 router.delete('/appointments/:id', requireClinician, (req, res) => {
   const appt = getAppointmentById(req.params.id)
   if (!appt) return res.status(404).json({ message: 'Cita no encontrada.' })
-  if (req.userRole !== 'admin' && appt.psychologistId !== req.userId)
+  if (!canAccessAppointment(req, appt))
     return res.status(403).json({ message: 'Esta cita no es tuya.' })
   const paciente = findUserById(appt.patientId)
   deleteAppointment(appt._id)
@@ -230,38 +282,45 @@ router.delete('/appointments/:id', requireClinician, (req, res) => {
 
 // ── GET /api/staff/reports — reporte según rol ─────────────────
 router.get('/reports', (req, res) => {
-  const patients = req.userRole === 'admin' ? getPatients() : getPatientsOf(req.userId)
+  const patients = patientsInScope(req)
   const appts = req.userRole === 'admin' ? getAllAppointments() : getAppointmentsForStaff(req.userId)
+
+  // Cuatro consultas agrupadas en vez de cinco por paciente: con cien
+  // personas esto pasaba de ~500 consultas seguidas —que bloqueaban a todo
+  // el mundo mientras se generaba el reporte— a un puñado.
+  const resumenes = getRiskSummaries()
+  const metas     = getGoalStats()
+  const notas     = getNoteCounts()
+  const fichas    = getMedicalStatuses()
 
   const byLevel = { alto: 0, medio: 0, bajo: 0, sin_datos: 0 }
   let totalGoals = 0, completedGoals = 0, totalAlerts = 0, medicalValidated = 0, medicalPending = 0
 
   const patientRows = patients.map(p => {
-    const risk = getRiskProfile(p._id)
+    const risk = resumenes.get(p._id)
     const level = risk?.level || 'sin_datos'
     byLevel[level] = (byLevel[level] || 0) + 1
-    totalAlerts += risk?.alerts?.length || 0
+    totalAlerts += risk?.alertCount || 0
 
-    const goals = getGoals(p._id)
-    const completed = goals.filter(g => g.completed).length
-    totalGoals += goals.length
-    completedGoals += completed
+    const meta = metas.get(p._id) || { total: 0, completed: 0 }
+    totalGoals += meta.total
+    completedGoals += meta.completed
 
-    const record = getMedicalRecord(p._id)
-    if (record?.validationStatus === 'validada') medicalValidated++
-    else if (record) medicalPending++
+    const estadoFicha = fichas.get(p._id)
+    if (estadoFicha === 'validada') medicalValidated++
+    else if (estadoFicha) medicalPending++
 
     return {
       _id: p._id,
       name: p.name,
       level,
       score: risk?.score || 0,
-      alerts: risk?.alerts?.length || 0,
-      goals: goals.length,
-      goalsCompleted: completed,
-      goalsPct: goals.length ? Math.round((completed / goals.length) * 100) : 0,
-      medical: record ? record.validationStatus : 'sin_ficha',
-      notes: getProgressNotes(p._id).length
+      alerts: risk?.alertCount || 0,
+      goals: meta.total,
+      goalsCompleted: meta.completed,
+      goalsPct: meta.total ? Math.round((meta.completed / meta.total) * 100) : 0,
+      medical: estadoFicha || 'sin_ficha',
+      notes: notas.get(p._id) || 0
     }
   })
 
@@ -288,12 +347,15 @@ router.get('/reports', (req, res) => {
 // ── GET /api/staff/alerts/summary — para el badge del header ───
 // Cuenta pacientes en riesgo alto/medio (según el alcance del rol)
 router.get('/alerts/summary', (req, res) => {
-  const patients = req.userRole === 'admin' ? getPatients() : getPatientsOf(req.userId)
+  // Lo llama el encabezado en cada carga de página: conviene que sean dos
+  // consultas fijas y no una por paciente.
+  const patients = patientsInScope(req)
+  const resumenes = getRiskSummaries()
   let alto = 0, medio = 0
   for (const p of patients) {
-    const risk = getRiskProfile(p._id)
-    if (risk?.level === 'alto') alto++
-    else if (risk?.level === 'medio') medio++
+    const nivel = resumenes.get(p._id)?.level
+    if (nivel === 'alto') alto++
+    else if (nivel === 'medio') medio++
   }
   return res.json({ alto, medio })
 })

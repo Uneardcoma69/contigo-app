@@ -69,6 +69,17 @@ const LOW_KEYWORDS = [
   'abrumado', 'abrumada', 'sobrepasado', 'sobrepasada',
 ]
 
+// Tope de lo que pueden sumar entre todas las palabras de malestar
+// cotidiano. Sin \u00e9l, cuatro t\u00e9rminos leves en una misma frase \u2014"triste,
+// ansioso, cansado y agobiado"\u2014 sumaban 4 y cruzaban el umbral de riesgo
+// medio sin que hubiera ni una se\u00f1al de gravedad. El equipo recib\u00eda una
+// alerta amarilla por un mal d\u00eda corriente, y una alerta que se aprende a
+// ignorar deja de proteger a quien s\u00ed est\u00e1 en peligro.
+//
+// Con el tope en 3, hace falta al menos una palabra de severidad media
+// (que vale 5) para llegar a "medio". Los dem\u00e1s umbrales no cambian.
+const MAX_LOW_SCORE = 3
+
 /**
  * Analiza un mensaje individual y retorna su nivel de riesgo.
  * @param {string} text - Mensaje del usuario
@@ -77,9 +88,10 @@ const LOW_KEYWORDS = [
 export function analyzeMessage(text) {
   const normalized = text.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Quitar acentos para comparar
-  
+
   const triggerWords = []
   let score = 0
+  let lowScore = 0
 
   // Evaluar HIGH primero (score 10 cada match)
   for (const keyword of HIGH_KEYWORDS) {
@@ -99,14 +111,15 @@ export function analyzeMessage(text) {
     }
   }
 
-  // Evaluar LOW (score 1 cada match)
+  // Evaluar LOW (score 1 cada match, con tope conjunto)
   for (const keyword of LOW_KEYWORDS) {
     const normalizedKeyword = keyword.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     if (normalized.includes(normalizedKeyword)) {
-      score += 1
-      triggerWords.push(keyword)
+      lowScore += 1
+      triggerWords.push(keyword)   // se listan todas: al profesional le sirven
     }
   }
+  score += Math.min(lowScore, MAX_LOW_SCORE)
 
   // Clasificar nivel
   let level = 'bajo'

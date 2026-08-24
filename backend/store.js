@@ -590,6 +590,7 @@ function aUsuarioPublico(f) {
 }
 
 function aMeta(f) {
+  if (!f) return null
   return {
     _id: f.id,
     title: f.title,
@@ -600,7 +601,13 @@ function aMeta(f) {
   }
 }
 
+// El guard de nulo no es decorativo: `getAppointmentById` recibe un id que
+// viene de la URL, así que con una cita inexistente esta función se
+// encontraba un `null` y lanzaba un TypeError. Las rutas de editar y borrar
+// comprueban `if (!appt) return 404`, pero nunca llegaban a esa línea: el
+// error salía antes como un 500 sin explicación.
 function aCita(f) {
+  if (!f) return null
   return {
     _id: f.id,
     patientId: f.patient_id,
@@ -763,16 +770,38 @@ export function getPatientsOf(staffId) {
 }
 
 // ── Conversaciones ─────────────────────────────────────────────
-export function getHistory(userId) {
-  return all(
-    'SELECT * FROM messages WHERE user_id = ? ORDER BY created_at ASC, rowid ASC',
-    [userId]
-  ).map(m => ({
+function aMensaje(m) {
+  return {
     _id: m.id,
     role: m.role,
     content: m.content,
     createdAt: m.created_at
-  }))
+  }
+}
+
+/**
+ * Historial de una persona, del más antiguo al más reciente.
+ *
+ * Con `limit`, el recorte lo hace el motor. Antes todas las llamadas
+ * pedían el historial entero —hasta 500 mensajes— y descartaban en JS
+ * todos menos los últimos 20, 30, 100 o 200. Eso ocurría en cada mensaje
+ * del chat, que es la ruta más transitada de la aplicación, y el coste
+ * crecía a medida que la persona conversaba más.
+ *
+ * Se consulta en orden descendente para que LIMIT se quede con los
+ * recientes, y se invierte al final para devolver el orden de siempre.
+ */
+export function getHistory(userId, limit) {
+  if (limit === undefined) {
+    return all(
+      'SELECT * FROM messages WHERE user_id = ? ORDER BY created_at ASC, rowid ASC',
+      [userId]
+    ).map(aMensaje)
+  }
+  return all(
+    'SELECT * FROM messages WHERE user_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?',
+    [userId, limit]
+  ).map(aMensaje).reverse()
 }
 
 export function addMessage(userId, role, content) {
@@ -878,6 +907,69 @@ export function getRiskProfile(userId) {
 
 export function getAllRiskProfiles() {
   return all('SELECT * FROM risk_profiles').map(aPerfilRiesgo)
+}
+
+// ── Resúmenes para listados ────────────────────────────────────
+// Las pantallas de lista (pacientes, reportes, panel de alertas) solo
+// necesitan conteos, pero pedían el objeto completo de cada paciente: una
+// consulta por persona, y en el caso de las alertas dos, para acabar
+// usando `.length`. Con cien pacientes eso eran cientos de consultas
+// seguidas en el hilo que atiende la petición —sql.js corre dentro del
+// proceso—, y mientras tanto ningún otro usuario era atendido.
+//
+// Estas funciones resuelven cada listado con UNA consulta agrupada.
+
+/** Nº de alertas por paciente. */
+export function getAlertCounts() {
+  const conteos = new Map()
+  for (const f of all('SELECT user_id, COUNT(*) AS n FROM risk_alerts GROUP BY user_id')) {
+    conteos.set(f.user_id, f.n)
+  }
+  return conteos
+}
+
+/** Perfiles de riesgo con el conteo de alertas, sin cargar las alertas. */
+export function getRiskSummaries() {
+  const conteos = getAlertCounts()
+  const resumenes = new Map()
+  for (const f of all('SELECT * FROM risk_profiles')) {
+    resumenes.set(f.user_id, {
+      level: f.level,
+      score: f.score,
+      lastMessage: f.last_message,
+      triggerWords: JSON.parse(f.trigger_words || '[]'),
+      lastAnalysis: f.last_analysis,
+      alertCount: conteos.get(f.user_id) || 0
+    })
+  }
+  return resumenes
+}
+
+/** Metas totales y completadas por paciente. */
+export function getGoalStats() {
+  const stats = new Map()
+  for (const f of all('SELECT user_id, COUNT(*) AS total, SUM(completed) AS hechas FROM goals GROUP BY user_id')) {
+    stats.set(f.user_id, { total: f.total, completed: f.hechas || 0 })
+  }
+  return stats
+}
+
+/** Nº de notas de progreso por paciente. */
+export function getNoteCounts() {
+  const conteos = new Map()
+  for (const f of all('SELECT patient_id, COUNT(*) AS n FROM progress_notes GROUP BY patient_id')) {
+    conteos.set(f.patient_id, f.n)
+  }
+  return conteos
+}
+
+/** Estado de validación de la ficha médica por paciente. */
+export function getMedicalStatuses() {
+  const estados = new Map()
+  for (const f of all('SELECT user_id, validation_status FROM medical_records')) {
+    estados.set(f.user_id, f.validation_status)
+  }
+  return estados
 }
 
 // ── Fichas médicas ─────────────────────────────────────────────
@@ -993,7 +1085,13 @@ export function updateAppointment(id, changes) {
   const asignaciones = []
   const valores = []
   if (changes.date !== undefined) {
-    asignaciones.push('date = ?'); valores.push(new Date(changes.date).toISOString())
+    // La ruta ya rechaza las fechas inválidas con un 400. Esta comprobación
+    // es la red de seguridad: `toISOString()` sobre una fecha inválida lanza
+    // un RangeError que tumbaría la petición con un 500 sin explicación.
+    const cuando = new Date(changes.date)
+    if (!isNaN(cuando.getTime())) {
+      asignaciones.push('date = ?'); valores.push(cuando.toISOString())
+    }
   }
   if (changes.durationMin !== undefined) {
     asignaciones.push('duration_min = ?'); valores.push(changes.durationMin)

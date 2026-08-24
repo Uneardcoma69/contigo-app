@@ -14,7 +14,7 @@ import adminRoutes from './routes/admin.js'
 import staffRoutes from './routes/staff.js'
 import contactRoutes from './routes/contact.js'
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail, setUserPassword, getStorageStatus, flushToDisk, getAllUsers } from './store.js'
+import { createUser, findUserByEmail, setUserPassword, bumpTokenVersion, getStorageStatus, flushToDisk, getAllUsers } from './store.js'
 
 dotenv.config()
 
@@ -111,6 +111,16 @@ const contactLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, max: 10,
   message: { message: 'Recibimos varios mensajes tuyos. Intenta de nuevo más tarde.' }
 })
+// Paneles del equipo: abrir un expediente deja una entrada de auditoría, y
+// el registro se recorta al llegar a su tope. Sin límite, una ráfaga
+// automatizada podía empujar fuera las entradas más antiguas —incluidas las
+// del propio autor de la ráfaga— sin tocar ninguna ruta de borrado. El tope
+// es holgado a propósito: los paneles se refrescan solos y no deben chocar
+// con él en uso normal.
+const panelLimiter = rateLimit({
+  windowMs: 60 * 1000, max: isDev ? 1000 : 240,
+  message: { message: 'Demasiadas peticiones seguidas. Espera un momento.' }
+})
 
 // ── Rutas API ──────────────────────────────────────────────────
 app.use('/api/auth/login',    authLimiter)
@@ -118,8 +128,8 @@ app.use('/api/auth/register', authLimiter)
 app.use('/api/auth',  authRoutes)
 app.use('/api/chat',  chatLimiter, chatRoutes)
 app.use('/api/goals', goalsRoutes)
-app.use('/api/admin', adminRoutes)
-app.use('/api/staff', staffRoutes)
+app.use('/api/admin', panelLimiter, adminRoutes)
+app.use('/api/staff', panelLimiter, staffRoutes)
 app.use('/api/contact', contactLimiter, contactRoutes)
 
 // ── Cuentas iniciales ──────────────────────────────────────────
@@ -128,7 +138,7 @@ app.use('/api/contact', contactLimiter, contactRoutes)
 //  1. CONTIGO_ADMIN_PASSWORD — crea SOLO la cuenta de administrador con
 //     la contraseña indicada. Es lo que usa la app de escritorio (la
 //     genera al azar) y también el camino correcto en un servidor.
-//     Idempotente: si el admin ya existe, sincroniza su contraseña.
+//     Solo CREA: si la cuenta ya existe, no se toca su contraseña.
 //
 //  2. Cuentas de prueba con contraseñas fijas — únicamente en desarrollo
 //     local declarado (NODE_ENV=development) o pidiéndolo a propósito
@@ -139,13 +149,33 @@ async function seedDemoAccounts() {
   const adminPass = process.env.CONTIGO_ADMIN_PASSWORD
 
   if (adminPass) {
-    const hash = await bcrypt.hash(adminPass, 10)
     const existing = findUserByEmail('admin@contigo.com')
-    if (existing) {
-      setUserPassword(existing._id, hash)
-    } else {
+
+    if (!existing) {
+      const hash = await bcrypt.hash(adminPass, 10)
       createUser({ name: 'Administrador', email: 'admin@contigo.com', password: hash, role: 'admin' })
+      console.log('👤 Cuenta admin creada (admin@contigo.com)')
+      return
     }
+
+    // La contraseña de una cuenta que ya existe NO se re-aplica en cada
+    // arranque. La app de escritorio pasa siempre la misma contraseña
+    // inicial (vive en config.json), así que sincronizarla deshacía en
+    // silencio el cambio de contraseña que el administrador hubiera hecho
+    // desde "Mi cuenta": tras cualquier reinicio volvía a valer la que se
+    // repartió al instalar, y quien la hubiera visto recuperaba el acceso.
+    //
+    // Para el caso real de una contraseña perdida existe un camino
+    // explícito, que además cierra las sesiones abiertas.
+    if (process.env.CONTIGO_ADMIN_PASSWORD_RESET === 'true') {
+      const hash = await bcrypt.hash(adminPass, 10)
+      setUserPassword(existing._id, hash)
+      bumpTokenVersion(existing._id)
+      console.warn('🔑 Contraseña del admin restablecida a CONTIGO_ADMIN_PASSWORD.')
+      console.warn('   Quita CONTIGO_ADMIN_PASSWORD_RESET para que no se repita en el próximo arranque.')
+      return
+    }
+
     console.log('👤 Cuenta admin lista (admin@contigo.com)')
     return
   }

@@ -2,7 +2,7 @@ import express from 'express'
 import bcrypt from 'bcryptjs'
 import requireAdmin from '../middleware/requireAdmin.js'
 import {
-  getAllUsers, getAllRiskProfiles, getRiskProfile, getHistory, findUserById,
+  getAllUsers, getRiskSummaries, getRiskProfile, getHistory, findUserById,
   findUserByEmail, createUser, setUserRole, assignPatient, getStaffMembers,
   getContactMessages, setUserPassword, bumpTokenVersion,
   getAuditLog, AUDIT_ACTIONS, ROLES, STAFF_ROLES
@@ -16,10 +16,12 @@ const router = express.Router()
 router.get('/dashboard', requireAdmin, (_req, res) => {
   // Solo pacientes (role 'user') — el staff no aparece en el panel de riesgo
   const allUsers = getAllUsers().filter(u => u.role === 'user')
-  const riskProfiles = getAllRiskProfiles()
 
-  // Crear un mapa rápido de perfiles por userId
-  const riskMap = new Map(riskProfiles.map(r => [r.userId, r]))
+  // Resúmenes con el conteo de alertas ya hecho. Antes se cargaban las
+  // alertas completas de cada paciente —una consulta por persona— para
+  // acabar usando solo cuántas eran, y este panel se refresca solo cada
+  // 15 segundos, así que el coste se repetía en segundo plano sin parar.
+  const riskMap = getRiskSummaries()
 
   // Combinar usuarios con sus perfiles de riesgo
   const usersWithRisk = allUsers.map(user => {
@@ -36,7 +38,7 @@ router.get('/dashboard', requireAdmin, (_req, res) => {
         lastMessage: risk.lastMessage,
         triggerWords: risk.triggerWords,
         lastAnalysis: risk.lastAnalysis,
-        alertCount: risk.alerts.length
+        alertCount: risk.alertCount
       } : {
         level: 'sin_datos',
         score: 0,
@@ -70,7 +72,7 @@ router.get('/user/:id', requireAdmin, (req, res) => {
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' })
 
   const riskProfile = getRiskProfile(req.params.id)
-  const chatHistory = getHistory(req.params.id).slice(-30).map(m => ({
+  const chatHistory = getHistory(req.params.id, 30).map(m => ({
     role: m.role,
     content: m.content,
     timestamp: m.createdAt
@@ -98,9 +100,17 @@ function currentProvider() {
   return 'demo'
 }
 
+/** La clave del proveedor que está activo, no siempre la de DeepSeek. */
+function currentKey() {
+  return process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || ''
+}
+
 // GET /api/admin/settings — estado de la IA (nunca devuelve la clave)
 router.get('/settings', requireAdmin, (_req, res) => {
-  const key = process.env.DEEPSEEK_API_KEY || ''
+  // Antes se miraba solo DEEPSEEK_API_KEY: con OpenAI configurado, la
+  // respuesta decía a la vez provider:'openai' y aiConfigured:false, y el
+  // panel mostraba "IA no configurada" mientras la IA estaba funcionando.
+  const key = currentKey()
   return res.json({
     provider: currentProvider(),
     aiConfigured: !!key,
@@ -129,10 +139,13 @@ router.put('/settings', requireAdmin, (req, res) => {
   if (key) process.env.DEEPSEEK_API_KEY = key
   else delete process.env.DEEPSEEK_API_KEY
 
+  // Se recalcula tras aplicar el cambio: al borrar la clave de DeepSeek, si
+  // hay una de OpenAI en el entorno, el proveedor activo pasa a ser esa.
+  const activa = currentKey()
   return res.json({
     provider: currentProvider(),
-    aiConfigured: !!key,
-    keyPreview: key ? `${key.slice(0, 6)}…${key.slice(-4)}` : '',
+    aiConfigured: !!activa,
+    keyPreview: activa ? `${activa.slice(0, 6)}…${activa.slice(-4)}` : '',
     canEdit: true
   })
 })

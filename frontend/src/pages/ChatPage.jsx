@@ -59,8 +59,11 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
   const handleAdd = async (goal, idx) => {
     if (added.includes(idx)) return
     setLoading(idx)
-    await onAdd(goal)
-    setAdded(prev => [...prev, idx])
+    // Solo se marca como agregado si de verdad se guardó: antes el botón
+    // pasaba a "✓ Agregado" en el mismo instante en que aparecía el aviso de
+    // que no se había podido agregar, y ya no se podía reintentar.
+    const guardado = await onAdd(goal)
+    if (guardado) setAdded(prev => [...prev, idx])
     setLoading(null)
   }
 
@@ -130,8 +133,6 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null)
   const inputRef       = useRef(null)
 
-  if (!user) return <Navigate to="/login" replace />
-
   useEffect(() => {
     axios.get('/api/chat/history')
       .then(({ data }) => {
@@ -151,11 +152,17 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, typing])
 
+  // Devuelve si se guardó, para que la tarjeta no diga "agregado" cuando no
+  // lo está (ver SuggestedGoalsCard.handleAdd).
   const handleAddGoal = useCallback(async (goal) => {
     try {
       await axios.post('/api/goals', goal)
       success(`Objetivo agregado: "${goal.title}" 🎯`)
-    } catch { showError('No se pudo agregar el objetivo.') }
+      return true
+    } catch {
+      showError('No se pudo agregar el objetivo.')
+      return false
+    }
   }, [success, showError])
 
   const dismissSuggestion = useCallback((msgId) => {
@@ -191,6 +198,14 @@ export default function ChatPage() {
       inputRef.current?.focus()
     }
   }, [text, typing, isDemo, logout, showError, info])
+
+  // Importante: el return condicional va DESPUÉS de todos los hooks
+  // (las reglas de React exigen que los hooks se llamen siempre en el mismo
+  // orden). Aquí importa de verdad: cuando la sesión expira a mitad del
+  // chat, el catch de `send` llama a logout() con un retardo, `user` pasa a
+  // null con la página aún montada, y con el guard arriba React se quedaba
+  // sin los hooks de abajo y tumbaba la vista en vez de redirigir.
+  if (!user) return <Navigate to="/login" replace />
 
   const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }
 

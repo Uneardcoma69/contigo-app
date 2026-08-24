@@ -70,9 +70,14 @@ export function AuthProvider({ children }) {
       err => {
         const status = err?.response?.status
         const url = err?.config?.url || ''
-        // El 401 de un intento de inicio de sesión fallido lo maneja el formulario
-        const esIntentoDeLogin = url.includes('/auth/login')
-        if (status === 401 && !esIntentoDeLogin && localStorage.getItem('token')) {
+        // No todo 401 significa "sesión inválida": también los devuelven las
+        // rutas que comprueban una contraseña escrita a mano. Equivocarse al
+        // teclear la contraseña actual cerraba la sesión y echaba a la
+        // persona a /login, en vez de mostrarle el error dentro del
+        // formulario. Estas rutas se encargan de su propio 401.
+        const loManejaElFormulario =
+          url.includes('/auth/login') || url.includes('/auth/password')
+        if (status === 401 && !loManejaElFormulario && localStorage.getItem('token')) {
           logout()
         }
         return Promise.reject(err)

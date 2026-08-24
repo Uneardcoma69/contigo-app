@@ -195,7 +195,9 @@ async function createWindow() {
       detail:
         `Correo:      admin@contigo.com\n` +
         `Contraseña:  ${cfg.adminPassword}\n\n` +
-        `Guárdala en un lugar seguro. También puedes consultarla en:\n` +
+        `Guárdala en un lugar seguro. Esta es la contraseña INICIAL: si la cambias\n` +
+        `desde "Mi cuenta", la nueva es la que vale y esta deja de funcionar.\n` +
+        `Mientras no la cambies, puedes consultarla en:\n` +
         `${path.join(app.getPath('userData'), 'config.json')}\n\n` +
         `Con esta cuenta puedes crear psicólogos, monitores y más administradores desde la pestaña "Equipo".`,
       buttons: ['Entendido']
