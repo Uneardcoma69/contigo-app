@@ -24,10 +24,10 @@ export const LEVEL_CONFIG = {
  * vive en GoalsPage y no debe unificarse con esta.
  */
 export const MEDICAL_STATUS = {
-  validada:  { label: 'Validada',  emoji: '✅', color: 'var(--exito)', bg: 'var(--exito-bg)' },
-  pendiente: { label: 'Pendiente', emoji: '⏳', color: 'var(--riesgo-medio)', bg: 'var(--riesgo-medio-bg)' },
-  rechazada: { label: 'Rechazada', emoji: '❌', color: 'var(--riesgo-alto)', bg: 'var(--riesgo-alto-bg)' },
-  sin_ficha: { label: 'Sin ficha', emoji: '📄', color: 'var(--slate-light)', bg: 'var(--riesgo-nulo-bg)' },
+  validada:  { label: 'Validada',  icono: 'check', color: 'var(--exito)', bg: 'var(--exito-bg)' },
+  pendiente: { label: 'Pendiente', icono: 'circulo', color: 'var(--riesgo-medio)', bg: 'var(--riesgo-medio-bg)' },
+  rechazada: { label: 'Rechazada', icono: 'cerrar', color: 'var(--riesgo-alto)', bg: 'var(--riesgo-alto-bg)' },
+  sin_ficha: { label: 'Sin ficha', icono: 'ficha', color: 'var(--slate-light)', bg: 'var(--riesgo-nulo-bg)' },
 }
 
 /** Estado de una cita del calendario. */
@@ -44,16 +44,17 @@ export const APPT_STATUS = {
  * la otra para la misma categoría.
  */
 export const CATEGORIES = [
-  { id: 'general',   label: 'General',   emoji: '⭐', color: 'var(--cat-general)' },
-  { id: 'bienestar', label: 'Bienestar', emoji: '🌿', color: 'var(--cat-bienestar)' },
-  { id: 'sueño',     label: 'Sueño',     emoji: '😴', color: 'var(--cat-sueno)' },
-  { id: 'ejercicio', label: 'Ejercicio', emoji: '💪', color: 'var(--cat-ejercicio)' },
-  { id: 'mente',     label: 'Mente',     emoji: '🧘', color: 'var(--cat-mente)' },
-  { id: 'social',    label: 'Social',    emoji: '💬', color: 'var(--cat-social)' },
+  { id: 'general',   label: 'General',   icono: 'estrella', color: 'var(--cat-general)' },
+  { id: 'bienestar', label: 'Bienestar', icono: 'hoja',     color: 'var(--cat-bienestar)' },
+  { id: 'sueño',     label: 'Sueño',     icono: 'luna',     color: 'var(--cat-sueno)' },
+  { id: 'ejercicio', label: 'Ejercicio', icono: 'pesa',     color: 'var(--cat-ejercicio)' },
+  { id: 'mente',     label: 'Mente',     icono: 'mente',    color: 'var(--cat-mente)' },
+  { id: 'social',    label: 'Social',    icono: 'personas', color: 'var(--cat-social)' },
 ]
 
-/** Atajo para cuando solo hace falta el emoji de una categoría. */
-export const CAT_EMOJI = Object.fromEntries(CATEGORIES.map(c => [c.id, c.emoji]))
+/** Atajo para cuando solo hace falta el icono o el color de una categoría. */
+export const CAT_ICONO = Object.fromEntries(CATEGORIES.map(c => [c.id, c.icono]))
+export const CAT_COLOR = Object.fromEntries(CATEGORIES.map(c => [c.id, c.color]))
 
 /** Nombre legible de cada rol. */
 export const ROLE_LABEL = {

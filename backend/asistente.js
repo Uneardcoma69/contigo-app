@@ -66,7 +66,8 @@ Sigue este orden en cada respuesta:
 3. Ofrece UNA sola herramienta del repertorio, explicada en pasos que pueda hacer ahora.
 4. Cierra con una pregunta abierta que invite a seguir.
 
-Extensión: entre cuatro y ocho oraciones. Un emoji como máximo, y solo si acompaña.
+Extensión: entre cuatro y ocho oraciones. No uses emoji: la interfaz no los emplea
+y en una conversación sobre salud mental restan seriedad.
 Tutea siempre. Lenguaje cercano, nunca clínico.
 `.trim()
 
@@ -184,7 +185,7 @@ const POR_TEMA = [
     tema: 'ansiedad',
     claves: ['ansi', 'nervios', 'angustia', 'pánico', 'panico', 'agitad', 'inquiet', 'taquicardia', 'preocupad'],
     respuestas: [
-      'La ansiedad se siente en el cuerpo antes de que uno alcance a entenderla, y eso asusta. Vamos a bajarle al cuerpo primero: inhala por la nariz contando cuatro, retén siete, y exhala por la boca contando ocho. Tres rondas, sin apuro. Cuando termines, cuéntame cómo quedaste 🌿',
+      'La ansiedad se siente en el cuerpo antes de que uno alcance a entenderla, y eso asusta. Vamos a bajarle al cuerpo primero: inhala por la nariz contando cuatro, retén siete, y exhala por la boca contando ocho. Tres rondas, sin apuro. Cuando termines, cuéntame cómo quedaste.',
       'Cuando la mente se acelera, ayuda traerla al presente por los sentidos. Nombra cinco cosas que veas, cuatro que puedas tocar, tres que oigas, dos que huelas y una que saborees. Es raro al principio, pero funciona. ¿Qué fue lo que la disparó hoy?\nGOALS_JSON:{"goals":[{"title":"Hacer el anclaje 5-4-3-2-1 cuando suba la ansiedad","category":"mente"}]}'
     ]
   },

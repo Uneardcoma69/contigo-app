@@ -34,10 +34,10 @@ function Stat({ label, value, foot, color }) {
 }
 
 /** Mensaje cuando todavía no hay nada que mostrar. */
-function Empty({ icon = '🌿', title, text }) {
+function Empty({ icon = 'hoja', title, text }) {
   return (
     <div className="empty">
-      <div className="empty__icon" aria-hidden="true">{icon}</div>
+      <div className="empty__icon"><Icono nombre={icon} tamano={30} /></div>
       <p className="empty__title">{title}</p>
       {text && <p className="empty__text">{text}</p>}
     </div>
@@ -117,7 +117,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                   onClick={onClose}
                   aria-label="Cerrar el expediente"
                   title="Cerrar"
-                >✕</button>
+                ><Icono nombre="cerrar" tamano={17} /></button>
               </div>
             </div>
 
@@ -162,7 +162,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                     maxWidth: '85%'
                   }}>
                     <div style={{ fontSize: '0.72rem', fontWeight: 600, color: m.role === 'user' ? 'var(--teal-dark)' : 'var(--slate)', marginBottom: 2 }}>
-                      {m.role === 'user' ? '👤 Paciente' : '🤖 Contigo'} · {new Date(m.timestamp).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {m.role === 'user' ? 'Paciente' : 'Contigo'} · {new Date(m.timestamp).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </div>
                     {m.content}
                   </div>
@@ -179,7 +179,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                     display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
                     background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12
                   }}>
-                    <span style={{ fontSize: '1.1rem' }}>{g.completed ? '✅' : '⭕'}</span>
+                    <Icono nombre={g.completed ? 'check' : 'circulo'} tamano={17} style={{ color: g.completed ? 'var(--exito)' : 'var(--slate-light)' }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 500, fontSize: '0.9rem', textDecoration: g.completed ? 'line-through' : 'none', color: g.completed ? 'var(--slate)' : 'var(--navy)' }}>{g.title}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>{g.category} · creada {new Date(g.createdAt).toLocaleDateString('es')}</div>
@@ -224,7 +224,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
               <div>
                 {!data.medicalRecord ? (
                   <p style={{ color: 'var(--slate)', textAlign: 'center', padding: 24 }}>
-                    📄 El paciente aún no ha registrado su información médica.
+                    El paciente aún no ha registrado su información médica.
                   </p>
                 ) : (
                   <>
@@ -258,7 +258,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                       </div>
                     ) : (
                       <p style={{ fontSize: '0.82rem', color: 'var(--slate)', margin: 0 }}>
-                        🔒 Solo un psicólogo/a puede validar la ficha médica.
+                        Solo un psicólogo/a puede validar la ficha médica.
                       </p>
                     )}
                   </>
@@ -269,7 +269,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
             {/* ── Alertas ── */}
             {tab === 'alerts' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 340, overflowY: 'auto' }}>
-                {(!data.risk.alerts || data.risk.alerts.length === 0) && <p style={{ color: 'var(--slate)', textAlign: 'center', padding: 24 }}>Sin alertas registradas. 🌿</p>}
+                {(!data.risk.alerts || data.risk.alerts.length === 0) && <p style={{ color: 'var(--slate)', textAlign: 'center', padding: 24 }}>Sin alertas registradas.</p>}
                 {data.risk.alerts?.slice().reverse().map((a, i) => (
                   <div key={i} style={{
                     padding: '10px 14px', borderRadius: 12,
@@ -331,7 +331,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
         notes: form.notes,
         psychologistId: isAdmin && form.psychologistId ? form.psychologistId : undefined
       })
-      notify.success('Cita agendada. 📅')
+      notify.success('Cita agendada.')
       setShowForm(false)
       setForm(f => ({ ...f, notes: '' }))
       load()
@@ -389,7 +389,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
     >
       {!canManageClinical && (
         <p style={{ fontSize: '0.85rem', color: 'var(--slate)', marginTop: 0, marginBottom: 16 }}>
-          🔒 Vista de solo lectura. La gestión de citas la realiza el psicólogo/a asignado.
+          Vista de solo lectura. La gestión de citas la realiza el psicólogo/a asignado.
         </p>
       )}
       {showForm && canManageClinical && (
@@ -447,19 +447,19 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
               aria-label={`Marcar como completada la cita de ${a.patientName}`}
               title="Marcar como completada"
               onClick={() => setStatus(a, 'completada')}
-            >✅</button>
+            ><Icono nombre="check" tamano={14} /></button>
             <button
               className="cita-accion"
               aria-label={`Cancelar la cita de ${a.patientName}`}
               title="Cancelar"
               onClick={() => setStatus(a, 'cancelada')}
-            >🚫</button>
+            ><Icono nombre="prohibir" tamano={14} /></button>
             <button
               className="cita-accion"
               aria-label={`Eliminar la cita de ${a.patientName}`}
               title="Eliminar"
               onClick={() => removeAppt(a)}
-            >🗑️</button>
+            ><Icono nombre="papelera" tamano={14} /></button>
           </div>
         )}
       />
@@ -570,7 +570,7 @@ function ResetPasswordButton({ person, notify }) {
         onClick={() => setOpen(true)}
         title={`Restablecer la contraseña de ${person.name}`}
       >
-        🔑 Contraseña
+        Contraseña
       </button>
     )
   }
@@ -592,7 +592,7 @@ function ResetPasswordButton({ person, notify }) {
         Aplicar
       </button>
       <button className="btn btn--ghost btn--sm" style={{ fontSize: '0.78rem', padding: '5px 10px' }} onClick={() => { setOpen(false); setPass('') }}>
-        ✕
+        <Icono nombre="cerrar" tamano={14} />
       </button>
     </div>
   )
@@ -618,7 +618,7 @@ function TeamTab({ notify, onChanged }) {
     setCreating(true)
     try {
       await axios.post('/api/admin/staff', form)
-      notify.success(`Cuenta de ${ROLE_LABEL[form.role]} creada. 🎉`)
+      notify.success(`Cuenta de ${ROLE_LABEL[form.role]} creada.`)
       setForm({ name: '', email: '', password: '', role: 'psychologist' })
       load()
     } catch (err) {
@@ -773,7 +773,7 @@ function AuditTab({ notify }) {
       </p>
 
       {datos.entries.length === 0 ? (
-        <Empty icon="🗒️" title="Todavía no hay actividad registrada." />
+        <Empty icon="notas" title="Todavía no hay actividad registrada." />
       ) : (
         <>
           <div style={{ overflowX: 'auto' }}>
@@ -838,7 +838,7 @@ function MessagesTab({ notify }) {
       {!loaded ? (
         <p style={{ color: 'var(--slate)' }}>Cargando...</p>
       ) : messages.length === 0 ? (
-        <Empty icon="📭" title="Aún no hay mensajes del formulario de contacto." />
+        <Empty icon="bandeja" title="Aún no hay mensajes del formulario de contacto." />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {messages.map(m => (
@@ -864,7 +864,7 @@ function MessagesTab({ notify }) {
               )}
               <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--navy)', whiteSpace: 'pre-wrap' }}>{m.mensaje}</p>
               <a href={`mailto:${m.correo}`} className="btn btn--outline btn--sm" style={{ marginTop: 10, fontSize: '0.8rem' }}>
-                ✉️ Responder
+                Responder
               </a>
             </div>
           ))}
@@ -894,7 +894,7 @@ function SettingsTab({ notify }) {
       const { data } = await axios.put('/api/admin/settings', { deepseekApiKey: nuevaClave })
       setSettings(data)
       setKey('')
-      notify.success(nuevaClave ? 'Clave guardada. La IA ya está activa. 🤖' : 'Clave eliminada. El chat vuelve al modo demo.')
+      notify.success(nuevaClave ? 'Clave guardada. La IA ya está activa.' : 'Clave eliminada. El chat vuelve al modo demo.')
     } catch (err) {
       notify.error(err?.response?.data?.message || 'Error al guardar los ajustes.')
     } finally {
@@ -923,8 +923,8 @@ function SettingsTab({ notify }) {
           fontWeight: 600, fontSize: '0.82rem'
         }}>
           {settings.aiConfigured
-            ? `✅ IA activa (${settings.provider}) · clave ${settings.keyPreview}`
-            : '🧪 Modo demo (sin clave configurada)'}
+            ? `IA activa (${settings.provider}) · clave ${settings.keyPreview}`
+            : 'Modo demo (sin clave configurada)'}
         </div>
 
         {settings.canEdit ? (
@@ -958,12 +958,12 @@ function SettingsTab({ notify }) {
               )}
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--slate)', marginTop: 10, marginBottom: 0 }}>
-              🔒 La clave se guarda solo en este equipo y nunca se muestra completa.
+              La clave se guarda solo en este equipo y nunca se muestra completa.
             </p>
           </>
         ) : (
           <p style={{ fontSize: '0.85rem', color: 'var(--slate)', margin: 0 }}>
-            🔒 En modo servidor, la clave se configura con variables de entorno.
+            En modo servidor, la clave se configura con variables de entorno.
           </p>
         )}
       </div>

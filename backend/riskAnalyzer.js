@@ -5,7 +5,7 @@
 
 // ── Diccionarios de palabras clave por severidad ──────────────
 
-// 🔴 ALTO (score 10) — Riesgo inmediato: suicidio, autolesión, ideación de muerte
+// ALTO (score 10) — Riesgo inmediato: suicidio, autolesión, ideación de muerte
 const HIGH_KEYWORDS = [
   // Suicidio / ideación suicida
   'suicidarme', 'suicidio', 'suicidar', 'quitarme la vida', 'acabar con mi vida',
@@ -28,7 +28,7 @@ const HIGH_KEYWORDS = [
   'tirarme', 'lanzarme', 'colgarme', 'ahorcarme', 'envenenarme',
 ]
 
-// 🟡 MEDIO (score 5) — Señales de alerta: desesperanza, depresión profunda, aislamiento
+// MEDIO (score 5) — Señales de alerta: desesperanza, depresión profunda, aislamiento
 const MEDIUM_KEYWORDS = [
   // Desesperanza profunda
   'no puedo más', 'no aguanto más', 'ya no puedo', 'estoy harto de vivir',
@@ -54,7 +54,7 @@ const MEDIUM_KEYWORDS = [
   'me obligan', 'me amenazan', 'tengo miedo de', 'me hacen daño',
 ]
 
-// 🟢 BAJO (score 1) — Malestar general: tristeza, ansiedad, estrés cotidiano
+// BAJO (score 1) — Malestar general: tristeza, ansiedad, estrés cotidiano
 const LOW_KEYWORDS = [
   'triste', 'tristeza', 'ansioso', 'ansiosa', 'ansiedad',
   'estrés', 'estresado', 'estresada', 'agotado', 'agotada',
@@ -132,14 +132,16 @@ export function analyzeMessage(text) {
 /**
  * Mensaje de alerta que se envía automáticamente al usuario cuando se detecta riesgo ALTO.
  */
-export const CRISIS_MESSAGE = `⚠️ Noto que estás pasando por un momento muy difícil. Tu bienestar es lo más importante.
+export const CRISIS_MESSAGE = `Noto que estás pasando por un momento muy difícil, y no quiero que lo atravieses en soledad. Tu bienestar es lo más importante ahora mismo.
 
-Por favor, considera contactar ayuda profesional lo antes posible:
+Por favor, comunícate con una de estas líneas. Atienden gratis y están para esto:
 
-🇨🇴 Colombia: Línea 106 (24h) — Línea de la vida
-🇲🇽 México: 800-290-0024 — SAPTEL
-🇪🇸 España: 024 — Línea de atención a conducta suicida
-🇦🇷 Argentina: (011) 5275-1135 — Centro de Asistencia al Suicida
-🌍 Internacional: befrienders.org
+Colombia — Línea 106, las 24 horas
+México — 800-290-0024 (SAPTEL)
+España — Línea 024
+Argentina — (011) 5275-1135, Centro de Asistencia al Suicida
+Otros países — befrienders.org
 
-No estás solo/a. Hablar con un profesional puede marcar la diferencia. 💛`
+Si sientes que estás en peligro inmediato, busca a alguien que esté cerca de ti o acude al servicio de urgencias más próximo.
+
+No estás solo. Hablar con un profesional cambia las cosas, y dar ese paso ya es cuidarte.`

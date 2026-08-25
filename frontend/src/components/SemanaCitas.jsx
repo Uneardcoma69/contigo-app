@@ -1,3 +1,4 @@
+import Icono from './Icono.jsx'
 import { APPT_STATUS, tinte } from '../constants.js'
 
 /**
@@ -86,8 +87,9 @@ export default function SemanaCitas({ citas, inicio, nombreDe, acciones }) {
                       fontWeight: 500, color: 'var(--navy)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                     }}>{nombreDe(c)}</div>
-                    <div style={{ color: 'var(--slate)' }}>
-                      {c.modality === 'online' ? '💻' : '🏢'} {st.label}
+                    <div style={{ color: 'var(--slate)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Icono nombre={c.modality === 'online' ? 'enLinea' : 'presencial'} tamano={12} />
+                      {st.label}
                     </div>
                     {acciones?.(c)}
                   </div>

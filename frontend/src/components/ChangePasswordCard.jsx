@@ -38,7 +38,7 @@ export default function ChangePasswordCard({ notifySuccess, notifyError }) {
       login(data.token, data.user)   // renueva la sesión actual
       setForm({ actual: '', nueva: '', repetir: '' })
       setOpen(false)
-      notifySuccess?.('Contraseña actualizada. Las demás sesiones se cerraron. 🔐')
+      notifySuccess?.('Contraseña actualizada. Las demás sesiones se cerraron.')
     } catch (err) {
       setError(err?.response?.data?.message || 'No se pudo cambiar la contraseña.')
     } finally {

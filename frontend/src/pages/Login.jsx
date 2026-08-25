@@ -36,7 +36,7 @@ export default function Login() {
       <main className="auth-page" style={{ position: 'relative', zIndex: 1 }}>
         <div className="auth-card">
           <div className="auth-card__header">
-            <span className="auth-card__icon">🌿</span>
+            
             <h1 className="auth-card__title">Bienvenido/a</h1>
             <p className="auth-card__subtitle">
               Tu espacio de bienestar te espera

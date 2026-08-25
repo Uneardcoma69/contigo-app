@@ -7,15 +7,16 @@ import ToastContainer from '../components/ToastContainer.jsx'
 import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import { useToast } from '../hooks/useToast.js'
 import { CATEGORIES, tinte } from '../constants.js'
+import Icono from '../components/Icono.jsx'
 
 function getCat(id) {
   return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]
 }
 
 const MEDICAL_STATUS_LABEL = {
-  validada:  { text: '✅ Validada por tu psicólogo/a', color: 'var(--exito)', bg: 'var(--exito-bg)' },
-  pendiente: { text: '⏳ Pendiente de validación', color: 'var(--riesgo-medio)', bg: 'var(--riesgo-medio-bg)' },
-  rechazada: { text: '❌ Requiere corrección', color: 'var(--riesgo-alto)', bg: 'var(--riesgo-alto-bg)' },
+  validada:  { text: 'Validada por tu psicólogo/a', color: 'var(--exito)', bg: 'var(--exito-bg)' },
+  pendiente: { text: 'Pendiente de validación', color: 'var(--riesgo-medio)', bg: 'var(--riesgo-medio-bg)' },
+  rechazada: { text: 'Requiere corrección', color: 'var(--riesgo-alto)', bg: 'var(--riesgo-alto-bg)' },
 }
 
 const MEDICAL_FIELDS = [
@@ -52,7 +53,7 @@ function MedicalRecordCard({ notifySuccess, notifyError }) {
       const { data } = await axios.put('/api/auth/medical', form)
       setRecord(data.record)
       setOpen(false)
-      notifySuccess('Ficha guardada. Tu psicólogo/a la revisará pronto. 🏥')
+      notifySuccess('Ficha guardada. Tu psicólogo/a la revisará pronto.')
     } catch (err) {
       notifyError(err?.response?.data?.message || 'Error al guardar la ficha.')
     } finally {
@@ -69,7 +70,7 @@ function MedicalRecordCard({ notifySuccess, notifyError }) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>🏥 Mi ficha médica</h2>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>Mi ficha médica</h2>
           <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--slate)' }}>
             Esta información ayuda a tu psicólogo/a a acompañarte mejor. Es privada y solo la ve el equipo clínico.
           </p>
@@ -150,7 +151,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.1rem'
           }}>
-            {cat.emoji}
+            <Icono nombre={cat.icono} tamano={19} />
           </span>
           <div>
             <div style={{ fontWeight: 500, fontSize: '0.95rem', color: 'var(--navy)' }}>
@@ -201,7 +202,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
                 transition: 'all 0.2s'
               }}
             >
-              {goal.completed && '✓'}
+              {goal.completed && <Icono nombre="check" tamano={13} />}
             </button>
 
             {/* Texto */}
@@ -227,7 +228,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
               onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
               title="Eliminar"
             >
-              ✕
+              <Icono nombre="cerrar" tamano={14} />
             </button>
           </div>
         ))}
@@ -270,7 +271,7 @@ export default function GoalsPage() {
       setTitle('')
       setCategory('general')
       setShowForm(false)
-      success('Objetivo agregado 🎯')
+      success('Objetivo agregado')
     } catch (err) {
       showError(err?.response?.data?.message || 'Error al agregar.')
     } finally {
@@ -339,14 +340,14 @@ export default function GoalsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
-              🎯 Mis objetivos
+              Mis objetivos
             </h1>
             <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
               Pequeños pasos hacia el bienestar
             </p>
           </div>
           <button className="btn btn--primary btn--sm" onClick={() => setShowForm(f => !f)}>
-            {showForm ? '✕ Cancelar' : '+ Nuevo'}
+            {showForm ? 'Cancelar' : '+ Nuevo'}
           </button>
         </div>
 
@@ -415,7 +416,7 @@ export default function GoalsPage() {
                       fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.15s'
                     }}
                   >
-                    {cat.emoji} {cat.label}
+                    <Icono nombre={cat.icono} tamano={19} /> {cat.label}
                   </button>
                 ))}
               </div>
@@ -430,8 +431,8 @@ export default function GoalsPage() {
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
           {[
             { id: 'todas',        label: `Todas (${total})` },
-            { id: 'pendientes',   label: `⏳ Pendientes` },
-            { id: 'completados',  label: `✅ Completados` },
+            { id: 'pendientes',   label: `Pendientes` },
+            { id: 'completados',  label: `Completados` },
           ].map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)} style={{
               padding: '5px 12px', borderRadius: 999,
@@ -457,7 +458,7 @@ export default function GoalsPage() {
             background: 'var(--white)', borderRadius: 'var(--radius-xl)',
             border: 'none', boxShadow: 'var(--shadow-md)'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: 14 }}>🌱</div>
+            <div style={{ marginBottom: 14, color: 'var(--slate-light)' }}><Icono nombre="hoja" tamano={40} /></div>
             <p style={{ fontWeight: 500, color: 'var(--navy)', fontSize: '1rem', margin: '0 0 6px' }}>
               {filter === 'todas' ? '¡Aquí empezará tu camino!' : 'No hay objetivos aquí'}
             </p>
@@ -493,7 +494,7 @@ export default function GoalsPage() {
             background: 'var(--teal-pale)', borderRadius: 'var(--radius-xl)',
             border: '1px solid var(--teal-light)'
           }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🎉</div>
+            <div style={{ marginBottom: 8, color: 'var(--exito)' }}><Icono nombre="fiesta" tamano={32} /></div>
             <p style={{ fontWeight: 600, color: 'var(--teal-dark)', margin: '0 0 4px', fontSize: '1.1rem' }}>
               ¡Completaste todos tus objetivos!
             </p>

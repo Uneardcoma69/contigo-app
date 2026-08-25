@@ -104,7 +104,7 @@ const authLimiter = rateLimit({
 })
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000, max: 30,
-  message: { message: 'Enviaste muchos mensajes. Toma un respiro 🌿' }
+  message: { message: 'Enviaste muchos mensajes. Toma un respiro.' }
 })
 // Formulario público: evita spam desde la landing
 const contactLimiter = rateLimit({
@@ -232,7 +232,7 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(frontendDist, 'index.html'), (err) => {
     if (err) {
       res.status(200).send(`
-        <h2>🚀 Contigo Backend corriendo</h2>
+        <h2>Contigo Backend corriendo</h2>
         <p>En desarrollo, el frontend corre en <a href="http://localhost:5173">localhost:5173</a></p>
         <p>API Health: <a href="/api/health">/api/health</a></p>
       `)

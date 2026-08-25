@@ -7,6 +7,7 @@ import ToastContainer from '../components/ToastContainer.jsx'
 import RiskBadge from '../components/RiskBadge.jsx'
 import { useToast } from '../hooks/useToast.js'
 import { LEVEL_CONFIG, tinte } from '../constants.js'
+import Icono from '../components/Icono.jsx'
 
 function StatCard({ label, count, color, bg, border, total }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0
@@ -93,7 +94,7 @@ function UserDetailModal({ user, onClose }) {
           <button onClick={onClose} aria-label="Cerrar el detalle" title="Cerrar" style={{
             background: 'none', border: 'none', fontSize: '1.5rem',
             cursor: 'pointer', color: 'var(--slate)', padding: 4
-          }}>✕</button>
+          }}><Icono nombre="cerrar" tamano={19} /></button>
         </div>
 
         <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
@@ -170,7 +171,7 @@ function UserDetailModal({ user, onClose }) {
                         fontWeight: 500, fontSize: '0.75rem',
                         color: m.role === 'user' ? 'var(--teal-dark)' : 'var(--slate)'
                       }}>
-                        {m.role === 'user' ? '👤 Usuario' : '🤖 Contigo'}
+                        {m.role === 'user' ? 'Usuario' : 'Contigo'}
                       </span>
                       <p style={{ margin: '4px 0 0', color: 'var(--navy)', fontWeight: 500 }}>
                         {m.content?.slice(0, 200)}{m.content?.length > 200 ? '...' : ''}
@@ -243,7 +244,7 @@ export default function AdminPage() {
       <div className="app-layout">
         <Header />
         <div style={{ textAlign: 'center', padding: 80 }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>🔒</div>
+          <div style={{ marginBottom: 12, color: 'var(--slate-light)' }}><Icono nombre="candado" tamano={38} /></div>
           <p style={{ fontWeight: 500, color: 'var(--navy)' }}>Acceso denegado</p>
           <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Solo el administrador puede ver este panel.</p>
         </div>
@@ -270,7 +271,7 @@ export default function AdminPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--navy)', margin: 0, letterSpacing: '-0.03em' }}>
-              🛡️ Panel de Alertas
+              Panel de Alertas
             </h1>
             <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: '4px 0 0' }}>
               Monitoreo de bienestar emocional de usuarios
@@ -282,7 +283,7 @@ export default function AdminPage() {
               onClick={() => setAutoRefresh(r => !r)}
               style={{ fontSize: '0.82rem' }}
             >
-              {autoRefresh ? '⏸ Auto-refresh ON' : '▶ Auto-refresh OFF'}
+              {autoRefresh ? 'Actualización automática activada' : 'Actualización automática pausada'}
             </button>
             <button className="btn btn--outline btn--sm" onClick={fetchData} style={{ fontSize: '0.82rem' }}>Refrescar
             </button>
@@ -305,19 +306,27 @@ export default function AdminPage() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>
-              🗺️ Mapa de Calor
+              Mapa de Calor
             </h2>
-            <div style={{ display: 'flex', gap: 12, fontSize: '0.75rem', color: 'var(--slate)', fontWeight: 600 }}>
-              <span>🔴 Alto</span>
-              <span>🟡 Medio</span>
-              <span>🟢 Bajo</span>
-              <span>⚪ Sin datos</span>
+            {/* La leyenda sí lleva punto de color: es lo que explica de qué
+                color es cada casilla del mapa. Sin él sería una lista de
+                palabras sueltas. */}
+            <div style={{ display: 'flex', gap: 14, fontSize: '0.75rem', color: 'var(--slate)', fontWeight: 600 }}>
+              {['alto', 'medio', 'bajo', 'sin_datos'].map(nivel => (
+                <span key={nivel} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <span aria-hidden="true" style={{
+                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                    background: LEVEL_CONFIG[nivel].color
+                  }} />
+                  {LEVEL_CONFIG[nivel].label}
+                </span>
+              ))}
             </div>
           </div>
 
           {allUsers.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--slate)' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>👥</div>
+              <div style={{ marginBottom: 8, color: 'var(--slate-light)' }}><Icono nombre="personas" tamano={32} /></div>
               <p style={{ fontWeight: 600 }}>No hay usuarios registrados aún</p>
             </div>
           ) : (
@@ -332,7 +341,7 @@ export default function AdminPage() {
           border: '1px solid var(--border)', overflowX: 'auto'
         }}>
           <h2 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>
-            📋 Lista de Prioridad
+            Lista de Prioridad
           </h2>
 
           {allUsers.length === 0 ? (

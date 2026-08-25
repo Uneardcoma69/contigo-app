@@ -86,7 +86,7 @@ export default function CitasPage() {
                 {fmtFecha(siguiente.date)} · {fmtHora(siguiente.date)}
               </div>
               <div style={{ fontSize: '0.88rem', color: 'var(--slate)', marginTop: 2 }}>
-                {siguiente.modality === 'online' ? '💻 En línea' : '🏢 Presencial'} ·{' '}
+                {siguiente.modality === 'online' ? 'En línea' : 'Presencial'} ·{' '}
                 {siguiente.durationMin} min · con {siguiente.psychologistName}
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function CitasPage() {
                         {fmtFecha(c.date)} · {fmtHora(c.date)}
                       </div>
                       <div className="meta">
-                        {c.modality === 'online' ? '💻 En línea' : '🏢 Presencial'} ·{' '}
+                        {c.modality === 'online' ? 'En línea' : 'Presencial'} ·{' '}
                         {c.durationMin} min · con {c.psychologistName}
                       </div>
                     </div>

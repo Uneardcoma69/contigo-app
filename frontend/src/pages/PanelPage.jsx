@@ -100,7 +100,7 @@ export default function PanelPage() {
                       {fmtFecha(siguiente.date)} · {fmtHora(siguiente.date)}
                     </span>
                     <span className="meta">
-                      {siguiente.modality === 'online' ? '💻 En línea' : '🏢 Presencial'} ·{' '}
+                      {siguiente.modality === 'online' ? 'En línea' : 'Presencial'} ·{' '}
                       con {siguiente.psychologistName}
                     </span>
                   </div>

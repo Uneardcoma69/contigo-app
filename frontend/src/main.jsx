@@ -22,7 +22,7 @@ function Loading() {
       justifyContent: 'center', flexDirection: 'column', gap: 16,
       background: 'var(--cream)'
     }}>
-      <span style={{ fontSize: '2.5rem' }}>🌿</span>
+      <span className="spinner spinner--dark" style={{ width: 26, height: 26 }} />
       <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Cargando...</p>
     </div>
   )

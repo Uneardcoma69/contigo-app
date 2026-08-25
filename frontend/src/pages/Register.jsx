@@ -27,7 +27,7 @@ export default function Register() {
       <main className="auth-page" style={{ position: 'relative', zIndex: 1 }}>
         <div className="auth-card">
           <div className="auth-card__header">
-            <span className="auth-card__icon">✨</span>
+            
             <h1 className="auth-card__title">Crea tu cuenta</h1>
             <p className="auth-card__subtitle">
               Comienza tu camino hacia el bienestar

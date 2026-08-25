@@ -7,7 +7,7 @@ import TypingIndicator from '../components/TypingIndicator.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import { useToast } from '../hooks/useToast.js'
 import Icono from '../components/Icono.jsx'
-import { CAT_EMOJI } from '../constants.js'
+import { CAT_ICONO, CAT_COLOR } from '../constants.js'
 
 const QUICK_REPLIES = [
   '¿Cómo puedo calmarme ahora mismo?',
@@ -89,7 +89,7 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
             border: `1.5px solid ${added.includes(i) ? 'var(--sage)' : 'var(--border)'}`,
             borderRadius: 10, padding: '9px 12px', transition: 'all 0.2s'
           }}>
-            <span style={{ fontSize: '1rem', flexShrink: 0 }}>{CAT_EMOJI[g.category] || '⭐'}</span>
+            <Icono nombre={CAT_ICONO[g.category] || 'estrella'} tamano={17} style={{ color: CAT_COLOR[g.category] }} />
             <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--navy)', textDecoration: added.includes(i) ? 'line-through' : 'none', opacity: added.includes(i) ? 0.6 : 1 }}>
               {g.title}
             </span>
@@ -103,7 +103,7 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
                 cursor: added.includes(i) ? 'default' : 'pointer', flexShrink: 0, transition: 'all 0.2s'
               }}
             >
-              {loading === i ? '...' : added.includes(i) ? '✓ Agregado' : '+ Agregar'}
+              {loading === i ? '...' : added.includes(i) ? 'Agregado' : '+ Agregar'}
             </button>
           </div>
         ))}
@@ -136,11 +136,11 @@ export default function ChatPage() {
         if (data.messages?.length > 0) {
           setMessages(data.messages)
         } else {
-          setMessages([{ id: 'welcome', from: 'bot', text: `¡Hola, ${user?.name?.split(' ')[0] || 'bienvenido/a'}! Soy Contigo, estoy aquí para escucharte 🤍 ¿Cómo te sientes hoy?`, timestamp: new Date().toISOString() }])
+          setMessages([{ id: 'welcome', from: 'bot', text: `¡Hola, ${user?.name?.split(' ')[0] || 'bienvenido/a'}! Soy Contigo, estoy aquí para escucharte. ¿Cómo te sientes hoy?`, timestamp: new Date().toISOString() }])
         }
       })
       .catch(() => {
-        setMessages([{ id: 'welcome', from: 'bot', text: '¡Hola! Soy Contigo, estoy aquí para escucharte 🤍 ¿Cómo te sientes hoy?', timestamp: new Date().toISOString() }])
+        setMessages([{ id: 'welcome', from: 'bot', text: '¡Hola! Soy Contigo, estoy aquí para escucharte. ¿Cómo te sientes hoy?', timestamp: new Date().toISOString() }])
       })
       .finally(() => setLoadingHist(false))
   }, [])
@@ -154,7 +154,7 @@ export default function ChatPage() {
   const handleAddGoal = useCallback(async (goal) => {
     try {
       await axios.post('/api/goals', goal)
-      success(`Objetivo agregado: "${goal.title}" 🎯`)
+      success(`Objetivo agregado: "${goal.title}"`)
       return true
     } catch {
       showError('No se pudo agregar el objetivo.')
@@ -210,7 +210,7 @@ export default function ChatPage() {
     if (!window.confirm('¿Borrar todo el historial?')) return
     try {
       await axios.delete('/api/chat/history')
-      setMessages([{ id: 'reset', from: 'bot', text: 'Historial borrado. ¡Empecemos de nuevo! 🤍', timestamp: new Date().toISOString() }])
+      setMessages([{ id: 'reset', from: 'bot', text: 'Historial borrado. Empecemos de nuevo.', timestamp: new Date().toISOString() }])
       setGoalSuggestions({})
       success('Historial borrado')
     } catch { showError('No se pudo borrar el historial.') }
@@ -250,7 +250,7 @@ export default function ChatPage() {
             </div>
           ) : (
             <>
-              {isDemo && <div style={{ textAlign: 'center', paddingTop: 8 }}><span className="demo-badge">⚡ Modo demo</span></div>}
+              {isDemo && <div style={{ textAlign: 'center', paddingTop: 8 }}><span className="demo-badge">Modo demo</span></div>}
               {grouped.map(item =>
                 item.type === 'date' ? (
                   <div className="chat-date-sep" key={item.key}>{item.label}</div>

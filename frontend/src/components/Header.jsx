@@ -76,7 +76,7 @@ export default function Header({ actions }) {
           alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
           flexShrink: 0
         }}>
-          🌱
+
         </div>
         <div>
           <div className="header__title">Contigo</div>
@@ -101,7 +101,7 @@ export default function Header({ actions }) {
                   aria-label={`${riskAlert.alto} paciente(s) en riesgo alto`}
                   title={`${riskAlert.alto} paciente(s) en riesgo alto`}
                 >
-                  <span aria-hidden="true">🔴 {riskAlert.alto}</span>
+                  <span aria-hidden="true">{riskAlert.alto}</span>
                   <span className="header__nav-texto">en riesgo alto</span>
                 </Link>
               )}
