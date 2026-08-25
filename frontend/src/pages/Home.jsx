@@ -198,12 +198,12 @@ export default function Home() {
             <div className="hero-visual reveal" style={{ '--rd': '0.2s' }} aria-hidden="true">
               <div className="hero-panel">
                 <svg viewBox="0 0 520 600" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice">
-                  <path d="M-60 470 C 95 320, 425 320, 580 470" stroke="#4ecdc4" strokeOpacity="0.5" strokeWidth="1.6" />
-                  <path d="M-60 520 C 100 385, 420 385, 580 520" stroke="#4ecdc4" strokeOpacity="0.32" strokeWidth="1.6" />
-                  <path d="M-60 570 C 105 450, 415 450, 580 570" stroke="#7fb39f" strokeOpacity="0.55" strokeWidth="1.6" />
-                  <path d="M-60 620 C 110 515, 410 515, 580 620" stroke="#7fb39f" strokeOpacity="0.3" strokeWidth="1.6" />
-                  <circle cx="368" cy="150" r="44" stroke="#4ecdc4" strokeOpacity="0.4" strokeWidth="1.4" />
-                  <circle cx="404" cy="136" r="44" stroke="#7fb39f" strokeOpacity="0.45" strokeWidth="1.4" />
+                  <path d="M-60 470 C 95 320, 425 320, 580 470" stroke="var(--teal)" strokeOpacity="0.5" strokeWidth="1.6" />
+                  <path d="M-60 520 C 100 385, 420 385, 580 520" stroke="var(--teal)" strokeOpacity="0.32" strokeWidth="1.6" />
+                  <path d="M-60 570 C 105 450, 415 450, 580 570" stroke="var(--sage)" strokeOpacity="0.55" strokeWidth="1.6" />
+                  <path d="M-60 620 C 110 515, 410 515, 580 620" stroke="var(--sage)" strokeOpacity="0.3" strokeWidth="1.6" />
+                  <circle cx="368" cy="150" r="44" stroke="var(--teal)" strokeOpacity="0.4" strokeWidth="1.4" />
+                  <circle cx="404" cy="136" r="44" stroke="var(--sage)" strokeOpacity="0.45" strokeWidth="1.4" />
                 </svg>
                 <span className="hero-chip"><span className="dot"></span>Agenda abierta esta semana</span>
               </div>
@@ -353,10 +353,10 @@ export default function Home() {
           <div className="lp-container">
             <div className="cta-panel reveal">
               <svg viewBox="0 0 420 320" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M-20 250 C 110 140, 310 140, 440 250" stroke="#4ecdc4" strokeOpacity="0.5" strokeWidth="1.4" />
-                <path d="M-20 295 C 115 200, 305 200, 440 295" stroke="#7fb39f" strokeOpacity="0.45" strokeWidth="1.4" />
-                <circle cx="330" cy="80" r="36" stroke="#4ecdc4" strokeOpacity="0.4" strokeWidth="1.2" />
-                <circle cx="360" cy="68" r="36" stroke="#7fb39f" strokeOpacity="0.4" strokeWidth="1.2" />
+                <path d="M-20 250 C 110 140, 310 140, 440 250" stroke="var(--teal)" strokeOpacity="0.5" strokeWidth="1.4" />
+                <path d="M-20 295 C 115 200, 305 200, 440 295" stroke="var(--sage)" strokeOpacity="0.45" strokeWidth="1.4" />
+                <circle cx="330" cy="80" r="36" stroke="var(--teal)" strokeOpacity="0.4" strokeWidth="1.2" />
+                <circle cx="360" cy="68" r="36" stroke="var(--sage)" strokeOpacity="0.4" strokeWidth="1.2" />
               </svg>
               <div className="cta-content">
                 <h2 id="cta-title">Dar el primer paso también es cuidarse</h2>

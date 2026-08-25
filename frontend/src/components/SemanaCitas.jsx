@@ -1,4 +1,4 @@
-import { APPT_STATUS } from '../constants.js'
+import { APPT_STATUS, tinte } from '../constants.js'
 
 /**
  * Rejilla semanal de citas, de lunes a domingo.
@@ -77,7 +77,7 @@ export default function SemanaCitas({ citas, inicio, nombreDe, acciones }) {
                 const hora = new Date(c.date).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
                 return (
                   <div key={c._id} style={{
-                    background: st.bg, border: `1px solid ${st.color}30`,
+                    background: st.bg, border: `1px solid ${tinte(st.color, 19)}`,
                     borderLeft: `3px solid ${st.color}`,
                     borderRadius: 8, padding: '6px 8px', fontSize: '0.72rem'
                   }}>

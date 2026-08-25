@@ -254,7 +254,7 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                     {canManageClinical ? (
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button className="btn btn--secondary btn--sm" onClick={() => validateMedical('validada')}>Validar</button>
-                        <button className="btn btn--outline btn--sm" onClick={() => validateMedical('rechazada')} style={{ color: '#b91c1c' }}>Rechazar</button>
+                        <button className="btn btn--outline btn--sm" onClick={() => validateMedical('rechazada')} style={{ color: 'var(--riesgo-alto)' }}>Rechazar</button>
                       </div>
                     ) : (
                       <p style={{ fontSize: '0.82rem', color: 'var(--slate)', margin: 0 }}>
@@ -493,10 +493,10 @@ function ReportsTab({ notify }) {
     >
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
         {statBox('Pacientes', s.patients)}
-        {statBox('Riesgo alto', s.riskLevels.alto, `${s.riskLevels.medio} medio · ${s.riskLevels.bajo} bajo`, '#ef4444')}
-        {statBox('Alertas totales', s.totalAlerts, null, '#f59e0b')}
+        {statBox('Riesgo alto', s.riskLevels.alto, `${s.riskLevels.medio} medio · ${s.riskLevels.bajo} bajo`, 'var(--riesgo-alto)')}
+        {statBox('Alertas totales', s.totalAlerts, null, 'var(--riesgo-medio)')}
         {statBox('Metas cumplidas', `${s.goals.pct}%`, `${s.goals.completed}/${s.goals.total}`, 'var(--teal-dark)')}
-        {statBox('Fichas validadas', s.medical.validadas, `${s.medical.pendientes} pendientes · ${s.medical.sinFicha} sin ficha`, '#16a34a')}
+        {statBox('Fichas validadas', s.medical.validadas, `${s.medical.pendientes} pendientes · ${s.medical.sinFicha} sin ficha`, 'var(--exito)')}
         {statBox('Citas próximas', s.appointments.proximas, `${s.appointments.completadas} completadas · ${s.appointments.canceladas} canceladas`)}
       </div>
 
@@ -671,7 +671,7 @@ function TeamTab({ notify, onChanged }) {
             <div key={m._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--cream)', borderRadius: 12, border: '1px solid var(--border)' }}>
               <div style={{
                 width: 36, height: 36, borderRadius: '50%', background: 'var(--teal-pale)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, fontSize: '0.85rem'
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sobre-acento)', fontWeight: 600, fontSize: '0.85rem'
               }}>
                 {m.name[0]?.toUpperCase()}
               </div>
@@ -917,9 +917,9 @@ function SettingsTab({ notify }) {
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 14,
           padding: '6px 14px', borderRadius: 999,
-          background: settings.aiConfigured ? '#f0fdf4' : 'var(--sage-pale)',
-          border: `1.5px solid ${settings.aiConfigured ? '#bbf7d0' : 'var(--sage-light)'}`,
-          color: settings.aiConfigured ? '#16a34a' : 'var(--slate)',
+          background: settings.aiConfigured ? 'var(--exito-bg)' : 'var(--sage-pale)',
+          border: `1.5px solid ${settings.aiConfigured ? 'var(--exito-line)' : 'var(--sage-light)'}`,
+          color: settings.aiConfigured ? 'var(--exito)' : 'var(--slate)',
           fontWeight: 600, fontSize: '0.82rem'
         }}>
           {settings.aiConfigured
@@ -951,7 +951,7 @@ function SettingsTab({ notify }) {
                   className="btn btn--outline btn--sm"
                   onClick={() => save('')}
                   disabled={saving}
-                  style={{ color: '#b91c1c' }}
+                  style={{ color: 'var(--riesgo-alto)' }}
                 >
                   Quitar clave
                 </button>

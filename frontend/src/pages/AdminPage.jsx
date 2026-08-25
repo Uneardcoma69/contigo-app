@@ -6,7 +6,7 @@ import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import RiskBadge from '../components/RiskBadge.jsx'
 import { useToast } from '../hooks/useToast.js'
-import { LEVEL_CONFIG } from '../constants.js'
+import { LEVEL_CONFIG, tinte } from '../constants.js'
 
 function StatCard({ label, count, color, bg, border, total }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0
@@ -118,7 +118,7 @@ function UserDetailModal({ user, onClose }) {
                   {detail.risk.triggerWords.map((w, i) => (
                     <span key={i} style={{
                       padding: '3px 10px', borderRadius: 999, fontSize: '0.78rem', fontWeight: 500,
-                      background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca'
+                      background: 'var(--riesgo-alto-bg)', color: 'var(--riesgo-alto)', border: '1px solid var(--riesgo-alto-line)'
                     }}>{w}</span>
                   ))}
                 </div>
@@ -134,8 +134,8 @@ function UserDetailModal({ user, onClose }) {
                   {detail.risk.alerts.slice().reverse().map((a, i) => (
                     <div key={i} style={{
                       padding: '8px 12px', borderRadius: 10,
-                      background: LEVEL_CONFIG[a.level]?.bg || '#f8fafc',
-                      border: `1px solid ${LEVEL_CONFIG[a.level]?.border || '#e2e8f0'}`,
+                      background: LEVEL_CONFIG[a.level]?.bg || 'var(--riesgo-nulo-bg)',
+                      border: `1px solid ${LEVEL_CONFIG[a.level]?.border || 'var(--line)'}`,
                       fontSize: '0.82rem'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -357,7 +357,7 @@ export default function AdminPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{
                           width: 32, height: 32, borderRadius: '50%',
-                          background: `${LEVEL_CONFIG[u.risk.level]?.color || '#94a3b8'}20`,
+                          background: tinte(LEVEL_CONFIG[u.risk.level]?.color || 'var(--slate-light)', 13),
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '0.8rem', fontWeight: 600, color: 'var(--navy)', flexShrink: 0
                         }}>

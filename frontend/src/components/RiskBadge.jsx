@@ -1,4 +1,4 @@
-import { LEVEL_CONFIG } from '../constants.js'
+import { LEVEL_CONFIG, tinte } from '../constants.js'
 
 /**
  * Distintivo del nivel de riesgo de un paciente.
@@ -13,7 +13,7 @@ export default function RiskBadge({ level }) {
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 7,
         padding: '5px 12px', borderRadius: 999,
-        background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}2e`,
+        background: cfg.bg, color: cfg.color, border: `1px solid ${tinte(cfg.color, 18)}`,
         fontWeight: 600, fontSize: '0.78rem', whiteSpace: 'nowrap',
         letterSpacing: 'var(--tracking-snug)'
       }}

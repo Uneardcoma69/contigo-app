@@ -6,6 +6,7 @@ import Header from '../components/Header.jsx'
 import TypingIndicator from '../components/TypingIndicator.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import { useToast } from '../hooks/useToast.js'
+import Icono from '../components/Icono.jsx'
 import { CAT_EMOJI } from '../constants.js'
 
 const QUICK_REPLIES = [
@@ -98,7 +99,7 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
               style={{
                 padding: '4px 12px', borderRadius: 999, border: 'none',
                 background: added.includes(i) ? 'var(--sage)' : 'var(--teal)',
-                color: 'white', fontSize: '0.75rem', fontWeight: 500,
+                color: 'var(--sobre-acento)', fontSize: '0.75rem', fontWeight: 500,
                 cursor: added.includes(i) ? 'default' : 'pointer', flexShrink: 0, transition: 'all 0.2s'
               }}
             >
@@ -238,7 +239,7 @@ export default function ChatPage() {
         borderRadius: '50%', zIndex: 0, opacity: 0.3
       }} />
 
-      <Header actions={<button className="btn btn--outline btn--sm" style={{ border: 'none', background: 'transparent', color: 'var(--slate)' }} onClick={handleClearHistory} aria-label="Borrar el historial de conversación" title="Borrar historial">🗑️</button>} />
+      <Header actions={<button className="btn btn--outline btn--sm" style={{ border: 'none', background: 'transparent', color: 'var(--slate)' }} onClick={handleClearHistory} aria-label="Borrar el historial de conversación" title="Borrar historial"><Icono nombre="papelera" tamano={18} /></button>} />
       <ToastContainer toasts={toasts} />
 
       <div className="chat-wrapper" style={{ position: 'relative', zIndex: 1 }}>
@@ -303,7 +304,7 @@ export default function ChatPage() {
             <button className="chat-send-btn" onClick={() => send()} disabled={!text.trim() || typing || loadingHist}>
               {typing
                 ? <span className="spinner" style={{ width: 18, height: 18 }} />
-                : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
               }
             </button>
           </div>

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
 import Icono from '../components/Icono.jsx'
 import SemanaCitas, { inicioDeSemana, diasDeSemana, rangoDeSemana } from '../components/SemanaCitas.jsx'
-import { APPT_STATUS } from '../constants.js'
+import { APPT_STATUS, tinte } from '../constants.js'
 
 const fmtFecha = d => new Date(d).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
 const fmtHora  = d => new Date(d).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
@@ -145,7 +145,7 @@ export default function CitasPage() {
                         {c.durationMin} min · con {c.psychologistName}
                       </div>
                     </div>
-                    <span className="chip" style={{ background: st.bg, color: st.color, borderColor: `${st.color}40` }}>
+                    <span className="chip" style={{ background: st.bg, color: st.color, borderColor: tinte(st.color, 25) }}>
                       {st.label}
                     </span>
                   </div>

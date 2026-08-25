@@ -22,6 +22,10 @@
   --teal-light: #b9e2db;   /* bordes y realces suaves */
   --teal-pale:  #eef7f5;   /* fondos teñidos */
   --teal-ink:   #0f5a50;   /* texto sobre fondo claro */
+  /* Lo que se escribe ENCIMA del acento. Se invierte con el tema: en
+     claro el acento es oscuro y pide texto blanco; en oscuro el acento
+     es claro y el blanco encima queda en 1.9:1, ilegible. */
+  --sobre-acento: #ffffff;
 
   --sage:       #7fb39f;
   --sage-light: #d9ebe3;
@@ -82,6 +86,21 @@
   --riesgo-nulo:      #6b7780;
   --riesgo-nulo-bg:   #f3f5f5;
   /* Líneas del mismo tono, muy tenues: enmarcan sin encerrar. */
+  /* Categorías de las metas. Son una paleta categórica: seis tonos que
+     deben distinguirse entre sí de un vistazo, no una escala. Se usan en
+     puntos y barras pequeñas, nunca detrás de texto. */
+  --cat-general:   #c07f2a;
+  --cat-bienestar: #3f9668;
+  --cat-sueno:     #2b87a8;
+  --cat-ejercicio: #c05f5f;
+  --cat-mente:     #8360c0;
+  --cat-social:    #3b7cc0;
+
+  /* Éxito: algo quedó validado, completado o confirmado. */
+  --exito:      #2b7a4b;
+  --exito-bg:   #eef7f0;
+  --exito-line: #c3ded0;
+
   --riesgo-alto-line:  #f0cdc8;
   --riesgo-medio-line: #ecd9a8;
   --riesgo-bajo-line:  #c2ddce;
@@ -153,14 +172,16 @@
 }
 
 /* ─── Modo oscuro ──────────────────────────────────────────────
-   Todavía NO se activa. Los valores están definidos para que las
-   pantallas ya convertidas los hereden, pero mientras queden vistas
-   con colores escritos a mano en línea, encender el modo oscuro
-   dejaría media aplicación con texto oscuro sobre fondo oscuro.
-   Se enciende cambiando este selector por
-   `@media (prefers-color-scheme: dark)` cuando la conversión
-   termine. */
-[data-theme='dark'] {
+   Ya activo: no quedan colores escritos a mano en las pantallas, así
+   que redefinir los tokens basta para que toda la aplicación cambie.
+
+   Se aplica de tres formas para cubrir los tres estados posibles del
+   visitante: sigue al sistema cuando no hay elección explícita, y los
+   atributos permiten forzar uno u otro. Nunca se declara un color
+   dentro de este bloque que no exista también en :root; si se hiciera,
+   quien tenga el sistema en claro se quedaría sin ese color. */
+:root[data-theme='dark'],
+:root[data-theme='dark'] body {
   color-scheme: dark;
 
   --teal:       #5ecfbf;
@@ -168,6 +189,7 @@
   --teal-light: #1d4c46;
   --teal-pale:  #12211f;
   --teal-ink:   #7fdccf;
+  --sobre-acento: #08201d;
 
   --sage:       #7fb39f;
   --sage-light: #24352f;
@@ -206,10 +228,58 @@
   --riesgo-bajo-bg:   #13241c;
   --riesgo-nulo:      #98a3a9;
   --riesgo-nulo-bg:   #1a1f22;
+  --cat-general:   #e0a95c;
+  --cat-bienestar: #6dc79a;
+  --cat-sueno:     #62bcd8;
+  --cat-ejercicio: #e08f8f;
+  --cat-mente:     #ac91e0;
+  --cat-social:    #6fa9e0;
+
+  --exito:      #74c894;
+  --exito-bg:   #14261a;
+  --exito-line: #2c4a36;
+
   --riesgo-alto-line:  #4a2723;
   --riesgo-medio-line: #43351a;
   --riesgo-bajo-line:  #23402f;
   --riesgo-nulo-line:  #2c3336;
+}
+
+/* El sistema en oscuro, salvo que se haya elegido claro a propósito. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --teal: #5ecfbf;  --teal-dark: #7fdccf;  --teal-light: #1d4c46;
+    --teal-pale: #12211f;  --teal-ink: #7fdccf;  --sobre-acento: #08201d;
+    --sage: #7fb39f;  --sage-light: #24352f;  --sage-pale: #16201d;
+
+    --bg-color: #0b0e10;  --white: #14181b;  --cream: #101416;  --cream2: #1c2124;
+    --navy: #f2f4f4;  --navy-light: #d3d9db;  --slate: #9aa6ac;  --slate-light: #78848a;
+    --line: #242a2e;  --line-strong: #333b40;  --border: #242a2e;  --border-light: #1c2124;
+
+    --glass-bg: rgba(20, 24, 27, 0.72);
+    --glass-line: rgba(255, 255, 255, 0.07);
+    --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 24px -16px rgba(0, 0, 0, 0.70);
+    --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.30), 0 24px 56px -28px rgba(0, 0, 0, 0.80);
+    --shadow-xl: 0 32px 80px -32px rgba(0, 0, 0, 0.85);
+    --shadow-glow: 0 6px 18px -10px rgba(94, 207, 191, 0.35);
+
+    --cat-general: #e0a95c;    --cat-bienestar: #6dc79a;  --cat-sueno: #62bcd8;
+    --cat-ejercicio: #e08f8f;  --cat-mente: #ac91e0;      --cat-social: #6fa9e0;
+
+    --exito: #74c894;  --exito-bg: #14261a;  --exito-line: #2c4a36;
+
+    --riesgo-alto: #f0918a;   --riesgo-alto-bg: #2a1614;
+    --riesgo-medio: #e0b45f;  --riesgo-medio-bg: #271f10;
+    --riesgo-bajo: #7fc9a5;   --riesgo-bajo-bg: #13241c;
+    --riesgo-nulo: #98a3a9;   --riesgo-nulo-bg: #1a1f22;
+    --riesgo-alto-line: #4a2723;   --riesgo-medio-line: #43351a;
+    --riesgo-bajo-line: #23402f;   --riesgo-nulo-line: #2c3336;
+  }
 }
 
 /* ─── Reset & Base ─────────────────────────────────────────── */
@@ -443,7 +513,7 @@ h1 { letter-spacing: var(--tracking-tight); }
 
 .btn--primary {
   background: var(--teal);
-  color: #ffffff;
+  color: var(--sobre-acento);
   box-shadow: var(--shadow-sm);
 }
 .btn--primary:hover:not(:disabled) {
@@ -916,8 +986,8 @@ h1 { letter-spacing: var(--tracking-tight); }
   animation: toastIn .25s ease;
 }
 
-.toast--success { background: var(--teal-pale); color: var(--teal-ink); border: 1px solid #c5ede7; }
-.toast--error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.toast--success { background: var(--teal-pale); color: var(--teal-ink); border: 1px solid var(--teal-light); }
+.toast--error   { background: var(--riesgo-alto-bg); color: var(--riesgo-alto); border: 1px solid var(--riesgo-alto-line); }
 .toast--info    { background: var(--sage-pale); color: var(--navy); border: 1px solid var(--sage-light); }
 
 @keyframes toastIn {
@@ -1017,7 +1087,7 @@ h1 { letter-spacing: var(--tracking-tight); }
 .chat-bubble--user {
   background: var(--teal-pale);
   color: var(--navy);
-  border: 1px solid #c5ede7;
+  border: 1px solid var(--teal-light);
   border-bottom-right-radius: 6px;
 }
 
@@ -1117,7 +1187,7 @@ h1 { letter-spacing: var(--tracking-tight); }
   width: 44px;
   height: 44px;
   background: var(--teal);
-  color: var(--navy);
+  color: var(--sobre-acento);
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -1142,7 +1212,7 @@ h1 { letter-spacing: var(--tracking-tight); }
   color: var(--slate-light);
   font-weight: 600;
 }
-.chat-char-count--warn { color: #ef4444; }
+.chat-char-count--warn { color: var(--riesgo-alto); }
 
 /* Quick replies */
 .quick-replies {
@@ -1265,9 +1335,9 @@ h1 { letter-spacing: var(--tracking-tight); }
   border-radius: 999px;
   text-decoration: none;
   white-space: nowrap;
-  background: #fef2f2;
-  border: 1.5px solid #fecaca;
-  color: #b91c1c;
+  background: var(--riesgo-alto-bg);
+  border: 1.5px solid var(--riesgo-alto-line);
+  color: var(--riesgo-alto);
   font-weight: 600;
   font-size: 0.8rem;
   animation: pulse-soft 1.6s ease-in-out infinite;
@@ -1286,9 +1356,9 @@ h1 { letter-spacing: var(--tracking-tight); }
   margin-bottom: 20px;
 }
 .alert--error {
-  background: #fef2f2;
-  color: #b91c1c;
-  border: 2px solid #fecaca;
+  background: var(--riesgo-alto-bg);
+  color: var(--riesgo-alto);
+  border: 2px solid var(--riesgo-alto-line);
 }
 
 /* ─── Indicador de carga ─────────────────────────────────────── */
@@ -1405,7 +1475,7 @@ h1 { letter-spacing: var(--tracking-tight); }
 .alert-table tbody tr { transition: background 0.2s ease; }
 .alert-table tbody tr:hover { background: var(--cream); }
 .alert-table__row--danger { background: rgba(254, 242, 242, 0.6); }
-.alert-table__row--danger:hover { background: #fef2f2; }
+.alert-table__row--danger:hover { background: var(--riesgo-alto-bg); }
 
 /* Acciones sobre una cita del calendario.
    Iban con padding 0 y letra de 0.8rem: unos 13 px de área de toque,

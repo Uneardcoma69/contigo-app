@@ -6,16 +6,16 @@ import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import { useToast } from '../hooks/useToast.js'
-import { CATEGORIES } from '../constants.js'
+import { CATEGORIES, tinte } from '../constants.js'
 
 function getCat(id) {
   return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]
 }
 
 const MEDICAL_STATUS_LABEL = {
-  validada:  { text: '✅ Validada por tu psicólogo/a', color: '#16a34a', bg: '#f0fdf4' },
-  pendiente: { text: '⏳ Pendiente de validación', color: '#f59e0b', bg: '#fffbeb' },
-  rechazada: { text: '❌ Requiere corrección', color: '#ef4444', bg: '#fef2f2' },
+  validada:  { text: '✅ Validada por tu psicólogo/a', color: 'var(--exito)', bg: 'var(--exito-bg)' },
+  pendiente: { text: '⏳ Pendiente de validación', color: 'var(--riesgo-medio)', bg: 'var(--riesgo-medio-bg)' },
+  rechazada: { text: '❌ Requiere corrección', color: 'var(--riesgo-alto)', bg: 'var(--riesgo-alto-bg)' },
 }
 
 const MEDICAL_FIELDS = [
@@ -141,12 +141,12 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
         padding: '14px 18px',
         borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: `${cat.color}15`
+        background: tinte(cat.color, 8)
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
             width: 34, height: 34, borderRadius: 10,
-            background: `${cat.color}30`,
+            background: tinte(cat.color, 19),
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.1rem'
           }}>
@@ -163,7 +163,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
         </div>
         <div style={{
           fontWeight: 600, fontSize: '1.1rem',
-          color: pct === 100 ? '#38a169' : 'var(--navy)'
+          color: pct === 100 ? 'var(--exito)' : 'var(--navy)'
         }}>
           {pct}%
         </div>
@@ -197,7 +197,7 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
                 background: goal.completed ? cat.color : 'var(--white)',
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.75rem', color: 'white', fontWeight: 500,
+                fontSize: '0.75rem', color: 'var(--sobre-acento)', fontWeight: 500,
                 transition: 'all 0.2s'
               }}
             >
@@ -409,7 +409,7 @@ export default function GoalsPage() {
                     style={{
                       padding: '6px 14px', borderRadius: 999,
                       border: `2px solid ${category === cat.id ? cat.color : 'var(--border)'}`,
-                      background: category === cat.id ? `${cat.color}20` : 'var(--white)',
+                      background: category === cat.id ? tinte(cat.color, 13) : 'var(--white)',
                       color: category === cat.id ? 'var(--navy)' : 'var(--slate)',
                       fontWeight: category === cat.id ? 600 : 400,
                       fontSize: '0.82rem', cursor: 'pointer', transition: 'all 0.15s'

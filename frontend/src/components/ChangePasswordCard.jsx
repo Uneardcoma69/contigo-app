@@ -97,7 +97,7 @@ export default function ChangePasswordCard({ notifySuccess, notifyError }) {
           {error && (
             <p style={{
               margin: 0, padding: '10px 14px', borderRadius: 12, fontSize: '0.85rem', fontWeight: 600,
-              background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c'
+              background: 'var(--riesgo-alto-bg)', border: '1px solid var(--riesgo-alto-line)', color: 'var(--riesgo-alto)'
             }}>{error}</p>
           )}
 

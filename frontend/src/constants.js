@@ -24,17 +24,17 @@ export const LEVEL_CONFIG = {
  * vive en GoalsPage y no debe unificarse con esta.
  */
 export const MEDICAL_STATUS = {
-  validada:  { label: 'Validada',  emoji: '✅', color: '#16a34a', bg: '#f0fdf4' },
-  pendiente: { label: 'Pendiente', emoji: '⏳', color: '#f59e0b', bg: '#fffbeb' },
-  rechazada: { label: 'Rechazada', emoji: '❌', color: '#ef4444', bg: '#fef2f2' },
-  sin_ficha: { label: 'Sin ficha', emoji: '📄', color: '#94a3b8', bg: '#f8fafc' },
+  validada:  { label: 'Validada',  emoji: '✅', color: 'var(--exito)', bg: 'var(--exito-bg)' },
+  pendiente: { label: 'Pendiente', emoji: '⏳', color: 'var(--riesgo-medio)', bg: 'var(--riesgo-medio-bg)' },
+  rechazada: { label: 'Rechazada', emoji: '❌', color: 'var(--riesgo-alto)', bg: 'var(--riesgo-alto-bg)' },
+  sin_ficha: { label: 'Sin ficha', emoji: '📄', color: 'var(--slate-light)', bg: 'var(--riesgo-nulo-bg)' },
 }
 
 /** Estado de una cita del calendario. */
 export const APPT_STATUS = {
   programada: { label: 'Programada', color: 'var(--teal-dark)', bg: 'var(--teal-pale)' },
-  completada: { label: 'Completada', color: '#16a34a', bg: '#f0fdf4' },
-  cancelada:  { label: 'Cancelada',  color: '#94a3b8', bg: '#f8fafc' },
+  completada: { label: 'Completada', color: 'var(--exito)', bg: 'var(--exito-bg)' },
+  cancelada:  { label: 'Cancelada',  color: 'var(--slate-light)', bg: 'var(--riesgo-nulo-bg)' },
 }
 
 /**
@@ -44,12 +44,12 @@ export const APPT_STATUS = {
  * la otra para la misma categoría.
  */
 export const CATEGORIES = [
-  { id: 'general',   label: 'General',   emoji: '⭐', color: '#f6ad55' },
-  { id: 'bienestar', label: 'Bienestar', emoji: '🌿', color: '#68d391' },
-  { id: 'sueño',     label: 'Sueño',     emoji: '😴', color: '#76e4f7' },
-  { id: 'ejercicio', label: 'Ejercicio', emoji: '💪', color: '#fc8181' },
-  { id: 'mente',     label: 'Mente',     emoji: '🧘', color: '#b794f4' },
-  { id: 'social',    label: 'Social',    emoji: '💬', color: '#63b3ed' },
+  { id: 'general',   label: 'General',   emoji: '⭐', color: 'var(--cat-general)' },
+  { id: 'bienestar', label: 'Bienestar', emoji: '🌿', color: 'var(--cat-bienestar)' },
+  { id: 'sueño',     label: 'Sueño',     emoji: '😴', color: 'var(--cat-sueno)' },
+  { id: 'ejercicio', label: 'Ejercicio', emoji: '💪', color: 'var(--cat-ejercicio)' },
+  { id: 'mente',     label: 'Mente',     emoji: '🧘', color: 'var(--cat-mente)' },
+  { id: 'social',    label: 'Social',    emoji: '💬', color: 'var(--cat-social)' },
 ]
 
 /** Atajo para cuando solo hace falta el emoji de una categoría. */
@@ -62,3 +62,14 @@ export const ROLE_LABEL = {
   admin: 'Admin',
   user: 'Paciente',
 }
+
+/**
+ * Rebaja un color del sistema a una lámina de fondo.
+ *
+ * Antes se le pegaba la transparencia al final del valor (`${color}30`),
+ * un truco que solo funciona si el color es un hexadecimal literal. Al
+ * pasar los colores a tokens eso producía CSS inválido y el fondo
+ * desaparecía. `color-mix` hace lo mismo y sí acepta variables.
+ */
+export const tinte = (color, pct = 12) =>
+  `color-mix(in srgb, ${color} ${pct}%, transparent)`
