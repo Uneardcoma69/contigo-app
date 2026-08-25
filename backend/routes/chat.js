@@ -3,45 +3,9 @@ import fetch from 'node-fetch'
 import requireAuth from '../middleware/requireAuth.js'
 import { getHistory, addMessage, clearHistory, findUserById, updateRiskLevel } from '../store.js'
 import { analyzeMessage, CRISIS_MESSAGE } from '../riskAnalyzer.js'
+import { SYSTEM_PROMPT, construirContexto, respuestaDemo } from '../asistente.js'
 
 const router = express.Router()
-
-const SYSTEM_PROMPT = `Eres "Contigo", un asistente de apoyo emocional y bienestar mental en español.
-
-Tu personalidad:
-- Empático, cálido y sin juicios
-- Lenguaje cercano y sencillo, nunca clínico
-- Ofreces herramientas prácticas: respiración, mindfulness, grounding, rutinas saludables
-- NO eres terapeuta — si hay riesgo, recomienda ayuda profesional con cariño
-
-Cómo responder:
-- Primero valida los sentimientos del usuario
-- Luego ofrece una perspectiva o herramienta concreta
-- Respuestas de 4–8 oraciones, máximo 1 emoji por mensaje
-
-FUNCIÓN ESPECIAL — Sugerir objetivos:
-Cuando el usuario mencione algo que quiere mejorar, lograr o trabajar en sí mismo
-(ej: dormir mejor, meditar, hacer ejercicio, reducir estrés, leer más, etc.),
-DEBES incluir al final de tu respuesta un bloque JSON con objetivos sugeridos.
-
-Formato EXACTO (siempre al final, nunca en medio del texto):
-GOALS_JSON:{"goals":[{"title":"Meditar 10 minutos cada mañana","category":"mente"},{"title":"Dormir antes de las 11pm","category":"sueño"}]}
-
-Categorías válidas: general, bienestar, sueño, ejercicio, mente, social
-
-Solo incluye GOALS_JSON cuando sea genuinamente relevante (el usuario habla de querer cambiar algo).
-Si no hay objetivos que sugerir, no incluyas GOALS_JSON.`
-
-const DEMO_RESPONSES = [
-  "Gracias por compartir eso conmigo 🌿 Lo que sientes es completamente válido. Practiquemos una respiración 4-7-8: inhala 4 segundos, retén 7, exhala 8. ¿Lo intentamos juntos?\nGOALS_JSON:{\"goals\":[{\"title\":\"Practicar respiración 4-7-8 cada día\",\"category\":\"mente\"}]}",
-  "Te escucho. A veces el peso del día puede sentirse enorme. Prueba el grounding: nombra 5 cosas que ves, 4 que tocas, 3 que escuchas. Trae tu mente al presente.",
-  "Tiene sentido que te sientas así. Nuestras emociones son mensajes, no problemas. ¿Qué es lo que más está pesando ahora mismo? Cuéntame.",
-  "Un pequeño paso para hoy: 5 minutos solo para ti, sin pantallas ni ruido. A veces el descanso es la acción más valiente 🌿\nGOALS_JSON:{\"goals\":[{\"title\":\"5 minutos de silencio sin pantallas cada día\",\"category\":\"bienestar\"}]}",
-  "No estás solo/a en esto. Muchas personas sienten lo mismo. ¿Has podido hablar con alguien de confianza hoy?",
-  "Cuando todo parece mucho, ayuda dividir: ¿qué es lo único que podrías hacer hoy que marcaría una diferencia pequeña?\nGOALS_JSON:{\"goals\":[{\"title\":\"Identificar una tarea pequeña y completarla\",\"category\":\"general\"},{\"title\":\"Escribir 3 cosas positivas del día\",\"category\":\"bienestar\"}]}",
-  "Pon una mano en el corazón, siente el calor, y di 'estoy aquí, esto pasará'. Es simple pero funciona 🌿",
-]
-let demoIndex = 0
 
 function parseGoalsFromReply(text) {
   const marker = 'GOALS_JSON:'
@@ -80,8 +44,10 @@ router.post('/', requireAuth, async (req, res) => {
 
   // DEMO MODE (Solo si no hay NINGUNA key)
   if (!process.env.OPENAI_API_KEY && !process.env.DEEPSEEK_API_KEY) {
-    const raw = DEMO_RESPONSES[demoIndex % DEMO_RESPONSES.length]
-    demoIndex++
+    // La respuesta se elige por el tema del mensaje, no por turno: antes
+    // rotaban en orden y a quien escribía sobre el sueño podía tocarle
+    // una respuesta sobre otra cosa.
+    const raw = respuestaDemo(message)
     const { cleanText, suggestedGoals } = parseGoalsFromReply(raw)
     addMessage(req.userId, 'user', message.trim())
     addMessage(req.userId, 'assistant', cleanText)
@@ -101,6 +67,11 @@ router.post('/', requireAuth, async (req, res) => {
       role: m.role, content: m.content
     }))
 
+    // Quién es la persona: su nombre, por qué empezó el acompañamiento y
+    // en qué metas trabaja. Sin esto el asistente solo puede hablar en
+    // general, que es lo que hacía que sonara de plantilla.
+    const contexto = construirContexto(req.userId)
+
     // Detectar qué proveedor usar
     const isDeepSeek = !!process.env.DEEPSEEK_API_KEY
     const apiKey = isDeepSeek ? process.env.DEEPSEEK_API_KEY : process.env.OPENAI_API_KEY
@@ -117,6 +88,7 @@ router.post('/', requireAuth, async (req, res) => {
         model,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
+          ...(contexto ? [{ role: 'system', content: contexto }] : []),
           ...history,
           { role: 'user', content: message.trim() }
         ],
