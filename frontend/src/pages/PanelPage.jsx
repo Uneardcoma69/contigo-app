@@ -3,7 +3,8 @@ import { Link, Navigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
-import { CAT_EMOJI } from '../constants.js'
+import Icono from '../components/Icono.jsx'
+import { CATEGORIES } from '../constants.js'
 
 /**
  * Panel de inicio de la persona usuaria.
@@ -69,7 +70,7 @@ export default function PanelPage() {
       <Header />
       <main className="page">
         <div className="page-head">
-          <h1 className="page-head__title">Hola, {nombre} 🌿</h1>
+          <h1 className="page-head__title">Hola, {nombre}</h1>
           <p className="page-head__sub">Este es tu espacio. ¿Por dónde quieres empezar?</p>
         </div>
 
@@ -77,7 +78,7 @@ export default function PanelPage() {
           {/* ── Columna izquierda: chat y citas ── */}
           <div className="panel-inicio__col">
             <Tarjeta to="/chat" aria-label="Abrir el chat de acompañamiento">
-              <div className="tarjeta-panel__icono" aria-hidden="true">💬</div>
+              <div className="tarjeta-panel__icono"><Icono nombre="chat" tamano={24} /></div>
               <h2 className="tarjeta-panel__titulo">Chat Contigo</h2>
               <p className="tarjeta-panel__texto">
                 Un espacio para hablar de lo que sientes, a cualquier hora del día.
@@ -86,7 +87,7 @@ export default function PanelPage() {
             </Tarjeta>
 
             <Tarjeta to="/citas" aria-label="Ver mis citas y el calendario">
-              <div className="tarjeta-panel__icono" aria-hidden="true">📅</div>
+              <div className="tarjeta-panel__icono"><Icono nombre="citas" tamano={24} /></div>
               <h2 className="tarjeta-panel__titulo">Citas y calendario</h2>
 
               {cargando ? (
@@ -120,7 +121,7 @@ export default function PanelPage() {
           {/* ── Columna derecha: objetivos ── */}
           <section className="panel panel-inicio__metas">
             <div className="panel__head">
-              <h2 className="panel__title">🎯 Objetivos</h2>
+              <h2 className="panel__title"><Icono nombre="metas" tamano={20} /> Objetivos</h2>
               <Link to="/goals" className="btn btn--outline btn--sm">Ver todos</Link>
             </div>
 
@@ -128,7 +129,7 @@ export default function PanelPage() {
               <p className="meta">Cargando…</p>
             ) : metas.length === 0 ? (
               <div className="empty">
-                <div className="empty__icon">🎯</div>
+                <div className="empty__icon"><Icono nombre="metas" tamano={30} /></div>
                 <p className="empty__title">Todavía no tienes objetivos</p>
                 <p className="empty__text">
                   Puedes crearlos tú o aceptarlos cuando el chat te los sugiera.
@@ -149,7 +150,14 @@ export default function PanelPage() {
                 <div className="list">
                   {pendientes.map(m => (
                     <div key={m._id} className="row-item">
-                      <span aria-hidden="true">{CAT_EMOJI[m.category] || '⭐'}</span>
+                      <span
+                        aria-hidden="true"
+                        title={CATEGORIES.find(c => c.id === m.category)?.label}
+                        style={{
+                          width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                          background: (CATEGORIES.find(c => c.id === m.category) || CATEGORIES[0]).color
+                        }}
+                      />
                       <div className="row-item__main">
                         <div className="row-item__titulo">{m.title}</div>
                       </div>
@@ -158,7 +166,7 @@ export default function PanelPage() {
                 </div>
 
                 {pendientes.length === 0 && (
-                  <p className="meta">Completaste todos tus objetivos. 🎉</p>
+                  <p className="meta">Completaste todos tus objetivos.</p>
                 )}
               </>
             )}

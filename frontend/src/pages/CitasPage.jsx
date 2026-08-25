@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
+import Icono from '../components/Icono.jsx'
 import SemanaCitas, { inicioDeSemana, diasDeSemana, rangoDeSemana } from '../components/SemanaCitas.jsx'
 import { APPT_STATUS } from '../constants.js'
 
@@ -59,7 +60,7 @@ export default function CitasPage() {
       <Header />
       <main className="page">
         <div className="page-head">
-          <h1 className="page-head__title">📅 Mis citas</h1>
+          <h1 className="page-head__title">Mis citas</h1>
           <p className="page-head__sub">
             Las agenda tu psicólogo/a. Si necesitas cambiar una, escríbele con anticipación.
           </p>
@@ -77,7 +78,7 @@ export default function CitasPage() {
                 fontSize: '0.72rem', fontWeight: 600, color: 'var(--teal-dark)',
                 textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4
               }}>
-                ✨ Tu próxima cita no está en esta semana
+                Tu próxima cita no está en esta semana
               </div>
               <div style={{
                 fontWeight: 600, fontSize: '1.15rem', color: 'var(--navy)', textTransform: 'capitalize'
@@ -116,7 +117,7 @@ export default function CitasPage() {
             que quien no tuviera ninguna cita nunca sabía que esto existía. */}
         {!cargando && citas.length === 0 && (
           <div className="empty" style={{ marginTop: 20 }}>
-            <div className="empty__icon">📅</div>
+            <div className="empty__icon"><Icono nombre="citas" tamano={30} /></div>
             <p className="empty__title">Aún no tienes citas agendadas</p>
             <p className="empty__text">
               Cuando tu psicólogo/a agende una, aparecerá aquí con su fecha y hora.

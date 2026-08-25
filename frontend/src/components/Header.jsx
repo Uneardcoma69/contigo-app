@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
+import Icono from './Icono.jsx'
 
 function initials(name) {
   if (!name) return '?'
@@ -29,7 +30,7 @@ export default function Header({ actions }) {
 
   // El icono y el texto van separados para poder ocultar la palabra en
   // pantallas angostas sin que el enlace pierda su nombre accesible.
-  const navLink = (to, icono, texto) => (
+  const navLink = (to, nombreIcono, texto) => (
     <Link
       to={to}
       aria-label={texto}
@@ -45,7 +46,7 @@ export default function Header({ actions }) {
         transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
       }}
     >
-      <span aria-hidden="true">{icono}</span>
+      <Icono nombre={nombreIcono} tamano={19} />
       <span className="header__nav-texto">{texto}</span>
     </Link>
   )
@@ -87,12 +88,12 @@ export default function Header({ actions }) {
         {user ? (
           <>
             <nav className="header__nav" aria-label="Secciones">
-              {!user.isStaff && navLink('/inicio', '🏠', 'Inicio')}
-              {!user.isStaff && navLink('/chat',   '💬', 'Chat')}
-              {!user.isStaff && navLink('/citas',  '📅', 'Citas')}
-              {!user.isStaff && navLink('/goals',  '🎯', 'Metas')}
-              {user.isStaff && navLink('/staff', '🩺', 'Panel Staff')}
-              {user.isAdmin && navLink('/admin', '🛡️', 'Admin')}
+              {!user.isStaff && navLink('/inicio', 'inicio', 'Inicio')}
+              {!user.isStaff && navLink('/chat',   'chat',   'Chat')}
+              {!user.isStaff && navLink('/citas',  'citas',  'Citas')}
+              {!user.isStaff && navLink('/goals',  'metas',  'Metas')}
+              {user.isStaff && navLink('/staff', 'equipo', 'Panel Staff')}
+              {user.isAdmin && navLink('/admin', 'alerta', 'Admin')}
               {user.isStaff && riskAlert.alto > 0 && (
                 <Link
                   to={user.isAdmin ? '/admin' : '/staff'}
@@ -110,8 +111,17 @@ export default function Header({ actions }) {
               <div className="header__avatar">{initials(user.name)}</div>
               <span className="hide-on-mobile">{user.name.split(' ')[0]}</span>
             </div>
-            <button className="btn btn--icon" onClick={logout} title="Cerrar sesión" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', marginLeft: '4px' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <button
+              className="btn btn--icon"
+              onClick={logout}
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+              style={{
+                background: 'transparent', color: 'var(--slate)',
+                border: '1px solid var(--line)', marginLeft: 4
+              }}
+            >
+              <Icono nombre="salir" tamano={19} />
             </button>
           </>
         ) : (

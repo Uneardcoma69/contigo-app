@@ -1,60 +1,107 @@
 /* ─── Sistema visual ───────────────────────────────────────────
-   Mismo lenguaje que la portada: Fraunces para los títulos, Inter
-   para el resto, formas contenidas y sombras discretas. La idea es
-   que el peso lo lleve el contenido y no la decoración.
+   Superficies limpias, mucho aire y un solo color de acento para las
+   acciones. La jerarquía la llevan el tamaño y el espacio, no los
+   bordes ni el color: por eso las líneas son casi imperceptibles y las
+   sombras apenas separan una capa de la siguiente.
+
+   Dos familias de color que no deben mezclarse:
+     · el acento (--teal…) viste las acciones y lo que está activo;
+     · los colores de estado (--riesgo…, --estado…) son INFORMACIÓN
+       clínica —alto, medio, bajo— y no se cambian por estética.
+
    Las fuentes se cargan desde index.html. */
 
 :root {
-  /* Warm Teal & Sage (Primary) */
-  --teal:       #4ecdc4;
-  --teal-dark:  #3ab8af;
-  --teal-light: #8de4de;
-  --teal-pale:  #e6faf8;
-  --teal-ink:   #1f756f;   /* verde oscuro, legible sobre fondo claro */
-  
+  color-scheme: light;
+
+  /* ── Acento ───────────────────────────────────────────────────
+     Un verde azulado profundo: conserva el color de Contigo, pero
+     bajando el brillo gana la sobriedad que pedía el rediseño. */
+  --teal:       #136f63;   /* acción principal */
+  --teal-dark:  #0f5a50;   /* presionado */
+  --teal-light: #b9e2db;   /* bordes y realces suaves */
+  --teal-pale:  #eef7f5;   /* fondos teñidos */
+  --teal-ink:   #0f5a50;   /* texto sobre fondo claro */
+
   --sage:       #7fb39f;
-  --sage-light: #cde6dc;
-  --sage-pale:  #eff7f4;
-  
-  /* Backgrounds & Surfaces */
-  --bg-color:   #fcfaf8; 
-  --white:      #ffffff;
-  --cream:      #fdfbf7;
-  --cream2:     #f4efe8;
+  --sage-light: #d9ebe3;
+  --sage-pale:  #f2f8f5;
 
-  /* Text & Accents */
-  --navy:       #1a2b3c;
-  --navy-light: #2c4258;
-  --slate:      #64748b;
-  --slate-light:#94a3b8;
-  
-  /* Bordes: líneas finas y visibles, como en la portada */
-  --line:         #eee8dd;
-  --line-strong:  #ddd4c6;
-  --border:       #eee8dd;
-  --border-light: #eee8dd;
+  /* ── Superficies ──────────────────────────────────────────────
+     Los grises llevan una pizca del acento: un gris neutro puro se
+     ve accidental al lado de un color con temperatura. */
+  --bg-color:   #f6f7f7;   /* fondo de la aplicación */
+  --white:      #ffffff;   /* superficie elevada */
+  --cream:      #fafbfb;   /* superficie hundida */
+  --cream2:     #eef0f0;   /* separadores y rieles */
 
-  /* Superficie translúcida de la barra superior */
-  --glass-bg:     rgba(255, 255, 255, 0.78);
-  --glass-blur:   blur(12px);
-  --glass-shadow: 0 1px 2px rgba(26, 43, 60, 0.04);
+  /* ── Texto ────────────────────────────────────────────────────
+     Los tres niveles cumplen contraste AA sobre sus fondos. Un gris
+     más claro se vería elegante en una maqueta y sería ilegible para
+     quien abre la aplicación cansado o a media luz. */
+  --navy:       #10161c;   /* títulos y texto principal */
+  --navy-light: #33414d;
+  --slate:      #5a6a75;   /* texto secundario · 5.6:1 sobre #f6f7f7 */
+  --slate-light:#64717a;   /* 5.0:1 sobre blanco; el tono más claro que
+                              todavía se lee sin esfuerzo */
 
-  /* Sombras discretas: apenas separan la superficie del fondo */
-  --shadow-sm:   0 1px 2px rgba(26, 43, 60, 0.04);
-  --shadow-md:   0 1px 2px rgba(26, 43, 60, 0.04), 0 12px 32px -20px rgba(26, 43, 60, 0.16);
-  --shadow-lg:   0 18px 44px -24px rgba(26, 43, 60, 0.22);
-  --shadow-glow: 0 8px 20px -12px rgba(58, 184, 175, 0.45);
+  /* ── Líneas ───────────────────────────────────────────────────
+     Casi invisibles: separan sin dibujar cajas. */
+  --line:         #e6e9e9;
+  --line-strong:  #d3d8d8;
+  --border:       #e6e9e9;
+  --border-light: #eef0f0;
 
-  /* Radios contenidos */
+  /* ── Vidrio ───────────────────────────────────────────────────
+     Se usa en las capas que flotan sobre el contenido —el encabezado
+     y las ventanas—, nunca en tarjetas dentro del flujo: el desenfoque
+     cuesta caro y en un equipo modesto se nota. */
+  --glass-bg:     rgba(255, 255, 255, 0.72);
+  --glass-blur:   saturate(180%) blur(20px);
+  --glass-line:   rgba(16, 22, 28, 0.06);
+  --glass-shadow: 0 1px 0 rgba(16, 22, 28, 0.04);
+
+  /* ── Elevación ────────────────────────────────────────────────
+     Cuatro pasos. Sombras muy abiertas y muy tenues: se percibe la
+     separación, no la sombra. */
+  --shadow-sm:   0 1px 2px rgba(16, 22, 28, 0.04);
+  --shadow-md:   0 1px 2px rgba(16, 22, 28, 0.04), 0 8px 24px -16px rgba(16, 22, 28, 0.14);
+  --shadow-lg:   0 2px 4px rgba(16, 22, 28, 0.04), 0 24px 56px -28px rgba(16, 22, 28, 0.20);
+  --shadow-xl:   0 32px 80px -32px rgba(16, 22, 28, 0.28);
+  --shadow-glow: 0 6px 18px -10px rgba(19, 111, 99, 0.40);
+
+  /* ── Estado (información, no decoración) ──────────────────────
+     Rebajados en saturación para convivir con el resto sin gritar,
+     pero manteniendo la distancia entre niveles bien visible. */
+  --riesgo-alto:      #b3372c;
+  --riesgo-alto-bg:   #fdf2f1;
+  --riesgo-medio:     #96650a;
+  --riesgo-medio-bg:  #fdf7ea;
+  --riesgo-bajo:      #2c6e52;
+  --riesgo-bajo-bg:   #eff7f2;
+  --riesgo-nulo:      #6b7780;
+  --riesgo-nulo-bg:   #f3f5f5;
+  /* Líneas del mismo tono, muy tenues: enmarcan sin encerrar. */
+  --riesgo-alto-line:  #f0cdc8;
+  --riesgo-medio-line: #ecd9a8;
+  --riesgo-bajo-line:  #c2ddce;
+  --riesgo-nulo-line:  #dde2e2;
+
+  /* ── Radios ───────────────────────────────────────────────────
+     Más generosos que antes: es lo que más aporta a la sensación de
+     superficie continua. */
   --radius-sm:   10px;
-  --radius:      14px;
-  --radius-lg:   18px;
-  --radius-xl:   24px;
+  --radius:      16px;
+  --radius-lg:   22px;
+  --radius-xl:   28px;
   --radius-pill: 999px;
 
   --transition:   0.2s ease;
-  --font:         'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Fraunces', Georgia, serif;
+  --font:         'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* La serif se reserva al nombre de la marca: ahí es donde una
+     identidad debe notarse, no repartida por toda la interfaz. */
+  --font-marca:   'Fraunces', Georgia, serif;
 
   /* ── Escala tipográfica ──────────────────────────────────────
      Siete pasos para toda la aplicación. Antes convivían nueve
@@ -66,14 +113,17 @@
   --text-sm:   0.8125rem;  /* 13px · texto secundario */
   --text-base: 0.9375rem;  /* 15px · cuerpo */
   --text-md:   1.0625rem;  /* 17px · cuerpo destacado */
-  --text-lg:   1.3125rem;  /* 21px · títulos de sección */
-  --text-xl:   1.75rem;    /* 28px · título de página */
-  --text-2xl:  2.5rem;     /* 40px · portada */
+  --text-lg:   1.375rem;   /* 22px · títulos de sección */
+  --text-xl:   2rem;       /* 32px · título de página */
+  --text-2xl:  3rem;       /* 48px · portada */
 
-  --tracking-tight:  -0.02em;
-  --tracking-snug:   -0.011em;
+  /* El salto entre el título de página y el de sección se abrió a
+     propósito: con pasos parejos todo pesaba igual y había que leer
+     para saber qué era importante. */
+  --tracking-tight:  -0.028em;
+  --tracking-snug:   -0.014em;
   --tracking-normal: 0;
-  --tracking-wide:   0.06em;   /* solo para versalitas */
+  --tracking-wide:   0.08em;   /* solo para versalitas */
 
   /* ── Escala de espaciado (base 4) ──────────────────────────── */
   --space-1:  4px;
@@ -93,11 +143,73 @@
   --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast:  0.15s;
   --dur:       0.25s;
+  --dur-slow:  0.45s;   /* entradas de pantalla */
 
   /* Peso máximo del texto. Un semibold bien espaciado transmite
      más autoridad que un negro apretado. */
+  --weight-light:  300;   /* solo en los títulos más grandes */
   --weight-medium: 500;
   --weight-semi:   600;
+}
+
+/* ─── Modo oscuro ──────────────────────────────────────────────
+   Todavía NO se activa. Los valores están definidos para que las
+   pantallas ya convertidas los hereden, pero mientras queden vistas
+   con colores escritos a mano en línea, encender el modo oscuro
+   dejaría media aplicación con texto oscuro sobre fondo oscuro.
+   Se enciende cambiando este selector por
+   `@media (prefers-color-scheme: dark)` cuando la conversión
+   termine. */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --teal:       #5ecfbf;
+  --teal-dark:  #7fdccf;
+  --teal-light: #1d4c46;
+  --teal-pale:  #12211f;
+  --teal-ink:   #7fdccf;
+
+  --sage:       #7fb39f;
+  --sage-light: #24352f;
+  --sage-pale:  #16201d;
+
+  --bg-color:   #0b0e10;
+  --white:      #14181b;
+  --cream:      #101416;
+  --cream2:     #1c2124;
+
+  --navy:       #f2f4f4;
+  --navy-light: #d3d9db;
+  --slate:      #9aa6ac;
+  --slate-light:#78848a;
+
+  --line:         #242a2e;
+  --line-strong:  #333b40;
+  --border:       #242a2e;
+  --border-light: #1c2124;
+
+  --glass-bg:     rgba(20, 24, 27, 0.72);
+  --glass-line:   rgba(255, 255, 255, 0.07);
+  --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-md:   0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 24px -16px rgba(0, 0, 0, 0.70);
+  --shadow-lg:   0 2px 4px rgba(0, 0, 0, 0.30), 0 24px 56px -28px rgba(0, 0, 0, 0.80);
+  --shadow-xl:   0 32px 80px -32px rgba(0, 0, 0, 0.85);
+  --shadow-glow: 0 6px 18px -10px rgba(94, 207, 191, 0.35);
+
+  --riesgo-alto:      #f0918a;
+  --riesgo-alto-bg:   #2a1614;
+  --riesgo-medio:     #e0b45f;
+  --riesgo-medio-bg:  #271f10;
+  --riesgo-bajo:      #7fc9a5;
+  --riesgo-bajo-bg:   #13241c;
+  --riesgo-nulo:      #98a3a9;
+  --riesgo-nulo-bg:   #1a1f22;
+  --riesgo-alto-line:  #4a2723;
+  --riesgo-medio-line: #43351a;
+  --riesgo-bajo-line:  #23402f;
+  --riesgo-nulo-line:  #2c3336;
 }
 
 /* ─── Reset & Base ─────────────────────────────────────────── */
@@ -116,19 +228,22 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Los títulos llevan la serif de la marca; el resto, Inter */
+/* La jerarquía la marcan el tamaño y el espacio entre letras, que se
+   cierra a medida que el título crece. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-weight: var(--weight-semi);
+  line-height: 1.12;
+  letter-spacing: var(--tracking-snug);
   color: var(--navy);
+  text-wrap: balance;
 }
+h1 { letter-spacing: var(--tracking-tight); }
 
 :focus-visible {
-  outline: 2px solid var(--teal-ink, #1f756f);
+  outline: 2px solid var(--teal);
   outline-offset: 3px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 ::selection { background: var(--teal-light); color: var(--navy); }
@@ -168,12 +283,12 @@ h1, h2, h3, h4 {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--glass-line);
   border-radius: var(--radius-pill);
   margin: 16px auto;
   max-width: 1200px;
   width: calc(100% - 32px);
-  padding: 12px 24px;
+  padding: 10px 20px 10px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -181,8 +296,14 @@ h1, h2, h3, h4 {
   position: sticky;
   top: 16px;
   z-index: 100;
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--dur) var(--ease-out);
+}
+
+/* Sin soporte de desenfoque la barra quedaba semitransparente y el
+   contenido se leía a través de ella. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .header { background: var(--white); }
 }
 
 .header__brand {
@@ -207,7 +328,7 @@ h1, h2, h3, h4 {
 }
 
 .header__title {
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--navy);
@@ -300,35 +421,41 @@ h1, h2, h3, h4 {
   border: 1px solid transparent;
   font-family: var(--font);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: var(--weight-semi);
+  letter-spacing: var(--tracking-snug);
   line-height: 1;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color var(--transition), border-color var(--transition),
-              color var(--transition), box-shadow var(--transition), transform var(--transition);
+  transition: background-color var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease),
+              box-shadow var(--dur) var(--ease-out),
+              transform var(--dur-fast) var(--ease);
 }
 
-.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+/* Al pulsar, el botón cede un poco: es la respuesta al toque que hace
+   que un control se sienta físico. Va en :active para que ocurra
+   mientras se mantiene, no después. */
+.btn:active:not(:disabled) { transform: scale(0.97); }
+
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn--primary {
   background: var(--teal);
-  color: var(--navy);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
 }
 .btn--primary:hover:not(:disabled) {
   background: var(--teal-dark);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-glow);
 }
 
 .btn--secondary {
   background: var(--navy);
-  color: var(--cream);
+  color: var(--white);
 }
-.btn--secondary:hover:not(:disabled) {
-  background: var(--navy-light);
-  transform: translateY(-1px);
-}
+.btn--secondary:hover:not(:disabled) { background: var(--navy-light); }
 
 .btn--outline {
   background: var(--white);
@@ -337,7 +464,7 @@ h1, h2, h3, h4 {
 }
 .btn--outline:hover:not(:disabled) {
   border-color: var(--teal);
-  transform: translateY(-1px);
+  color: var(--teal-ink);
 }
 
 .btn--ghost {
@@ -366,7 +493,7 @@ h1, h2, h3, h4 {
   position: relative;
 }
 .card:hover {
-  border-color: #bde9e2;
+  border-color: var(--teal-light);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
@@ -401,15 +528,19 @@ h1, h2, h3, h4 {
 
 .form-input {
   width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid var(--line-strong);
+  padding: 0.85rem 1.05rem;
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   font-family: var(--font);
   font-size: 0.97rem;
   font-weight: 400;
   color: var(--navy);
-  background: var(--white);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  /* Campo hundido, no elevado: el contenido se escribe *dentro* de la
+     superficie, y así no compite con las tarjetas que sí flotan. */
+  background: var(--cream);
+  transition: border-color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease),
+              background-color var(--dur-fast) var(--ease);
   outline: none;
 }
 
@@ -417,14 +548,15 @@ h1, h2, h3, h4 {
 
 .form-input:focus {
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.25);
+  background: var(--white);
+  box-shadow: 0 0 0 3.5px var(--teal-pale);
 }
 
 .form-error {
   font-size: 0.85rem;
-  color: #b91c1c;
+  color: var(--riesgo-alto);
   margin-top: 2px;
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 
 /* ─── Piezas de interfaz ──────────────────────────────────────
@@ -434,15 +566,24 @@ h1, h2, h3, h4 {
    las reglas para pantallas pequeñas se aplicaran.
    ──────────────────────────────────────────────────────────────── */
 
-/* Respiración alrededor del contenido de una pantalla */
-.page { padding: var(--space-8) var(--space-6) var(--space-12); }
+/* Respiración alrededor del contenido de una pantalla.
+   El ancho máximo es tan importante como el relleno: sin él, en un
+   monitor grande las líneas de texto se estiran hasta ser incómodas
+   de seguir y el conjunto pierde la sensación de estar compuesto. */
+.page {
+  padding: var(--space-10) var(--space-6) var(--space-12);
+  max-width: 1160px;
+  margin: 0 auto;
+  width: 100%;
+  animation: entrada var(--dur-slow) var(--ease-out) both;
+}
 
 /* Superficie principal donde vive cada bloque de contenido */
 .panel {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-6);
   box-shadow: var(--shadow-sm);
   margin-bottom: var(--space-6);
 }
@@ -462,7 +603,12 @@ h1, h2, h3, h4 {
   font-weight: var(--weight-semi);
   letter-spacing: var(--tracking-snug);
   color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
+/* El icono acompaña al título sin competir con él */
+.panel__title svg { color: var(--slate); }
 
 /* Texto de apoyo: explica sin competir con el contenido */
 .panel__hint {
@@ -473,7 +619,7 @@ h1, h2, h3, h4 {
 }
 
 /* ── Encabezado de página ─────────────────────────────────────── */
-.page-head { margin-bottom: var(--space-6); }
+.page-head { margin-bottom: var(--space-8); }
 
 .page-head__title {
   margin: 0;
@@ -481,7 +627,7 @@ h1, h2, h3, h4 {
   font-weight: var(--weight-semi);
   letter-spacing: var(--tracking-tight);
   color: var(--navy);
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .page-head__sub {
@@ -568,7 +714,13 @@ h1, h2, h3, h4 {
   padding: var(--space-10) var(--space-4);
   color: var(--slate);
 }
-.empty__icon { font-size: 2.25rem; margin-bottom: var(--space-2); }
+.empty__icon {
+  font-size: 2.25rem;
+  margin-bottom: var(--space-3);
+  color: var(--slate-light);
+  display: flex;
+  justify-content: center;
+}
 .empty__title { font-weight: var(--weight-medium); color: var(--navy); margin: 0; }
 .empty__text { font-size: var(--text-sm); margin: var(--space-1) 0 0; }
 
@@ -1402,7 +1554,7 @@ h1, h2, h3, h4 {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-6);
   box-shadow: var(--shadow-sm);
   text-decoration: none;
   color: inherit;
@@ -1414,19 +1566,32 @@ h1, h2, h3, h4 {
 .tarjeta-panel:hover {
   transform: translateY(-2px);
   border-color: var(--teal-light);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
+
+.tarjeta-panel:active { transform: translateY(0) scale(0.995); }
 
 .tarjeta-panel:focus-visible {
   outline: 2px solid var(--teal-dark);
   outline-offset: 3px;
 }
 
+/* Distintivo del icono: un cuadrado suave teñido con el acento.
+   Da al icono el peso visual que antes aportaba el emoji a color,
+   pero con una forma y un color que sí controlamos. */
 .tarjeta-panel__icono {
-  font-size: 1.75rem;
-  line-height: 1;
-  margin-bottom: var(--space-3);
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  background: var(--teal-pale);
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+  transition: background-color var(--dur) var(--ease-out);
 }
+.tarjeta-panel:hover .tarjeta-panel__icono { background: var(--teal-light); }
 
 .tarjeta-panel__titulo {
   margin: 0 0 var(--space-2);
@@ -1475,4 +1640,18 @@ h1, h2, h3, h4 {
 @media (prefers-reduced-motion: reduce) {
   .tarjeta-panel { transition: none; }
   .tarjeta-panel:hover { transform: none; }
+}
+
+/* ─── Entrada de pantalla ─────────────────────────────────────
+   Un desplazamiento corto y un fundido: la pantalla se asienta en
+   lugar de aparecer de golpe. Deliberadamente sutil —6px— porque a
+   partir de ahí deja de sentirse natural y empieza a estorbar a
+   quien navega rápido. */
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page { animation: none; }
 }

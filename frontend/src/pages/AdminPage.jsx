@@ -8,20 +8,27 @@ import RiskBadge from '../components/RiskBadge.jsx'
 import { useToast } from '../hooks/useToast.js'
 import { LEVEL_CONFIG } from '../constants.js'
 
-function StatCard({ label, count, emoji, color, bg, border, total }) {
+function StatCard({ label, count, color, bg, border, total }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0
   return (
     <div style={{
-      background: bg, border: `2px solid ${border}`,
+      background: bg, border: `1px solid ${border}`,
       borderRadius: 'var(--radius-lg)', padding: '20px 24px',
-      flex: '1 1 140px', minWidth: 140, transition: 'transform 0.2s',
+      flex: '1 1 140px', minWidth: 140,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: '1.8rem' }}>{emoji}</span>
-        <span style={{ fontSize: '2rem', fontWeight: 600, color }}>{count}</span>
+        {/* El punto sustituye al emoji: mismo significado, forma y color
+            bajo nuestro control y consistente en cualquier sistema. */}
+        <span aria-hidden="true" style={{
+          width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0
+        }} />
+        <span style={{
+          fontSize: '2rem', fontWeight: 600, color,
+          letterSpacing: 'var(--tracking-tight)', fontVariantNumeric: 'tabular-nums'
+        }}>{count}</span>
       </div>
       <div style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--navy)' }}>{label}</div>
-      <div style={{ fontSize: '0.78rem', color: 'var(--slate)', fontWeight: 600 }}>{pct}% del total</div>
+      <div style={{ fontSize: '0.78rem', color: 'var(--slate)', fontWeight: 500 }}>{pct}% del total</div>
     </div>
   )
 }

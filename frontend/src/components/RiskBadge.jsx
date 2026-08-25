@@ -11,13 +11,21 @@ export default function RiskBadge({ level }) {
     <span
       className={level === 'alto' ? 'risk-badge risk-badge--pulse' : 'risk-badge'}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5,
-        padding: '4px 12px', borderRadius: 999,
-        background: cfg.bg, color: cfg.color, border: `1.5px solid ${cfg.border}`,
-        fontWeight: 600, fontSize: '0.78rem', whiteSpace: 'nowrap'
+        display: 'inline-flex', alignItems: 'center', gap: 7,
+        padding: '5px 12px', borderRadius: 999,
+        background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}2e`,
+        fontWeight: 600, fontSize: '0.78rem', whiteSpace: 'nowrap',
+        letterSpacing: 'var(--tracking-snug)'
       }}
     >
-      {cfg.emoji} {cfg.label}
+      <span
+        aria-hidden="true"
+        style={{
+          width: 7, height: 7, borderRadius: '50%',
+          background: 'currentColor', flexShrink: 0
+        }}
+      />
+      {cfg.label}
     </span>
   )
 }

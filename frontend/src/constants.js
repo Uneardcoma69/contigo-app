@@ -2,12 +2,20 @@
 // Antes estaba duplicado en AdminPage, StaffPage y GoalsPage, con el
 // riesgo de que un color o una etiqueta cambiara solo en una de ellas.
 
-/** Niveles de riesgo emocional detectados en el chat. */
+/**
+ * Niveles de riesgo emocional detectados en el chat.
+ *
+ * Los colores salen de los tokens del sistema visual, no de valores
+ * escritos aquí: así el nivel se ve igual en toda la aplicación y sigue
+ * al tema si algún día se activa el modo oscuro. El punto de color ya no
+ * es un emoji —se veía distinto en cada sistema—, sino una figura que
+ * dibuja el propio distintivo.
+ */
 export const LEVEL_CONFIG = {
-  alto:      { label: 'Alto',      emoji: '🔴', color: '#ef4444', bg: '#fef2f2', border: '#fecaca' },
-  medio:     { label: 'Medio',     emoji: '🟡', color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
-  bajo:      { label: 'Bajo',      emoji: '🟢', color: '#22c55e', bg: '#f0fdf4', border: '#bbf7d0' },
-  sin_datos: { label: 'Sin datos', emoji: '⚪', color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
+  alto:      { label: 'Alto',      color: 'var(--riesgo-alto)',  bg: 'var(--riesgo-alto-bg)',  border: 'var(--riesgo-alto-line)' },
+  medio:     { label: 'Medio',     color: 'var(--riesgo-medio)', bg: 'var(--riesgo-medio-bg)', border: 'var(--riesgo-medio-line)' },
+  bajo:      { label: 'Bajo',      color: 'var(--riesgo-bajo)',  bg: 'var(--riesgo-bajo-bg)',  border: 'var(--riesgo-bajo-line)' },
+  sin_datos: { label: 'Sin datos', color: 'var(--riesgo-nulo)',  bg: 'var(--riesgo-nulo-bg)',  border: 'var(--riesgo-nulo-line)' },
 }
 
 /**
