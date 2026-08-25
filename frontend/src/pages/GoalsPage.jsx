@@ -6,97 +6,10 @@ import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import { useToast } from '../hooks/useToast.js'
-import { APPT_STATUS } from '../constants.js'
-
-const CATEGORIES = [
-  { id: 'general',   label: 'General',   emoji: '⭐', color: '#f6ad55' },
-  { id: 'bienestar', label: 'Bienestar', emoji: '🌿', color: '#68d391' },
-  { id: 'sueño',     label: 'Sueño',     emoji: '😴', color: '#76e4f7' },
-  { id: 'ejercicio', label: 'Ejercicio', emoji: '💪', color: '#fc8181' },
-  { id: 'mente',     label: 'Mente',     emoji: '🧘', color: '#b794f4' },
-  { id: 'social',    label: 'Social',    emoji: '💬', color: '#63b3ed' },
-]
+import { CATEGORIES } from '../constants.js'
 
 function getCat(id) {
   return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]
-}
-
-// Citas del paciente: agendadas por su psicólogo/a
-function MyAppointmentsCard() {
-  const [appointments, setAppointments] = useState([])
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    axios.get('/api/auth/appointments')
-      .then(({ data }) => setAppointments(data.appointments))
-      .catch(() => {})
-      .finally(() => setLoaded(true))
-  }, [])
-
-  const now = Date.now()
-  const upcoming = appointments.filter(a => a.status === 'programada' && new Date(a.date).getTime() >= now)
-  const past = appointments.filter(a => !(a.status === 'programada' && new Date(a.date).getTime() >= now))
-  const next = upcoming[0]
-
-  if (!loaded || appointments.length === 0) return null   // sin citas: no mostrar nada
-
-  const fmtDate = d => new Date(d).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
-  const fmtTime = d => new Date(d).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-
-  return (
-    <div style={{
-      marginTop: 32, background: 'var(--white)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius-lg)', padding: 24, boxShadow: 'var(--shadow-sm)'
-    }}>
-      <h2 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>📅 Mis citas</h2>
-      <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: 'var(--slate)' }}>
-        Agendadas por tu psicólogo/a. Si necesitas cambiar una, escríbele con anticipación.
-      </p>
-
-      {next && (
-        <div style={{
-          background: 'var(--teal-pale)', border: '1px solid var(--teal-light)',
-          borderRadius: 16, padding: '16px 20px', marginBottom: 14
-        }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--teal-dark)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
-            ✨ Tu próxima cita
-          </div>
-          <div style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--navy)', textTransform: 'capitalize' }}>
-            {fmtDate(next.date)} · {fmtTime(next.date)}
-          </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--slate)', marginTop: 2 }}>
-            {next.modality === 'online' ? '💻 En línea' : '🏢 Presencial'} · {next.durationMin} min · con {next.psychologistName}
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {[...upcoming.slice(1), ...past.slice().reverse().slice(0, 5)].map(a => {
-          const st = APPT_STATUS[a.status] || APPT_STATUS.programada
-          return (
-            <div key={a._id} style={{
-              display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-              padding: '10px 14px', background: 'var(--cream)',
-              border: '1px solid var(--border)', borderRadius: 12, fontSize: '0.85rem'
-            }}>
-              <span style={{ fontWeight: 500, color: 'var(--navy)', textTransform: 'capitalize' }}>
-                {fmtDate(a.date)} · {fmtTime(a.date)}
-              </span>
-              <span style={{ color: 'var(--slate)' }}>
-                {a.modality === 'online' ? '💻' : '🏢'} {a.psychologistName}
-              </span>
-              <span style={{
-                marginLeft: 'auto', padding: '2px 10px', borderRadius: 999,
-                background: st.bg, color: st.color, fontWeight: 600, fontSize: '0.75rem'
-              }}>
-                {st.label}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
 }
 
 const MEDICAL_STATUS_LABEL = {
@@ -590,8 +503,6 @@ export default function GoalsPage() {
           </div>
         )}
 
-        {/* Mis citas */}
-        <MyAppointmentsCard />
 
         {/* Ficha médica */}
         <MedicalRecordCard notifySuccess={success} notifyError={showError} />

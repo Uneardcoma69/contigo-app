@@ -6,6 +6,7 @@ import Header from '../components/Header.jsx'
 import TypingIndicator from '../components/TypingIndicator.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import { useToast } from '../hooks/useToast.js'
+import { CAT_EMOJI } from '../constants.js'
 
 const QUICK_REPLIES = [
   '¿Cómo puedo calmarme ahora mismo?',
@@ -14,11 +15,6 @@ const QUICK_REPLIES = [
   'Quiero empezar a meditar',
   'Necesito más energía',
 ]
-
-const CAT_EMOJI = {
-  general: '⭐', bienestar: '🌿', sueño: '😴',
-  ejercicio: '💪', mente: '🧘', social: '💬'
-}
 
 const MAX_CHARS = 1000
 

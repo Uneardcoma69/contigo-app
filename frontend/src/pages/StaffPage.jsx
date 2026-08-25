@@ -5,6 +5,7 @@ import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import RiskBadge from '../components/RiskBadge.jsx'
+import SemanaCitas, { inicioDeSemana, diasDeSemana, rangoDeSemana } from '../components/SemanaCitas.jsx'
 import { useToast } from '../hooks/useToast.js'
 import { LEVEL_CONFIG, MEDICAL_STATUS, APPT_STATUS, ROLE_LABEL } from '../constants.js'
 
@@ -288,17 +289,12 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
 }
 
 /* ═══════════ Calendario semanal ═══════════ */
-function startOfWeek(d) {
-  const date = new Date(d)
-  const day = (date.getDay() + 6) % 7   // lunes = 0
-  date.setDate(date.getDate() - day)
-  date.setHours(0, 0, 0, 0)
-  return date
-}
-
+// La rejilla de la semana vive en components/SemanaCitas.jsx: la comparten
+// esta vista y la del paciente, que solo cambia el nombre que muestra en
+// cada cita y no lleva acciones.
 function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
   const [appointments, setAppointments] = useState([])
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
+  const [weekStart, setWeekStart] = useState(() => inicioDeSemana(new Date()))
   const [showForm, setShowForm] = useState(false)
   const [team, setTeam] = useState([])
   const [form, setForm] = useState({ patientId: '', date: '', time: '09:00', durationMin: 50, modality: 'online', notes: '', psychologistId: '' })
@@ -314,18 +310,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
     if (isAdmin) axios.get('/api/staff/team').then(({ data }) => setTeam(data.staff)).catch(() => {})
   }, [isAdmin])
 
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart)
-    d.setDate(d.getDate() + i)
-    return d
-  })
-
-  const apptsOf = (day) => appointments
-    .filter(a => {
-      const ad = new Date(a.date)
-      return ad.getFullYear() === day.getFullYear() && ad.getMonth() === day.getMonth() && ad.getDate() === day.getDate()
-    })
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
+  const days = diasDeSemana(weekStart)
 
   const createAppt = async (e) => {
     e.preventDefault()
@@ -382,8 +367,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
     setWeekStart(d)
   }
 
-  const fmtRange = `${days[0].toLocaleDateString('es', { day: 'numeric', month: 'short' })} — ${days[6].toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}`
-  const today = new Date()
+  const fmtRange = rangoDeSemana(days)
 
   return (
     <SectionCard
@@ -391,7 +375,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
       right={
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button className="btn btn--outline btn--sm" onClick={() => moveWeek(-1)}>← Anterior</button>
-          <button className="btn btn--outline btn--sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Hoy</button>
+          <button className="btn btn--outline btn--sm" onClick={() => setWeekStart(inicioDeSemana(new Date()))}>Hoy</button>
           <button className="btn btn--outline btn--sm" onClick={() => moveWeek(1)}>Siguiente →</button>
           {canManageClinical && (
             <button className="btn btn--primary btn--sm" onClick={() => setShowForm(s => !s)}>{showForm ? 'Cerrar' : '+ Nueva cita'}</button>
@@ -448,70 +432,33 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
         </form>
       )}
 
-      {/* Cada día no baja de 90px: con 1fr puro las columnas se encogían
-          a 40px en un teléfono y no se podía leer ninguna cita. Si no
-          caben, la rejilla se desplaza en horizontal. */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(90px, 1fr))', gap: 8, overflowX: 'auto', minWidth: 0, paddingBottom: 4 }}>
-        {days.map((day, i) => {
-          const isToday = day.toDateString() === today.toDateString()
-          const dayAppts = apptsOf(day)
-          return (
-            <div key={i} style={{
-              background: isToday ? 'var(--teal-pale)' : 'var(--cream)',
-              border: `1px solid ${isToday ? 'var(--teal-light)' : 'var(--border)'}`,
-              borderRadius: 12, padding: 8, minHeight: 130
-            }}>
-              <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--slate)', textTransform: 'uppercase' }}>
-                  {day.toLocaleDateString('es', { weekday: 'short' })}
-                </div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 600, color: isToday ? 'var(--teal-dark)' : 'var(--navy)' }}>
-                  {day.getDate()}
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {dayAppts.map(a => {
-                  const st = APPT_STATUS[a.status] || APPT_STATUS.programada
-                  const time = new Date(a.date).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-                  return (
-                    <div key={a._id} style={{
-                      background: st.bg, border: `1px solid ${st.color}30`,
-                      borderLeft: `3px solid ${st.color}`,
-                      borderRadius: 8, padding: '6px 8px', fontSize: '0.72rem'
-                    }}>
-                      <div style={{ fontWeight: 600, color: st.color }}>{time} · {a.durationMin}min</div>
-                      <div style={{ fontWeight: 500, color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.patientName}</div>
-                      <div style={{ color: 'var(--slate)' }}>{a.modality === 'online' ? '💻' : '🏢'} {st.label}</div>
-                      {a.status === 'programada' && canManageClinical && (
-                        <div style={{ display: 'flex', gap: 2, marginTop: 6 }}>
-                          <button
-                            className="cita-accion"
-                            aria-label={`Marcar como completada la cita de ${a.patientName}`}
-                            title="Marcar como completada"
-                            onClick={() => setStatus(a, 'completada')}
-                          >✅</button>
-                          <button
-                            className="cita-accion"
-                            aria-label={`Cancelar la cita de ${a.patientName}`}
-                            title="Cancelar"
-                            onClick={() => setStatus(a, 'cancelada')}
-                          >🚫</button>
-                          <button
-                            className="cita-accion"
-                            aria-label={`Eliminar la cita de ${a.patientName}`}
-                            title="Eliminar"
-                            onClick={() => removeAppt(a)}
-                          >🗑️</button>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <SemanaCitas
+        citas={appointments}
+        inicio={weekStart}
+        nombreDe={a => a.patientName}
+        acciones={a => a.status === 'programada' && canManageClinical && (
+          <div style={{ display: 'flex', gap: 2, marginTop: 6 }}>
+            <button
+              className="cita-accion"
+              aria-label={`Marcar como completada la cita de ${a.patientName}`}
+              title="Marcar como completada"
+              onClick={() => setStatus(a, 'completada')}
+            >✅</button>
+            <button
+              className="cita-accion"
+              aria-label={`Cancelar la cita de ${a.patientName}`}
+              title="Cancelar"
+              onClick={() => setStatus(a, 'cancelada')}
+            >🚫</button>
+            <button
+              className="cita-accion"
+              aria-label={`Eliminar la cita de ${a.patientName}`}
+              title="Eliminar"
+              onClick={() => removeAppt(a)}
+            >🗑️</button>
+          </div>
+        )}
+      />
     </SectionCard>
   )
 }

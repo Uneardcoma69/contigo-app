@@ -29,6 +29,24 @@ export const APPT_STATUS = {
   cancelada:  { label: 'Cancelada',  color: '#94a3b8', bg: '#f8fafc' },
 }
 
+/**
+ * Categorías de las metas del paciente.
+ * Vivían repartidas entre GoalsPage (lista completa) y ChatPage (solo los
+ * emojis), con el riesgo de que un emoji cambiara en una pantalla y no en
+ * la otra para la misma categoría.
+ */
+export const CATEGORIES = [
+  { id: 'general',   label: 'General',   emoji: '⭐', color: '#f6ad55' },
+  { id: 'bienestar', label: 'Bienestar', emoji: '🌿', color: '#68d391' },
+  { id: 'sueño',     label: 'Sueño',     emoji: '😴', color: '#76e4f7' },
+  { id: 'ejercicio', label: 'Ejercicio', emoji: '💪', color: '#fc8181' },
+  { id: 'mente',     label: 'Mente',     emoji: '🧘', color: '#b794f4' },
+  { id: 'social',    label: 'Social',    emoji: '💬', color: '#63b3ed' },
+]
+
+/** Atajo para cuando solo hace falta el emoji de una categoría. */
+export const CAT_EMOJI = Object.fromEntries(CATEGORIES.map(c => [c.id, c.emoji]))
+
 /** Nombre legible de cada rol. */
 export const ROLE_LABEL = {
   psychologist: 'Psicólogo/a',

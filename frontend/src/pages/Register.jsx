@@ -36,7 +36,7 @@ export default function Register() {
 
           <AuthForm
             mode="register"
-            onSuccess={() => nav('/chat')}
+            onSuccess={() => nav('/inicio')}
           />
         </div>
       </main>

@@ -87,8 +87,10 @@ export default function Header({ actions }) {
         {user ? (
           <>
             <nav className="header__nav" aria-label="Secciones">
-              {!user.isStaff && navLink('/chat',  '💬', 'Chat')}
-              {!user.isStaff && navLink('/goals', '🎯', 'Metas')}
+              {!user.isStaff && navLink('/inicio', '🏠', 'Inicio')}
+              {!user.isStaff && navLink('/chat',   '💬', 'Chat')}
+              {!user.isStaff && navLink('/citas',  '📅', 'Citas')}
+              {!user.isStaff && navLink('/goals',  '🎯', 'Metas')}
               {user.isStaff && navLink('/staff', '🩺', 'Panel Staff')}
               {user.isAdmin && navLink('/admin', '🛡️', 'Admin')}
               {user.isStaff && riskAlert.alto > 0 && (

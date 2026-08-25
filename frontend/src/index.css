@@ -1370,3 +1370,109 @@ h1, h2, h3, h4 {
   .admin-modal,
   .anim-bubbleIn { animation: none; }
 }
+
+/* ── Panel de inicio del paciente ─────────────────────────────── */
+/* Dos columnas: a la izquierda los accesos (chat y citas), a la
+   derecha los objetivos con su lista. En pantallas angostas la
+   rejilla se convierte en una sola columna y el orden se mantiene. */
+.panel-inicio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.panel-inicio__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* El panel de metas ya trae su propio margen inferior; aquí lo
+   gestiona el gap de la rejilla. */
+.panel-inicio__metas { margin-bottom: 0; }
+
+@media (max-width: 860px) {
+  .panel-inicio { grid-template-columns: 1fr; }
+}
+
+/* Tarjeta-acceso: toda la superficie es el enlace */
+.tarjeta-panel {
+  display: block;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out);
+}
+
+.tarjeta-panel:hover {
+  transform: translateY(-2px);
+  border-color: var(--teal-light);
+  box-shadow: var(--shadow-md);
+}
+
+.tarjeta-panel:focus-visible {
+  outline: 2px solid var(--teal-dark);
+  outline-offset: 3px;
+}
+
+.tarjeta-panel__icono {
+  font-size: 1.75rem;
+  line-height: 1;
+  margin-bottom: var(--space-3);
+}
+
+.tarjeta-panel__titulo {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semi);
+  letter-spacing: var(--tracking-snug);
+  color: var(--navy);
+}
+
+.tarjeta-panel__texto {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--slate);
+  line-height: 1.55;
+}
+
+/* Bloque de la próxima cita dentro de la tarjeta */
+.tarjeta-panel__destacado {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--teal-pale);
+  border: 1px solid var(--teal-light);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--navy);
+}
+
+.tarjeta-panel__cuando {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semi);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal-ink);
+}
+
+.tarjeta-panel__accion {
+  display: inline-block;
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--teal-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-panel { transition: none; }
+  .tarjeta-panel:hover { transform: none; }
+}

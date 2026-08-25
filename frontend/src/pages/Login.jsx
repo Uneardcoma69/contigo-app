@@ -3,11 +3,13 @@ import { useAuth } from '../context/AuthContext.jsx'
 import AuthForm from '../components/AuthForm.jsx'
 import Header from '../components/Header.jsx'
 
-// A dónde va cada rol después de iniciar sesión
+// A dónde va cada rol después de iniciar sesión.
+// El paciente llega a su panel, no al chat: desde ahí ve de un vistazo
+// sus citas y sus objetivos, y entra al chat cuando lo decide.
 function homeFor(u) {
   if (u?.isAdmin) return '/admin'
   if (u?.isStaff) return '/staff'
-  return '/chat'
+  return '/inicio'
 }
 
 export default function Login() {

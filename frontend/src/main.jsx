@@ -6,7 +6,9 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import Home      from './pages/Home.jsx'
 import Login     from './pages/Login.jsx'
 import Register  from './pages/Register.jsx'
+import PanelPage from './pages/PanelPage.jsx'
 import ChatPage  from './pages/ChatPage.jsx'
+import CitasPage from './pages/CitasPage.jsx'
 import GoalsPage from './pages/GoalsPage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import StaffPage from './pages/StaffPage.jsx'
@@ -37,7 +39,7 @@ function RequireStaff({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <Loading />
   if (!user) return <Navigate to="/login" replace />
-  return user.isStaff ? children : <Navigate to="/chat" replace />
+  return user.isStaff ? children : <Navigate to="/inicio" replace />
 }
 
 // Solo admin
@@ -45,7 +47,7 @@ function RequireAdmin({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <Loading />
   if (!user) return <Navigate to="/login" replace />
-  return user.isAdmin ? children : <Navigate to={user.isStaff ? '/staff' : '/chat'} replace />
+  return user.isAdmin ? children : <Navigate to={user.isStaff ? '/staff' : '/inicio'} replace />
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -58,7 +60,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/register" element={<Register />} />
           <Route path="/legal"          element={<LegalPage />} />
           <Route path="/legal/:seccion" element={<LegalPage />} />
+          <Route path="/inicio"   element={<RequireAuth><PanelPage /></RequireAuth>} />
           <Route path="/chat"     element={<RequireAuth><ChatPage /></RequireAuth>} />
+          <Route path="/citas"    element={<RequireAuth><CitasPage /></RequireAuth>} />
           <Route path="/goals"    element={<RequireAuth><GoalsPage /></RequireAuth>} />
           <Route path="/staff"    element={<RequireStaff><StaffPage /></RequireStaff>} />
           <Route path="/admin"    element={<RequireAdmin><AdminPage /></RequireAdmin>} />
