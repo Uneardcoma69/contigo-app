@@ -112,8 +112,7 @@ function UserDetailModal({ user, onClose }) {
             {/* Palabras clave detectadas */}
             {detail.risk?.triggerWords?.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>
-                  🔍 Palabras clave detectadas
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>Palabras clave detectadas
                 </h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {detail.risk.triggerWords.map((w, i) => (
@@ -129,8 +128,7 @@ function UserDetailModal({ user, onClose }) {
             {/* Historial de alertas */}
             {detail.risk?.alerts?.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>
-                  ⚠️ Historial de alertas ({detail.risk.alerts.length})
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>Historial de alertas ({detail.risk.alerts.length})
                 </h3>
                 <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {detail.risk.alerts.slice().reverse().map((a, i) => (
@@ -158,8 +156,7 @@ function UserDetailModal({ user, onClose }) {
             {/* Mensajes recientes */}
             {detail.recentMessages?.length > 0 && (
               <div>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>
-                  💬 Mensajes recientes
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--navy)', marginBottom: 8 }}>Mensajes recientes
                 </h3>
                 <div style={{ maxHeight: 250, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {detail.recentMessages.map((m, i) => (
@@ -287,8 +284,7 @@ export default function AdminPage() {
             >
               {autoRefresh ? '⏸ Auto-refresh ON' : '▶ Auto-refresh OFF'}
             </button>
-            <button className="btn btn--outline btn--sm" onClick={fetchData} style={{ fontSize: '0.82rem' }}>
-              🔄 Refrescar
+            <button className="btn btn--outline btn--sm" onClick={fetchData} style={{ fontSize: '0.82rem' }}>Refrescar
             </button>
           </div>
         </div>

@@ -649,7 +649,11 @@ h1 { letter-spacing: var(--tracking-tight); }
   max-width: 100%;
 }
 
+/* El icono y la etiqueta van en la misma línea, centrados */
 .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   appearance: none;
   border: none;
   background: none;

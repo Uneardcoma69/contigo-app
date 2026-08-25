@@ -48,12 +48,13 @@ export default function ChangePasswordCard({ notifySuccess, notifyError }) {
 
   return (
     <div style={{
-      marginTop: 32, background: 'var(--white)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius-lg)', padding: 24, boxShadow: 'var(--shadow-sm)'
+      marginTop: 'var(--space-8)', background: 'var(--white)',
+      border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
+      padding: 'var(--space-8) var(--space-6)', boxShadow: 'var(--shadow-sm)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>🔐 Mi cuenta</h2>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)' }}>Mi cuenta</h2>
           <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--slate)' }}>
             {user?.name} · {user?.email}
           </p>

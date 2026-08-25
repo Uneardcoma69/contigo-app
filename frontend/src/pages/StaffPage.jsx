@@ -5,6 +5,7 @@ import Header from '../components/Header.jsx'
 import ToastContainer from '../components/ToastContainer.jsx'
 import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import RiskBadge from '../components/RiskBadge.jsx'
+import Icono from '../components/Icono.jsx'
 import SemanaCitas, { inicioDeSemana, diasDeSemana, rangoDeSemana } from '../components/SemanaCitas.jsx'
 import { useToast } from '../hooks/useToast.js'
 import { LEVEL_CONFIG, MEDICAL_STATUS, APPT_STATUS, ROLE_LABEL } from '../constants.js'
@@ -85,13 +86,16 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
     }
   }
 
-  const tabBtn = (id, label) => (
+  const tabBtn = (id, label, icono) => (
     <button
       role="tab"
       aria-selected={tab === id}
       className="tab"
       onClick={() => setTab(id)}
-    >{label}</button>
+    >
+      {icono && <Icono nombre={icono} tamano={17} />}
+      {label}
+    </button>
   )
 
   return (
@@ -138,11 +142,11 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
             </div>
 
             <div className="tabs" role="tablist" aria-label="Secciones del expediente">
-              {tabBtn('chat', '💬 Chat')}
-              {tabBtn('goals', '🎯 Metas')}
-              {tabBtn('notes', '📝 Notas')}
-              {tabBtn('medical', '🏥 Ficha médica')}
-              {tabBtn('alerts', '⚠️ Alertas')}
+              {tabBtn('chat', 'Chat', 'chat')}
+              {tabBtn('goals', 'Metas', 'metas')}
+              {tabBtn('notes', 'Notas', 'notas')}
+              {tabBtn('medical', 'Ficha médica', 'ficha')}
+              {tabBtn('alerts', 'Alertas', 'alerta')}
             </div>
 
             {/* ── Chat ── */}
@@ -249,8 +253,8 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                     </div>
                     {canManageClinical ? (
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn btn--secondary btn--sm" onClick={() => validateMedical('validada')}>✅ Validar</button>
-                        <button className="btn btn--outline btn--sm" onClick={() => validateMedical('rechazada')} style={{ color: '#b91c1c' }}>❌ Rechazar</button>
+                        <button className="btn btn--secondary btn--sm" onClick={() => validateMedical('validada')}>Validar</button>
+                        <button className="btn btn--outline btn--sm" onClick={() => validateMedical('rechazada')} style={{ color: '#b91c1c' }}>Rechazar</button>
                       </div>
                     ) : (
                       <p style={{ fontSize: '0.82rem', color: 'var(--slate)', margin: 0 }}>
@@ -371,7 +375,7 @@ function CalendarTab({ patients, isAdmin, notify, canManageClinical }) {
 
   return (
     <SectionCard
-      title={`📅 Semana ${fmtRange}`}
+      title={`Semana ${fmtRange}`}
       right={
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button className="btn btn--outline btn--sm" onClick={() => moveWeek(-1)}>← Anterior</button>
@@ -475,7 +479,7 @@ function ReportsTab({ notify }) {
 
   useEffect(() => { load() }, [load])
 
-  if (!report) return <SectionCard title="📊 Reportes"><p style={{ color: 'var(--slate)' }}>Generando reporte...</p></SectionCard>
+  if (!report) return <SectionCard title="Reportes"><p style={{ color: 'var(--slate)' }}>Generando reporte...</p></SectionCard>
 
   const s = report.summary
   const statBox = (label, value, sub, color) => (
@@ -484,8 +488,8 @@ function ReportsTab({ notify }) {
 
   return (
     <SectionCard
-      title={`📊 Reporte ${report.scope === 'global' ? 'global' : 'de mis pacientes'}`}
-      right={<button className="btn btn--outline btn--sm" onClick={load}>🔄 Regenerar</button>}
+      title={`Reporte ${report.scope === 'global' ? 'global' : 'de mis pacientes'}`}
+      right={<button className="btn btn--outline btn--sm" onClick={load}>Regenerar</button>}
     >
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
         {statBox('Pacientes', s.patients)}
@@ -637,7 +641,7 @@ function TeamTab({ notify, onChanged }) {
 
   return (
     <>
-      <SectionCard title="👥 Crear cuenta de staff">
+      <SectionCard title="Crear cuenta de staff">
         <form onSubmit={createStaff} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, alignItems: 'end' }}>
           <div>
             <label style={{ fontSize: '0.78rem', fontWeight: 500 }}>Nombre</label>
@@ -688,7 +692,7 @@ function TeamTab({ notify, onChanged }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="🔗 Asignar pacientes">
+      <SectionCard title="Asignar pacientes">
         {patients.length === 0 ? (
           <p style={{ color: 'var(--slate)', textAlign: 'center', padding: 16 }}>Sin pacientes registrados todavía.</p>
         ) : (
@@ -739,14 +743,14 @@ function AuditTab({ notify }) {
 
   useEffect(() => { load() }, [load])
 
-  if (!datos) return <SectionCard title="📋 Registro de auditoría"><p style={{ color: 'var(--slate)' }}>Cargando...</p></SectionCard>
+  if (!datos) return <SectionCard title="Registro de auditoría"><p style={{ color: 'var(--slate)' }}>Cargando...</p></SectionCard>
 
   const totalPaginas = Math.ceil(datos.total / porPagina)
   const fmt = d => new Date(d).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
   return (
     <SectionCard
-      title={`📋 Registro de auditoría (${datos.total})`}
+      title={`Registro de auditoría (${datos.total})`}
       right={
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <select
@@ -759,7 +763,7 @@ function AuditTab({ notify }) {
             <option value="">Todas las acciones</option>
             {Object.entries(datos.acciones || {}).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
-          <button className="btn btn--outline btn--sm" onClick={load}>🔄 Refrescar</button>
+          <button className="btn btn--outline btn--sm" onClick={load}>Refrescar</button>
         </div>
       }
     >
@@ -828,8 +832,8 @@ function MessagesTab({ notify }) {
 
   return (
     <SectionCard
-      title={`📨 Mensajes de contacto (${messages.length})`}
-      right={<button className="btn btn--outline btn--sm" onClick={load}>🔄 Refrescar</button>}
+      title={`Mensajes de contacto (${messages.length})`}
+      right={<button className="btn btn--outline btn--sm" onClick={load}>Refrescar</button>}
     >
       {!loaded ? (
         <p style={{ color: 'var(--slate)' }}>Cargando...</p>
@@ -898,13 +902,12 @@ function SettingsTab({ notify }) {
     }
   }
 
-  if (!settings) return <SectionCard title="⚙️ Ajustes"><p style={{ color: 'var(--slate)' }}>Cargando...</p></SectionCard>
+  if (!settings) return <SectionCard title="Ajustes"><p style={{ color: 'var(--slate)' }}>Cargando...</p></SectionCard>
 
   return (
-    <SectionCard title="⚙️ Ajustes de la aplicación">
+    <SectionCard title="Ajustes de la aplicación">
       <div style={{ marginBottom: 18 }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--navy)', margin: '0 0 4px' }}>
-          🤖 Asistente conversacional
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--navy)', margin: '0 0 4px' }}>Asistente conversacional
         </h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--slate)', margin: '0 0 12px' }}>
           Sin una clave de DeepSeek, el chat responde con mensajes de ejemplo (modo demo).
@@ -994,13 +997,16 @@ export default function StaffPage() {
 
   // Las pestañas viven en un carril; la activa se eleva sobre él en vez
   // de pintarse de color, que es menos ruidoso cuando son siete.
-  const tabBtn = (id, label) => (
+  const tabBtn = (id, label, icono) => (
     <button
       role="tab"
       aria-selected={tab === id}
       className="tab"
       onClick={() => setTab(id)}
-    >{label}</button>
+    >
+      {icono && <Icono nombre={icono} tamano={17} />}
+      {label}
+    </button>
   )
 
   return (
@@ -1023,20 +1029,20 @@ export default function StaffPage() {
         </header>
 
         <div className="tabs" role="tablist" aria-label="Secciones del panel">
-          {tabBtn('patients', '🧑‍⚕️ Pacientes')}
-          {tabBtn('calendar', '📅 Calendario')}
-          {tabBtn('reports', '📊 Reportes')}
-          {user?.isAdmin && tabBtn('team', '👥 Equipo')}
-          {user?.isAdmin && tabBtn('messages', '📨 Mensajes')}
-          {user?.isAdmin && tabBtn('audit', '📋 Auditoría')}
-          {user?.isAdmin && tabBtn('settings', '⚙️ Ajustes')}
-          {tabBtn('account', '🔐 Mi cuenta')}
+          {tabBtn('patients', 'Pacientes', 'pacientes')}
+          {tabBtn('calendar', 'Calendario', 'calendario')}
+          {tabBtn('reports', 'Reportes', 'reportes')}
+          {user?.isAdmin && tabBtn('team', 'Equipo', 'equipo')}
+          {user?.isAdmin && tabBtn('messages', 'Mensajes', 'mensajes')}
+          {user?.isAdmin && tabBtn('audit', 'Auditoría', 'auditoria')}
+          {user?.isAdmin && tabBtn('settings', 'Ajustes', 'ajustes')}
+          {tabBtn('account', 'Mi cuenta', 'cuenta')}
         </div>
 
         {tab === 'patients' && (
           <SectionCard
-            title={`🧑‍⚕️ ${user?.isAdmin ? 'Todos los pacientes' : 'Mis pacientes'} (${patients.length})`}
-            right={<button className="btn btn--outline btn--sm" onClick={loadPatients}>🔄 Refrescar</button>}
+            title={`${user?.isAdmin ? 'Todos los pacientes' : 'Mis pacientes'} (${patients.length})`}
+            right={<button className="btn btn--outline btn--sm" onClick={loadPatients}>Refrescar</button>}
           >
             {loading ? (
               <p style={{ color: 'var(--slate)', textAlign: 'center', padding: 24 }}>Cargando...</p>
