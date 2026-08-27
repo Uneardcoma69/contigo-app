@@ -52,7 +52,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "desktop/build/icon.ico"
+      "icon": "desktop/build/icon.png"
     },
     "nsis": {
       "oneClick": false,
