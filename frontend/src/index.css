@@ -1258,6 +1258,16 @@ h1 { letter-spacing: var(--tracking-tight); }
 
 .auth-card__header { text-align: center; margin-bottom: 2rem; }
 .auth-card__icon { font-size: 2.2rem; margin-bottom: 0.75rem; display: inline-block; }
+
+/* La marca preside la tarjeta de acceso: es el momento en que alguien
+   comprueba a qué servicio le está entregando sus credenciales. */
+.auth-card__marca {
+  display: block;
+  width: 100%;
+  max-width: 210px;
+  height: auto;
+  margin: 0 auto var(--space-4);
+}
 .auth-card__title {
   font-family: var(--font-display);
   font-size: 1.75rem;

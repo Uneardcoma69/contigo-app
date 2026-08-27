@@ -22,8 +22,17 @@ function Loading() {
       justifyContent: 'center', flexDirection: 'column', gap: 16,
       background: 'var(--cream)'
     }}>
-      <span className="spinner spinner--dark" style={{ width: 26, height: 26 }} />
-      <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Cargando...</p>
+      {/* Es lo primero que se ve al abrir la aplicación de escritorio.
+          Con solo el girador no se sabía siquiera qué programa arrancaba. */}
+      <img
+        src="/marca/contigo-horizontal.png"
+        alt="Contigo — Aquí Estoy"
+        width="400"
+        height="175"
+        style={{ width: 200, height: 'auto', marginBottom: 8 }}
+      />
+      <span className="spinner spinner--dark" style={{ width: 22, height: 22 }} />
+      <p style={{ color: 'var(--slate)', fontSize: '0.9rem' }}>Cargando…</p>
     </div>
   )
 }

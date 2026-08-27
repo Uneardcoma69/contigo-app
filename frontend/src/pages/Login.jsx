@@ -36,7 +36,13 @@ export default function Login() {
       <main className="auth-page" style={{ position: 'relative', zIndex: 1 }}>
         <div className="auth-card">
           <div className="auth-card__header">
-            
+            <img
+              className="auth-card__marca"
+              src="/marca/contigo-horizontal.png"
+              alt="Contigo — Aquí Estoy"
+              width="400"
+              height="175"
+            />
             <h1 className="auth-card__title">Bienvenido/a</h1>
             <p className="auth-card__subtitle">
               Tu espacio de bienestar te espera
