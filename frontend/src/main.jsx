@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 
 import Home      from './pages/Home.jsx'
@@ -59,10 +59,38 @@ function RequireAdmin({ children }) {
   return user.isAdmin ? children : <Navigate to={user.isStaff ? '/staff' : '/inicio'} replace />
 }
 
+// El título de la pestaña cambia con la ruta: con varias pestañas de
+// Contigo abiertas, todas decían lo mismo y había que adivinar cuál era
+// cuál. La portada no lleva prefijo, es la única vez que "Contigo –
+// Aquí estoy" solo tiene sentido como identidad, no como ubicación.
+const TITULO_POR_RUTA = {
+  '/login':    'Iniciar sesión',
+  '/register': 'Crear cuenta',
+  '/inicio':   'Inicio',
+  '/chat':     'Chat',
+  '/citas':    'Mis citas',
+  '/goals':    'Mis metas',
+  '/staff':    'Panel del equipo',
+  '/admin':    'Panel de alertas',
+  '/legal':    'Aviso legal',
+}
+
+function TituloDePagina() {
+  const location = useLocation()
+  useEffect(() => {
+    const base = 'Contigo – Aquí estoy'
+    const seccion = TITULO_POR_RUTA[location.pathname]
+      ?? (location.pathname.startsWith('/legal') ? TITULO_POR_RUTA['/legal'] : null)
+    document.title = seccion ? `${seccion} · Contigo` : base
+  }, [location.pathname])
+  return null
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
+        <TituloDePagina />
         <Routes>
           <Route path="/"         element={<Home />} />
           <Route path="/login"    element={<Login />} />
