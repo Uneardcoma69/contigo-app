@@ -171,15 +171,19 @@
   --weight-semi:   600;
 }
 
-/* ─── Modo oscuro ──────────────────────────────────────────────
-   Ya activo: no quedan colores escritos a mano en las pantallas, así
-   que redefinir los tokens basta para que toda la aplicación cambie.
+/* ─── Modo oscuro (en reposo) ──────────────────────────────────
+   Contigo se ve SIEMPRE en claro. Es una decisión de producto: el tema
+   claro es el que transmite la calma que busca la aplicación, y no se
+   quiso dejar que el ajuste del sistema operativo cambiara eso.
 
-   Se aplica de tres formas para cubrir los tres estados posibles del
-   visitante: sigue al sistema cuando no hay elección explícita, y los
-   atributos permiten forzar uno u otro. Nunca se declara un color
-   dentro de este bloque que no exista también en :root; si se hiciera,
-   quien tenga el sistema en claro se quedaría sin ese color. */
+   Por eso aquí no hay ninguna regla `prefers-color-scheme`: aunque el
+   equipo esté en modo oscuro, la aplicación se mantiene clara —incluidos
+   los controles nativos, que siguen al `color-scheme: light` de :root.
+
+   Estos valores quedan definidos pero dormidos: nada los activa hoy.
+   Para encender el tema oscuro bastaría con poner el atributo
+   `data-theme="dark"` en el elemento raíz. Ningún color declarado aquí
+   deja de existir en :root, así que activarlo no dejaría huecos. */
 :root[data-theme='dark'],
 :root[data-theme='dark'] body {
   color-scheme: dark;
@@ -243,43 +247,6 @@
   --riesgo-medio-line: #43351a;
   --riesgo-bajo-line:  #23402f;
   --riesgo-nulo-line:  #2c3336;
-}
-
-/* El sistema en oscuro, salvo que se haya elegido claro a propósito. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-
-    --teal: #5ecfbf;  --teal-dark: #7fdccf;  --teal-light: #1d4c46;
-    --teal-pale: #12211f;  --teal-ink: #7fdccf;  --sobre-acento: #08201d;
-    --sage: #7fb39f;  --sage-light: #24352f;  --sage-pale: #16201d;
-
-    --bg-color: #0b0e10;  --white: #14181b;  --cream: #101416;  --cream2: #1c2124;
-    --navy: #f2f4f4;  --navy-light: #d3d9db;  --slate: #9aa6ac;  --slate-light: #78848a;
-    --line: #242a2e;  --line-strong: #333b40;  --border: #242a2e;  --border-light: #1c2124;
-
-    --glass-bg: rgba(20, 24, 27, 0.72);
-    --glass-line: rgba(255, 255, 255, 0.07);
-    --glass-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
-    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 24px -16px rgba(0, 0, 0, 0.70);
-    --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.30), 0 24px 56px -28px rgba(0, 0, 0, 0.80);
-    --shadow-xl: 0 32px 80px -32px rgba(0, 0, 0, 0.85);
-    --shadow-glow: 0 6px 18px -10px rgba(94, 207, 191, 0.35);
-
-    --cat-general: #e0a95c;    --cat-bienestar: #6dc79a;  --cat-sueno: #62bcd8;
-    --cat-ejercicio: #e08f8f;  --cat-mente: #ac91e0;      --cat-social: #6fa9e0;
-
-    --exito: #74c894;  --exito-bg: #14261a;  --exito-line: #2c4a36;
-
-    --riesgo-alto: #f0918a;   --riesgo-alto-bg: #2a1614;
-    --riesgo-medio: #e0b45f;  --riesgo-medio-bg: #271f10;
-    --riesgo-bajo: #7fc9a5;   --riesgo-bajo-bg: #13241c;
-    --riesgo-nulo: #98a3a9;   --riesgo-nulo-bg: #1a1f22;
-    --riesgo-alto-line: #4a2723;   --riesgo-medio-line: #43351a;
-    --riesgo-bajo-line: #23402f;   --riesgo-nulo-line: #2c3336;
-  }
 }
 
 /* ─── Reset & Base ─────────────────────────────────────────── */
