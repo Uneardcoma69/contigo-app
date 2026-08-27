@@ -150,17 +150,15 @@
 }
 .landing .brand:hover { text-decoration: none; }
 
-.landing .brand-mark { position: relative; width: 26px; height: 26px; flex: none; }
-.landing .brand-mark::before,
-.landing .brand-mark::after {
-  content: "";
-  position: absolute;
-  top: 4px;
-  width: 18px; height: 18px;
-  border-radius: 50%;
+/* Icono de la marca. Antes eran dos círculos dibujados en CSS; ahora es
+   la imagen de la identidad, para que el distintivo sea el mismo aquí,
+   en la aplicación y en la pestaña del navegador. */
+.landing .brand-mark {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  object-fit: contain;
 }
-.landing .brand-mark::before { left: 0; background: var(--teal); }
-.landing .brand-mark::after { right: 0; background: var(--sage); mix-blend-mode: multiply; opacity: 0.9; }
 
 .landing .brand-name { display: flex; flex-direction: column; line-height: 1.05; }
 .landing .brand-name strong {

@@ -2,7 +2,7 @@ export default function TypingIndicator() {
   return (
     <div className="chat-bubble-row">
       <img
-        src="/contigo-bot.jpeg"
+        src="/marca/contigo-favicon.png"
         alt="Contigo"
         style={{
           width: 30,

@@ -37,7 +37,7 @@ function formatDate(ts) {
 function BotAvatar() {
   return (
     <img
-      src="/contigo-bot.jpeg"
+      src="/marca/contigo-favicon.png"
       alt="Contigo"
       style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--line)', flexShrink: 0, boxShadow: 'var(--shadow-sm)' }}
     />
@@ -76,7 +76,7 @@ function SuggestedGoalsCard({ goals, onAdd, onDismiss }) {
       animation: 'bubbleIn .2s ease'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <img src="/contigo-bot.jpeg" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+        <img src="/marca/contigo-favicon.png" alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
         <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 500, color: 'var(--teal-dark)' }}>
           Objetivos sugeridos para ti
         </p>

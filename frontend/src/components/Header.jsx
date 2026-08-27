@@ -55,7 +55,7 @@ export default function Header({ actions }) {
     <header className="header">
       <Link to="/" className="header__brand">
         <img
-          src="/contigo-bot.jpeg"
+          src="/marca/contigo-favicon.png"
           alt="Contigo"
           style={{
             width: 40,

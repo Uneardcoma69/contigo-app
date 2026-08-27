@@ -44,7 +44,9 @@ const faqs = [
 function Brand() {
   return (
     <a className="brand" href="#contenido" aria-label="Contigo — Aquí Estoy. Ir al inicio">
-      <span className="brand-mark" aria-hidden="true"></span>
+      {/* El distintivo era un par de círculos abstractos; ahora es el
+          icono de la marca, el mismo que se ve en la aplicación. */}
+      <img className="brand-mark" src="/marca/contigo-favicon.png" alt="" aria-hidden="true" />
       <span className="brand-name">
         <strong>Contigo</strong>
         <small>Aquí estoy</small>
@@ -178,7 +180,16 @@ export default function Home() {
         <section className="hero" aria-labelledby="hero-title">
           <div className="lp-container hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow reveal">Centro de bienestar emocional y salud mental</p>
+              {/* La marca reemplaza al antetítulo: su bajada ya dice «Bienestar
+                  emocional y salud mental», así que mantener el texto encima
+                  repetía la misma frase dos veces seguidas. */}
+              <img
+                className="hero-marca reveal"
+                src="/marca/contigo-lockup.png"
+                alt="Contigo — Aquí Estoy · Centro de bienestar emocional y salud mental"
+                width="990"
+                height="440"
+              />
               <h1 id="hero-title" className="reveal" style={{ '--rd': '0.06s' }}>Cuidar cómo te sientes también es cuidar tu salud</h1>
               <p className="hero-lead reveal" style={{ '--rd': '0.12s' }}>
                 En Contigo te acompaña un equipo de psicólogos titulados, en sesiones presenciales

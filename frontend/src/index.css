@@ -15,19 +15,25 @@
   color-scheme: light;
 
   /* ── Acento ───────────────────────────────────────────────────
-     Un verde azulado profundo: conserva el color de Contigo, pero
-     bajando el brillo gana la sobriedad que pedía el rediseño. */
-  --teal:       #136f63;   /* acción principal */
-  --teal-dark:  #0f5a50;   /* presionado */
+     El verde de la marca, tomado tal cual de la hoja de identidad
+     (#146A5C). Da 6.5:1 con blanco encima, así que sirve de fondo para
+     los botones sin ceder legibilidad.
+
+     El coral (#FF6B6B) y el ámbar (#FFC857) de la marca NO entran en la
+     interfaz como color de texto: dan 2.8:1 y 1.5:1 sobre blanco, muy
+     por debajo del mínimo legible. Viven en el logotipo, donde son
+     forma y no información. */
+  --teal:       #146a5c;   /* acción principal · color de marca */
+  --teal-dark:  #0f564a;   /* presionado */
   --teal-light: #b9e2db;   /* bordes y realces suaves */
-  --teal-pale:  #eef7f5;   /* fondos teñidos */
-  --teal-ink:   #0f5a50;   /* texto sobre fondo claro */
+  --teal-pale:  #eaf5f2;   /* fondos teñidos · color de marca */
+  --teal-ink:   #0f564a;   /* texto sobre fondo claro */
   /* Lo que se escribe ENCIMA del acento. Se invierte con el tema: en
      claro el acento es oscuro y pide texto blanco; en oscuro el acento
      es claro y el blanco encima queda en 1.9:1, ilegible. */
   --sobre-acento: #ffffff;
 
-  --sage:       #7fb39f;
+  --sage:       #66b2a6;   /* verde medio de la marca */
   --sage-light: #d9ebe3;
   --sage-pale:  #f2f8f5;
 
@@ -195,7 +201,7 @@
   --teal-ink:   #7fdccf;
   --sobre-acento: #08201d;
 
-  --sage:       #7fb39f;
+  --sage:       #66b2a6;   /* verde medio de la marca */
   --sage-light: #24352f;
   --sage-pale:  #16201d;
 
@@ -1695,4 +1701,20 @@ h1 { letter-spacing: var(--tracking-tight); }
 
 @media (prefers-reduced-motion: reduce) {
   .page { animation: none; }
+}
+
+/* ── Marca en la portada ──────────────────────────────────────
+   Ocupa el lugar del antetítulo, así que hereda su separación
+   inferior. El ancho se limita para que no compita con el titular:
+   la marca presenta, el titular es lo que se lee. */
+.hero-marca {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  margin-bottom: var(--space-5);
+}
+
+@media (max-width: 760px) {
+  .hero-marca { max-width: 300px; }
 }
