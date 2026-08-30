@@ -27,6 +27,11 @@ function getTransporter() {
     host: process.env.SMTP_HOST,
     port,
     secure: port === 465,
+    // En el puerto 465 la conexión ya nace cifrada (`secure`); en cualquier
+    // otro se espera STARTTLS. Sin exigirlo, un servidor que no lo ofrezca
+    // —o alguien interceptando la conexión— dejaría viajar sin cifrar el
+    // nombre, correo y último mensaje de una alerta de riesgo alto.
+    requireTLS: port !== 465,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
   })
   return transporter

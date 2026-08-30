@@ -97,7 +97,8 @@ CREATE TABLE IF NOT EXISTS risk_profiles (
   score REAL NOT NULL DEFAULT 0,
   last_message TEXT NOT NULL DEFAULT '',
   trigger_words TEXT NOT NULL DEFAULT '[]',
-  last_analysis TEXT
+  last_analysis TEXT,
+  level_since TEXT
 );
 
 CREATE TABLE IF NOT EXISTS risk_alerts (
@@ -191,6 +192,13 @@ CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_log(target_id);
 // Topes de conservación (antes se aplicaban recortando arrays en JS)
 const MAX_MESSAGES_PER_USER = 500
 const MAX_ALERTS_PER_USER   = 50
+
+// Ventana sin repetir el aviso de riesgo alto por correo a la misma
+// persona: en una crisis real alguien puede escribir varios mensajes
+// seguidos que califican en ALTO, y avisar por cada uno satura al
+// equipo en vez de ayudarlo. El panel de alertas sigue registrando
+// cada mensaje igual; esto solo limita el correo.
+const ALERTA_RIESGO_COOLDOWN_MIN = 30
 const MAX_CONTACT_MESSAGES  = 500
 
 // El registro de auditoría se conserva mucho más tiempo que el resto:
@@ -211,10 +219,33 @@ const SQL = await initSqlJs({
 
 let db = null
 
+/**
+ * `CREATE TABLE IF NOT EXISTS` no agrega columnas a una tabla que ya existe
+ * en un archivo guardado de una versión anterior. Para esas, la columna se
+ * agrega a mano una sola vez; para una base nueva, ya viene en el SCHEMA y
+ * esto no hace nada.
+ */
+function asegurarColumnasNuevas(baseRef) {
+  const stmt = baseRef.prepare("PRAGMA table_info(risk_profiles)")
+  const columnas = []
+  try {
+    while (stmt.step()) columnas.push(stmt.getAsObject().name)
+  } finally {
+    stmt.free()
+  }
+  if (!columnas.includes('level_since')) {
+    baseRef.run('ALTER TABLE risk_profiles ADD COLUMN level_since TEXT')
+    // Para las filas ya existentes no se sabe desde cuándo está vigente el
+    // nivel actual; el último análisis es la mejor aproximación disponible.
+    baseRef.run('UPDATE risk_profiles SET level_since = last_analysis WHERE level_since IS NULL')
+  }
+}
+
 function nuevaBase() {
   const base = new SQL.Database()
   base.run('PRAGMA foreign_keys = ON')
   base.exec(SCHEMA)
+  asegurarColumnasNuevas(base)
   return base
 }
 
@@ -372,6 +403,7 @@ function loadFromDisk() {
       db = new SQL.Database(new Uint8Array(contenido))
       db.run('PRAGMA foreign_keys = ON')
       db.exec(SCHEMA)   // por si una versión futura agrega tablas
+      asegurarColumnasNuevas(db)
       console.log(`💾 Datos cargados (${DATA_KEY ? '🔒 cifrados' : 'sin cifrar'}): ${contarUsuarios()} usuarios`)
       return
     }
@@ -632,6 +664,7 @@ function aPerfilRiesgo(f) {
     lastMessage: f.last_message,
     triggerWords: JSON.parse(f.trigger_words || '[]'),
     lastAnalysis: f.last_analysis,
+    levelSince: f.level_since,
     alerts: alertasDe(f.user_id)
   }
 }
@@ -860,30 +893,49 @@ export function updateRiskLevel(userId, { userName, userEmail, level, score, las
   const actual = one('SELECT * FROM risk_profiles WHERE user_id = ?', [userId])
   const palabras = JSON.stringify(triggerWords ?? [])
 
-  // El nivel solo escala: nunca baja solo dentro de la misma sesión
+  // El nivel solo escala dentro de esta función: nunca baja al llegar un
+  // mensaje nuevo. El descenso vive aparte, en checkRiskDecay y en la
+  // corrección manual (setRiskLevelManual).
   const ORDEN = { bajo: 0, medio: 1, alto: 2 }
   const nivelPrevio = actual?.level ?? 'bajo'
   const nivelFinal = ORDEN[level] >= ORDEN[nivelPrevio] ? level : nivelPrevio
   const puntajeFinal = Math.max(actual?.score ?? 0, score)
 
+  // level_since marca desde cuándo está vigente el nivel actual: lo usa
+  // checkRiskDecay para medir el tiempo y las señales positivas acumuladas
+  // desde la última escalada. Si no hubo escalada, se conserva el valor
+  // existente en vez de reiniciarlo en cada mensaje.
+  const escalo = !actual || nivelFinal !== nivelPrevio
+  const levelSinceFinal = escalo ? ahora() : actual.level_since
+
   if (actual) {
     run(
       `UPDATE risk_profiles
          SET user_name = ?, user_email = ?, level = ?, score = ?,
-             last_message = ?, trigger_words = ?, last_analysis = ?
+             last_message = ?, trigger_words = ?, last_analysis = ?, level_since = ?
        WHERE user_id = ?`,
-      [userName, userEmail, nivelFinal, puntajeFinal, lastMessage, palabras, ahora(), userId]
+      [userName, userEmail, nivelFinal, puntajeFinal, lastMessage, palabras, ahora(), levelSinceFinal, userId]
     )
   } else {
     run(
       `INSERT INTO risk_profiles
-         (user_id, user_name, user_email, level, score, last_message, trigger_words, last_analysis)
-       VALUES (?,?,?,?,?,?,?,?)`,
-      [userId, userName, userEmail, nivelFinal, puntajeFinal, lastMessage, palabras, ahora()]
+         (user_id, user_name, user_email, level, score, last_message, trigger_words, last_analysis, level_since)
+       VALUES (?,?,?,?,?,?,?,?,?)`,
+      [userId, userName, userEmail, nivelFinal, puntajeFinal, lastMessage, palabras, ahora(), levelSinceFinal]
     )
   }
 
+  let notificarAlto = false
   if (score > 0) {
+    if (level === 'alto') {
+      const corte = new Date(Date.now() - ALERTA_RIESGO_COOLDOWN_MIN * 60000).toISOString()
+      const reciente = one(
+        `SELECT id FROM risk_alerts WHERE user_id = ? AND level = 'alto' AND created_at >= ?`,
+        [userId, corte]
+      )
+      notificarAlto = !reciente
+    }
+
     run(
       `INSERT INTO risk_alerts (id, user_id, level, score, message, trigger_words, created_at)
        VALUES (?,?,?,?,?,?,?)`,
@@ -898,6 +950,88 @@ export function updateRiskLevel(userId, { userName, userEmail, level, score, las
     )
   }
 
+  return { profile: getRiskProfile(userId), notificarAlto }
+}
+
+/**
+ * Corrección manual del nivel de riesgo (admin o el profesional asignado a
+ * ese paciente — la ruta valida quién puede llamar a esto, y también audita
+ * el cambio con auditar(), igual que el resto de acciones clínicas). A
+ * diferencia de updateRiskLevel, esta SÍ puede bajar el nivel: es la única
+ * forma de corregir un falso positivo antes de que se cumplan las
+ * condiciones de descenso automático de checkRiskDecay.
+ */
+export function setRiskLevelManual(userId, level) {
+  const actual = one('SELECT * FROM risk_profiles WHERE user_id = ?', [userId])
+  const ahoraIso = ahora()
+
+  if (actual) {
+    run(
+      `UPDATE risk_profiles SET level = ?, score = 0, level_since = ? WHERE user_id = ?`,
+      [level, ahoraIso, userId]
+    )
+  } else {
+    const user = findUserById(userId)
+    if (!user) return null
+    run(
+      `INSERT INTO risk_profiles
+         (user_id, user_name, user_email, level, score, last_message, trigger_words, last_analysis, level_since)
+       VALUES (?,?,?,?,0,'','[]',?,?)`,
+      [userId, user.name, user.email, level, ahoraIso, ahoraIso]
+    )
+  }
+
+  return getRiskProfile(userId)
+}
+
+// Umbrales del descenso automático: propuesta inicial, ajustable. Sin
+// alertas nuevas durante este tiempo y con suficientes señales positivas
+// (metas cumplidas o citas asistidas) desde la última escalada, el nivel
+// baja un escalón — nunca salta directo de alto a bajo.
+const RIESGO_DECAY_DIAS_SIN_ALERTA = 21
+const RIESGO_DECAY_MIN_SENALES = 2
+
+/**
+ * Revisa si un paciente reúne señales suficientes para que su nivel de
+ * riesgo baje un escalón. Se llama de forma oportunista —no hay un cron en
+ * esta app— desde los puntos donde esas señales ocurren: un mensaje nuevo
+ * en el chat, completar una meta, o marcar una cita como asistida.
+ */
+export function checkRiskDecay(userId) {
+  const actual = one('SELECT * FROM risk_profiles WHERE user_id = ?', [userId])
+  if (!actual || actual.level === 'bajo' || !actual.level_since) return null
+
+  const diasTranscurridos = (Date.now() - new Date(actual.level_since).getTime()) / 86400000
+  if (diasTranscurridos < RIESGO_DECAY_DIAS_SIN_ALERTA) return null
+
+  const alertaReciente = one(
+    'SELECT id FROM risk_alerts WHERE user_id = ? AND created_at > ?',
+    [userId, actual.level_since]
+  )
+  if (alertaReciente) return null
+
+  const metas = one(
+    'SELECT COUNT(*) AS n FROM goals WHERE user_id = ? AND completed = 1 AND completed_at > ?',
+    [userId, actual.level_since]
+  )?.n ?? 0
+  const citas = one(
+    `SELECT COUNT(*) AS n FROM appointments WHERE patient_id = ? AND status = 'completada' AND date > ?`,
+    [userId, actual.level_since]
+  )?.n ?? 0
+  if (metas + citas < RIESGO_DECAY_MIN_SENALES) return null
+
+  const ORDEN = ['bajo', 'medio', 'alto']
+  const nuevoNivel = ORDEN[Math.max(0, ORDEN.indexOf(actual.level) - 1)]
+  const ahoraIso = ahora()
+  run('UPDATE risk_profiles SET level = ?, score = 0, level_since = ? WHERE user_id = ?', [nuevoNivel, ahoraIso, userId])
+
+  recordAudit({
+    actorId: null, actorName: 'Sistema (automático)', actorRole: 'sistema',
+    action: 'riesgo.corregir', targetId: userId, targetName: actual.user_name,
+    details: `Nivel bajó automáticamente de ${actual.level} a ${nuevoNivel} ` +
+      `(sin alertas nuevas en ${RIESGO_DECAY_DIAS_SIN_ALERTA} días, ${metas + citas} señales positivas)`
+  })
+
   return getRiskProfile(userId)
 }
 
@@ -907,6 +1041,61 @@ export function getRiskProfile(userId) {
 
 export function getAllRiskProfiles() {
   return all('SELECT * FROM risk_profiles').map(aPerfilRiesgo)
+}
+
+// ── Línea de tiempo emocional (vista propia del paciente) ──────
+// risk_alerts solo conserva las últimas MAX_ALERTS_PER_USER entradas
+// por persona: alguien con mensajes de riesgo muy frecuentes puede ver
+// huecos en el extremo más antiguo de un rango de 6 meses o un año.
+// Es el mismo tope que ya usa el panel de alertas del equipo.
+const NIVEL_ORDEN = { bajo: 0, medio: 1, alto: 2 }
+
+/** Agrupa mis propias alertas por día, para dibujar un mapa de calor. */
+export function getRiskHeatmap(userId, days) {
+  const desde = new Date(Date.now() - days * 86400000).toISOString()
+  const filas = all(
+    `SELECT substr(created_at, 1, 10) AS dia, level, score
+       FROM risk_alerts WHERE user_id = ? AND created_at >= ?
+       ORDER BY created_at ASC`,
+    [userId, desde]
+  )
+
+  const porDia = new Map()
+  for (const f of filas) {
+    const dia = porDia.get(f.dia) || { date: f.dia, level: f.level, maxScore: 0, count: 0 }
+    if (NIVEL_ORDEN[f.level] > NIVEL_ORDEN[dia.level]) dia.level = f.level
+    dia.maxScore = Math.max(dia.maxScore, f.score)
+    dia.count += 1
+    porDia.set(f.dia, dia)
+  }
+
+  const cells = [...porDia.values()]
+  const summary = {
+    totalEvents: filas.length,
+    daysWithEvents: cells.length,
+    bajo:  cells.filter(c => c.level === 'bajo').length,
+    medio: cells.filter(c => c.level === 'medio').length,
+    alto:  cells.filter(c => c.level === 'alto').length,
+    lastDate: cells.length ? cells[cells.length - 1].date : null
+  }
+
+  return { cells, summary }
+}
+
+/** Mis alertas de un día concreto (YYYY-MM-DD), para el detalle al hacer clic. */
+export function getRiskEventsForDay(userId, date) {
+  return all(
+    `SELECT id, level, score, trigger_words, created_at
+       FROM risk_alerts WHERE user_id = ? AND substr(created_at, 1, 10) = ?
+       ORDER BY created_at ASC`,
+    [userId, date]
+  ).map(f => ({
+    id: f.id,
+    level: f.level,
+    score: f.score,
+    triggerWords: JSON.parse(f.trigger_words || '[]'),
+    createdAt: f.created_at
+  }))
 }
 
 // ── Resúmenes para listados ────────────────────────────────────
@@ -1175,6 +1364,7 @@ export const AUDIT_ACTIONS = {
   'contrasena.restablecer':'Restableció la contraseña de otra persona',
   'staff.crear':           'Creó una cuenta del equipo',
   'alertas.ver-detalle':   'Abrió el detalle de un usuario en el panel de alertas',
+  'riesgo.corregir':       'Corrigió el nivel de riesgo de un paciente',
 }
 
 export function recordAudit({ actorId, actorName, actorRole, action, targetId, targetName, details }) {

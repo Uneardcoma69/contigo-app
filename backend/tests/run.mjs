@@ -14,15 +14,24 @@ import net from 'net'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { randomBytes } from 'crypto'
+import dotenv from 'dotenv'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const RAIZ_BACKEND = path.join(__dirname, '..')
+
+// El backend (server.js) carga backend/.env en su propio proceso, pero este
+// orquestador no lo hacía: los archivos de test heredan `process.env` de
+// ESTE proceso, así que sin esto nunca veían la DEEPSEEK_API_KEY real, y el
+// check "los ajustes nunca devuelven la clave completa" comparaba contra un
+// valor que jamás aparece, pasando siempre sin verificar nada de verdad.
+dotenv.config({ path: path.join(RAIZ_BACKEND, '.env') })
 
 // Orden importante: citas-alertas.test.mjs reutiliza la sesión y las
 // alertas que deja registradas e2e.test.mjs, así que debe correr justo
 // después. El resto es independiente entre sí.
 const ARCHIVOS = [
   'cifrado.test.mjs',
+  'riskAnalyzer.test.mjs',
   'roles.test.mjs',
   'e2e.test.mjs',
   'citas-alertas.test.mjs',
@@ -66,6 +75,9 @@ async function main() {
     JWT_SECRET: randomBytes(48).toString('hex'),
     CONTIGO_DATA_DIR: '',                // fuerza memoria, sin importar lo que diga .env
     CONTIGO_API_BASE: `${base}/api`,
+    // Correo reservado para el test de roles.test.mjs que confirma que el
+    // registro público no puede autoproclamarse admin apropiándose de él.
+    ADMIN_EMAIL: 'admin-reservado@contigo.com',
   }
 
   console.log(`🧪 Backend de pruebas aislado en el puerto ${port} (en memoria)\n`)
@@ -80,7 +92,14 @@ async function main() {
 
     for (const archivo of ARCHIVOS) {
       console.log(`\n── ${archivo} ${'─'.repeat(Math.max(0, 50 - archivo.length))}`)
-      const r = spawnSync(process.execPath, [archivo], { cwd: __dirname, env, stdio: 'inherit' })
+      // Timeout: un test que cuelga (p. ej. una API externa que nunca
+      // responde) no debe dejar la suite —y el CI— esperando indefinidamente.
+      const r = spawnSync(process.execPath, [archivo], { cwd: __dirname, env, stdio: 'inherit', timeout: 60_000 })
+      if (r.signal) {
+        codigoSalida = 1
+        console.log(`\n💥 ${archivo} excedió el tiempo límite (${r.signal}) — se detiene la suite ahí.`)
+        break
+      }
       if (r.status !== 0) {
         codigoSalida = 1
         console.log(`\n💥 ${archivo} falló — se detiene la suite ahí.`)

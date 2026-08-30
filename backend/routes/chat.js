@@ -1,8 +1,9 @@
 import express from 'express'
 import fetch from 'node-fetch'
 import requireAuth from '../middleware/requireAuth.js'
-import { getHistory, addMessage, clearHistory, findUserById, updateRiskLevel } from '../store.js'
+import { getHistory, addMessage, clearHistory, findUserById, updateRiskLevel, checkRiskDecay } from '../store.js'
 import { analyzeMessage, CRISIS_MESSAGE } from '../riskAnalyzer.js'
+import { enviarAlertaRiesgoAlto } from '../mailer.js'
 import { SYSTEM_PROMPT, construirContexto, respuestaDemo } from '../asistente.js'
 
 const router = express.Router()
@@ -24,45 +25,64 @@ function parseGoalsFromReply(text) {
 
 // POST /api/chat
 router.post('/', requireAuth, async (req, res) => {
-  const { message } = req.body
-  if (!message?.trim()) return res.status(400).json({ reply: 'Mensaje vacío.' })
-  if (message.length > 1000) return res.status(400).json({ reply: 'Mensaje demasiado largo.' })
+  try {
+    const { message } = req.body || {}
+    if (typeof message !== 'string' || !message.trim()) return res.status(400).json({ reply: 'Mensaje vacío.' })
+    if (message.length > 1000) return res.status(400).json({ reply: 'Mensaje demasiado largo.' })
 
-  // ── Análisis de riesgo (se ejecuta SIEMPRE, demo o no) ──────
-  const risk = analyzeMessage(message.trim())
-  const currentUser = findUserById(req.userId)
-  if (currentUser) {
-    updateRiskLevel(req.userId, {
-      userName: currentUser.name,
-      userEmail: currentUser.email,
-      level: risk.level,
-      score: risk.score,
-      lastMessage: message.trim(),
-      triggerWords: risk.triggerWords
-    })
-  }
+    // ── Análisis de riesgo (se ejecuta SIEMPRE, demo o no) ──────
+    const risk = analyzeMessage(message.trim())
+    const currentUser = findUserById(req.userId)
+    if (currentUser) {
+      // Se revisa el descenso automático ANTES de aplicar este mensaje: así
+      // se compara contra el estado previo, y si este mismo mensaje vuelve a
+      // escalar, updateRiskLevel lo hace con normalidad a continuación.
+      checkRiskDecay(req.userId)
 
-  // DEMO MODE (Solo si no hay NINGUNA key)
-  if (!process.env.OPENAI_API_KEY && !process.env.DEEPSEEK_API_KEY) {
-    // La respuesta se elige por el tema del mensaje, no por turno: antes
-    // rotaban en orden y a quien escribía sobre el sueño podía tocarle
-    // una respuesta sobre otra cosa.
-    const raw = respuestaDemo(message)
-    const { cleanText, suggestedGoals } = parseGoalsFromReply(raw)
-    addMessage(req.userId, 'user', message.trim())
-    addMessage(req.userId, 'assistant', cleanText)
+      const { notificarAlto } = updateRiskLevel(req.userId, {
+        userName: currentUser.name,
+        userEmail: currentUser.email,
+        level: risk.level,
+        score: risk.score,
+        lastMessage: message.trim(),
+        triggerWords: risk.triggerWords
+      })
 
-    // Si riesgo ALTO, agregar mensaje de crisis
-    if (risk.level === 'alto') {
-      addMessage(req.userId, 'assistant', CRISIS_MESSAGE)
-      return res.json({ reply: cleanText, suggestedGoals, demo: true, crisisAlert: CRISIS_MESSAGE, riskLevel: risk.level })
+      if (notificarAlto) {
+        const asignado = currentUser.assignedPsychologistId
+          ? findUserById(currentUser.assignedPsychologistId)
+          : null
+        enviarAlertaRiesgoAlto({
+          userName: currentUser.name,
+          userEmail: currentUser.email,
+          lastMessage: message.trim(),
+          score: risk.score,
+          triggerWords: risk.triggerWords,
+          staffEmail: asignado?.email
+        }).catch(e => console.error('⚠️ Aviso de riesgo alto por correo falló:', e.message))
+      }
     }
 
-    return res.json({ reply: cleanText, suggestedGoals, demo: true, riskLevel: risk.level })
-  }
+    // DEMO MODE (Solo si no hay NINGUNA key)
+    if (!process.env.OPENAI_API_KEY && !process.env.DEEPSEEK_API_KEY) {
+      // La respuesta se elige por el tema del mensaje, no por turno: antes
+      // rotaban en orden y a quien escribía sobre el sueño podía tocarle
+      // una respuesta sobre otra cosa.
+      const raw = respuestaDemo(message)
+      const { cleanText, suggestedGoals } = parseGoalsFromReply(raw)
+      addMessage(req.userId, 'user', message.trim())
+      addMessage(req.userId, 'assistant', cleanText)
 
-  // OPENAI / DEEPSEEK MODE
-  try {
+      // Si riesgo ALTO, agregar mensaje de crisis
+      if (risk.level === 'alto') {
+        addMessage(req.userId, 'assistant', CRISIS_MESSAGE)
+        return res.json({ reply: cleanText, suggestedGoals, demo: true, crisisAlert: CRISIS_MESSAGE, riskLevel: risk.level })
+      }
+
+      return res.json({ reply: cleanText, suggestedGoals, demo: true, riskLevel: risk.level })
+    }
+
+    // OPENAI / DEEPSEEK MODE
     const history = getHistory(req.userId, 20).map(m => ({
       role: m.role, content: m.content
     }))

@@ -1,5 +1,4 @@
-import jwt from 'jsonwebtoken'
-import { findUserById } from '../store.js'
+import { verificarSesion } from './session.js'
 
 /**
  * Devuelve el rol efectivo de un usuario.
@@ -19,40 +18,19 @@ export function effectiveRole(user) {
  */
 export default function requireRole(...allowedRoles) {
   return function (req, res, next) {
-    const auth = req.headers.authorization || ''
-    const token = auth.startsWith('Bearer ') ? auth.slice(7) : null
-
-    if (!token) {
-      return res.status(401).json({ message: 'Sesión requerida.' })
-    }
-
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET)
-      const user = findUserById(payload.id)
-
-      if (!user) {
-        return res.status(401).json({ message: 'Usuario no encontrado.' })
-      }
-
-      // Sesión invalidada por un cambio de contraseña (ver requireAuth)
-      if ((payload.v ?? 0) !== (user.tokenVersion ?? 0)) {
-        return res.status(401).json({ message: 'Tu contraseña cambió. Vuelve a iniciar sesión.' })
-      }
-
+      const { userId, user } = verificarSesion(req)
       const role = effectiveRole(user)
       if (!allowedRoles.includes(role)) {
         return res.status(403).json({ message: 'Acceso denegado. No tienes permisos suficientes.' })
       }
 
-      req.userId = payload.id
+      req.userId = userId
       req.user = user
       req.userRole = role
       next()
     } catch (err) {
-      const msg = err.name === 'TokenExpiredError'
-        ? 'Tu sesión expiró. Vuelve a iniciar sesión.'
-        : 'Token inválido.'
-      return res.status(401).json({ message: msg })
+      return res.status(err.status || 401).json({ message: err.message })
     }
   }
 }

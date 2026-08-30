@@ -51,6 +51,10 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
   const [noteText, setNoteText] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [tab, setTab] = useState('chat')
+  const [showRiskForm, setShowRiskForm] = useState(false)
+  const [riskLevelInput, setRiskLevelInput] = useState('bajo')
+  const [riskMotivo, setRiskMotivo] = useState('')
+  const [savingRisk, setSavingRisk] = useState(false)
 
   const load = useCallback(() => {
     axios.get(`/api/staff/patients/${patientId}`)
@@ -86,6 +90,27 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
     }
   }
 
+  const openRiskForm = () => {
+    setRiskLevelInput(data.risk.level === 'sin_datos' ? 'bajo' : data.risk.level)
+    setRiskMotivo('')
+    setShowRiskForm(true)
+  }
+
+  const correctRisk = async () => {
+    if (!riskMotivo.trim()) { notify.error('Indica el motivo de la corrección.'); return }
+    setSavingRisk(true)
+    try {
+      await axios.put(`/api/staff/patients/${patientId}/risk-level`, { level: riskLevelInput, motivo: riskMotivo })
+      notify.success('Nivel de riesgo corregido.')
+      setShowRiskForm(false)
+      load()
+    } catch (err) {
+      notify.error(err?.response?.data?.message || 'Error al corregir el nivel de riesgo.')
+    } finally {
+      setSavingRisk(false)
+    }
+  }
+
   const tabBtn = (id, label, icono) => (
     <button
       role="tab"
@@ -112,6 +137,11 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
               </div>
               <div className="row gap-3">
                 <RiskBadge level={data.risk.level} />
+                {canManageClinical && (
+                  <button className="btn btn--ghost btn--sm" onClick={openRiskForm}>
+                    Corregir nivel
+                  </button>
+                )}
                 <button
                   className="icon-btn"
                   onClick={onClose}
@@ -120,6 +150,43 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                 ><Icono nombre="cerrar" tamano={17} /></button>
               </div>
             </div>
+
+            {showRiskForm && (
+              <div className="panel" style={{ marginBottom: 'var(--space-4)', padding: 14, background: 'var(--sage-pale)' }}>
+                <div className="row gap-3" style={{ marginBottom: 8 }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                    Nuevo nivel
+                    <select
+                      className="form-input"
+                      value={riskLevelInput}
+                      onChange={e => setRiskLevelInput(e.target.value)}
+                      style={{ marginLeft: 8 }}
+                    >
+                      <option value="bajo">Bajo</option>
+                      <option value="medio">Medio</option>
+                      <option value="alto">Alto</option>
+                    </select>
+                  </label>
+                </div>
+                <textarea
+                  className="form-input"
+                  placeholder="Motivo de la corrección (obligatorio, queda en la auditoría)"
+                  value={riskMotivo}
+                  onChange={e => setRiskMotivo(e.target.value)}
+                  maxLength={500}
+                  rows={2}
+                  style={{ width: '100%', marginBottom: 8, resize: 'vertical' }}
+                />
+                <div className="row gap-2">
+                  <button className="btn btn--primary btn--sm" onClick={correctRisk} disabled={savingRisk}>
+                    {savingRisk ? 'Guardando…' : 'Guardar corrección'}
+                  </button>
+                  <button className="btn btn--ghost btn--sm" onClick={() => setShowRiskForm(false)}>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Progreso */}
             <div className="row gap-3" style={{ marginBottom: 'var(--space-4)' }}>
@@ -232,8 +299,8 @@ function PatientDetail({ patientId, onClose, notify, canManageClinical }) {
                       {(() => {
                         const st = MEDICAL_STATUS[data.medicalRecord.validationStatus] || MEDICAL_STATUS.pendiente
                         return (
-                          <span style={{ padding: '4px 12px', borderRadius: 999, background: st.bg, color: st.color, fontWeight: 600, fontSize: '0.8rem' }}>
-                            {st.emoji} {st.label}
+                          <span style={{ padding: '4px 12px', borderRadius: 999, background: st.bg, color: st.color, fontWeight: 600, fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                            <Icono nombre={st.icono} tamano={14} /> {st.label}
                           </span>
                         )
                       })()}
@@ -522,7 +589,9 @@ function ReportsTab({ notify }) {
                   <td style={{ padding: '10px', fontWeight: 500 }}>{p.alerts}</td>
                   <td style={{ padding: '10px' }}>{p.goalsCompleted}/{p.goals} ({p.goalsPct}%)</td>
                   <td style={{ padding: '10px' }}>
-                    <span style={{ color: med.color, fontWeight: 500 }}>{med.emoji} {med.label}</span>
+                    <span style={{ color: med.color, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <Icono nombre={med.icono} tamano={14} /> {med.label}
+                    </span>
                   </td>
                   <td style={{ padding: '10px' }}>{p.notes}</td>
                 </tr>

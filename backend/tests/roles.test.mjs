@@ -111,5 +111,40 @@ const listaStaff = await api('GET', '/admin/staff', { token: adminToken })
 check('El cambio de rol persiste en la lista de equipo',
   listaStaff.data.staff?.find(m => m._id === nuevoId)?.role === 'monitor')
 
+// 21. Nadie puede autoproclamarse admin registrándose con el correo de ADMIN_EMAIL
+const hijack = await api('POST', '/auth/register', { body: { name: 'Intruso', email: 'admin-reservado@contigo.com', password: 'test123' } })
+check('Registro público con el correo de ADMIN_EMAIL rechazado (403)', hijack.status === 403, JSON.stringify(hijack.data))
+
+// ── Regresión: reasignar un paciente no debe dejarle citas viejas
+// accesibles al profesional saliente, ni dárselas gratis al entrante ──
+// Paciente y segunda psicóloga dedicados a este caso, para no alterar el
+// estado de patId/psyId del que dependen los pasos anteriores (y otros
+// archivos de test que corren después en la misma base compartida).
+const patR = await api('POST', '/auth/register', { body: { name: 'Paciente Reasignación', email: 'reasignacion@test.com', password: 'test123' } })
+const patRId = patR.data.user?.id
+await api('PUT', `/admin/patients/${patRId}/assign`, { token: adminToken, body: { staffId: psyId } })
+
+const psyB = await api('POST', '/admin/staff', { token: adminToken, body: { name: 'Psico B', email: 'psicob@contigo.com', password: 'clave123', role: 'psychologist' } })
+check('Admin crea segunda psicóloga', psyB.status === 201)
+const psyBToken = (await api('POST', '/auth/login', { body: { email: 'psicob@contigo.com', password: 'clave123' } })).data.token
+
+const soon = new Date(Date.now() + 72 * 3600 * 1000)
+soon.setHours(9, 0, 0, 0)
+const apptReasig = await api('POST', '/staff/appointments', { token: psyToken, body: { patientId: patRId, date: soon.toISOString(), durationMin: 45 } })
+check('Psicóloga A agenda cita antes de la reasignación', apptReasig.status === 201, JSON.stringify(apptReasig.data))
+const apptReasigId = apptReasig.data.appointment?._id
+
+await api('PUT', `/admin/patients/${patRId}/assign`, { token: adminToken, body: { staffId: psyB.data.user._id } })
+
+const yaSinAcceso = await api('PUT', `/staff/appointments/${apptReasigId}`, { token: psyToken, body: { notes: 'intento tras la reasignación' } })
+check('Psicóloga saliente pierde acceso a la cita vieja (403)', yaSinAcceso.status === 403, JSON.stringify(yaSinAcceso.data))
+
+const adminSigueViendo = await api('PUT', `/staff/appointments/${apptReasigId}`, { token: adminToken, body: { notes: 'admin siempre tiene acceso' } })
+check('Admin conserva acceso a la cita tras la reasignación', adminSigueViendo.status === 200, JSON.stringify(adminSigueViendo.data))
+
+const listaB = await api('GET', '/staff/appointments', { token: psyBToken })
+check('La psicóloga entrante NO hereda la cita vieja (quedó a nombre de la saliente)',
+  listaB.status === 200 && !listaB.data.appointments.some(a => a._id === apptReasigId), JSON.stringify(listaB.data))
+
 console.log(failures === 0 ? '\n🎉 TODAS LAS PRUEBAS PASARON' : `\n💥 ${failures} pruebas fallaron`)
 process.exit(failures === 0 ? 0 : 1)

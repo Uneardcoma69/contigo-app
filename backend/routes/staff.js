@@ -3,7 +3,7 @@ import { requireStaff, requireClinician } from '../middleware/requireRole.js'
 import { auditar } from '../auditoria.js'
 import {
   findUserById, getPatients, getPatientsOf, getStaffMembers,
-  getHistory, getGoals, getRiskProfile,
+  getHistory, getGoals, getRiskProfile, setRiskLevelManual, checkRiskDecay,
   getMedicalRecord, validateMedicalRecord,
   getProgressNotes, addProgressNote,
   createAppointment, getAppointmentById, getAllAppointments,
@@ -153,6 +153,36 @@ router.put('/patients/:id/medical/validate', requireClinician, (req, res) => {
   return res.json({ record })
 })
 
+// ── PUT /api/staff/patients/:id/risk-level — corregir el nivel a mano ──
+// Solo psicólogos y admin (requireClinician), igual que validar una ficha
+// médica: es un juicio clínico, no una tarea de seguimiento del monitor.
+// Un falso positivo del analizador (o uno ya superado) puede quedar marcado
+// en rojo para siempre si no hay forma de bajarlo. El descenso automático
+// (checkRiskDecay) cubre el caso sin intervención humana; esto cubre el
+// caso de "hace falta corregirlo ya".
+router.put('/patients/:id/risk-level', requireClinician, (req, res) => {
+  const patient = findUserById(req.params.id)
+  if (!patient || patient.role !== 'user')
+    return res.status(404).json({ message: 'Paciente no encontrado.' })
+  if (!canAccessPatient(req, patient))
+    return res.status(403).json({ message: 'Este paciente no está asignado a ti.' })
+
+  const { level, motivo } = req.body || {}
+  if (!['bajo', 'medio', 'alto'].includes(level))
+    return res.status(400).json({ message: 'Nivel inválido. Usa: bajo, medio o alto.' })
+  if (!motivo?.trim())
+    return res.status(400).json({ message: 'Indica el motivo de la corrección.' })
+  if (motivo.length > 500)
+    return res.status(400).json({ message: 'Motivo demasiado largo (máx. 500).' })
+
+  const risk = setRiskLevelManual(patient._id, level)
+  auditar(req, 'riesgo.corregir', {
+    targetId: patient._id, targetName: patient.name,
+    details: `Nivel corregido a ${level} · ${motivo.trim()}`
+  })
+  return res.json({ risk })
+})
+
 // ── Citas / Calendario ─────────────────────────────────────────
 function apptWithNames(a) {
   const patient = findUserById(a.patientId)
@@ -262,6 +292,10 @@ router.put('/appointments/:id', requireClinician, (req, res) => {
     targetId: appt.patientId, targetName: paciente?.name,
     details: status ? `Nuevo estado: ${status}` : 'Cambió fecha, duración, modalidad o notas'
   })
+  // Asistir a una cita es una señal positiva para el descenso automático
+  // de riesgo (ver checkRiskDecay); se revisa recién aquí y no antes, para
+  // no contar una cita que todavía no pasó.
+  if (status === 'completada') checkRiskDecay(appt.patientId)
   return res.json({ appointment: apptWithNames(updated) })
 })
 

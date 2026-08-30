@@ -2,12 +2,13 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AuthForm from '../components/AuthForm.jsx'
 import Header from '../components/Header.jsx'
+import { homeFor } from '../constants.js'
 
 export default function Register() {
   const { user } = useAuth()
   const nav = useNavigate()
 
-  if (user) return <Navigate to="/chat" replace />
+  if (user) return <Navigate to={homeFor(user)} replace />
 
   return (
     <div className="app-layout" style={{ position: 'relative', overflow: 'hidden' }}>

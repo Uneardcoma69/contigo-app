@@ -65,6 +65,19 @@ export const ROLE_LABEL = {
 }
 
 /**
+ * A dónde va cada rol después de iniciar sesión (o al visitar una página de
+ * auth ya logueado). El paciente llega a su panel, no al chat: desde ahí ve
+ * de un vistazo sus citas y sus objetivos, y entra al chat cuando lo decide.
+ * Única fuente de verdad: vivía repetida (y con resultados distintos) en
+ * Home, Login y Register.
+ */
+export function homeFor(user) {
+  if (user?.isAdmin) return '/admin'
+  if (user?.isStaff) return '/staff'
+  return '/inicio'
+}
+
+/**
  * Rebaja un color del sistema a una lámina de fondo.
  *
  * Antes se le pegaba la transparencia al final del valor (`${color}30`),

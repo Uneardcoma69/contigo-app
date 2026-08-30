@@ -24,12 +24,18 @@ const HIGH_KEYWORDS = [
   // Despedida / planes concretos
   'carta de despedida', 'despedirme de todos', 'me voy para siempre',
   'ya tomé la decisión', 'ya lo decidí', 'no hay vuelta atrás',
-  'tengo un plan', 'sé cómo hacerlo', 'esta noche', 'pastillas para morir',
-  'tirarme', 'lanzarme', 'colgarme', 'ahorcarme', 'envenenarme',
+  'pastillas para morir', 'ahorcarme', 'envenenarme',
 ]
 
 // MEDIO (score 5) — Señales de alerta: desesperanza, depresión profunda, aislamiento
 const MEDIUM_KEYWORDS = [
+  // Frases de uso cotidiano en español que también aparecen en contextos de
+  // riesgo, pero sin la especificidad para clasificar solas como ALTO (ver
+  // decisión de producto: "tengo un plan para esta noche con mis amigas" no
+  // debería disparar la alerta de crisis completa). Si dos de estas aparecen
+  // juntas en el mismo mensaje, la suma de puntajes igual llega a ALTO.
+  'tengo un plan', 'sé cómo hacerlo', 'esta noche', 'tirarme', 'lanzarme', 'colgarme',
+
   // Desesperanza profunda
   'no puedo más', 'no aguanto más', 'ya no puedo', 'estoy harto de vivir',
   'no tiene sentido', 'nada tiene sentido', 'todo es inútil',

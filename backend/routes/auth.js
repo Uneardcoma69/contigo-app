@@ -1,7 +1,7 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, getAppointmentsForPatient, setUserPassword, bumpTokenVersion, STAFF_ROLES } from '../store.js'
+import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, getAppointmentsForPatient, setUserPassword, bumpTokenVersion, STAFF_ROLES, getRiskHeatmap, getRiskEventsForDay } from '../store.js'
 import requireAuth from '../middleware/requireAuth.js'
 import { effectiveRole } from '../middleware/requireRole.js'
 
@@ -34,6 +34,8 @@ router.post('/register', async (req, res) => {
     const { name, email, password } = req.body
     if (!name?.trim() || !email?.trim() || !password)
       return res.status(400).json({ message: 'Todos los campos son requeridos.' })
+    if (name.trim().length > 120)
+      return res.status(400).json({ message: 'El nombre es demasiado largo.' })
     if (password.length < 6)
       return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' })
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -41,6 +43,13 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'El formato del correo no es válido.' })
     if (findUserByEmail(email))
       return res.status(409).json({ message: 'Este correo ya está registrado.' })
+    // ADMIN_EMAIL vuelve admin a cualquier cuenta con ese correo (ver
+    // effectiveRole). El registro es público y sin verificación de email, así
+    // que sin este bloqueo cualquiera podría autoproclamarse admin
+    // registrándose primero con ese correo.
+    const adminEmail = (process.env.ADMIN_EMAIL || '').toLowerCase().trim()
+    if (adminEmail && email.toLowerCase().trim() === adminEmail)
+      return res.status(403).json({ message: 'Este correo no está disponible para registro público.' })
     const hash = await bcrypt.hash(password, 12)
     const user = createUser({ name, email, password: hash })
     const token = createToken(user)
@@ -126,6 +135,20 @@ router.get('/appointments', requireAuth, (req, res) => {
     })
     .sort((a, b) => new Date(a.date) - new Date(b.date))
   return res.json({ appointments: list })
+})
+
+// ── Línea de tiempo emocional del propio usuario ───────────────
+// GET /api/auth/risk/heatmap?days=90 — mi mapa de calor de riesgo
+router.get('/risk/heatmap', requireAuth, (req, res) => {
+  const days = Math.min(Math.max(Number(req.query.days) || 90, 1), 366)
+  return res.json(getRiskHeatmap(req.userId, days))
+})
+
+// GET /api/auth/risk/events?date=YYYY-MM-DD — mis alertas de ese día
+router.get('/risk/events', requireAuth, (req, res) => {
+  const fecha = String(req.query.date || '')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return res.status(400).json({ message: 'Fecha inválida.' })
+  return res.json({ events: getRiskEventsForDay(req.userId, fecha) })
 })
 
 // ── Ficha médica del propio usuario ────────────────────────────

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
+import { homeFor } from '../constants.js'
 import '../landing.css'
 
 const services = [
@@ -104,7 +105,7 @@ export default function Home() {
   }, [loading, user])
 
   if (loading) return null
-  if (user) return <Navigate to={user.isAdmin ? '/admin' : user.isStaff ? '/staff' : '/chat'} replace />
+  if (user) return <Navigate to={homeFor(user)} replace />
 
   const handleSubmit = async (e) => {
     e.preventDefault()

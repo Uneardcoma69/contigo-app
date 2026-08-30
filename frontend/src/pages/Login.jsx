@@ -2,15 +2,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AuthForm from '../components/AuthForm.jsx'
 import Header from '../components/Header.jsx'
-
-// A dónde va cada rol después de iniciar sesión.
-// El paciente llega a su panel, no al chat: desde ahí ve de un vistazo
-// sus citas y sus objetivos, y entra al chat cuando lo decide.
-function homeFor(u) {
-  if (u?.isAdmin) return '/admin'
-  if (u?.isStaff) return '/staff'
-  return '/inicio'
-}
+import { homeFor } from '../constants.js'
 
 export default function Login() {
   const { user } = useAuth()

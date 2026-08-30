@@ -179,6 +179,8 @@ router.post('/staff', requireAdmin, async (req, res) => {
     const { name, email, password, role } = req.body || {}
     if (!name?.trim() || !email?.trim() || !password)
       return res.status(400).json({ message: 'Nombre, correo y contraseña son requeridos.' })
+    if (name.trim().length > 120)
+      return res.status(400).json({ message: 'El nombre es demasiado largo.' })
     if (password.length < 6)
       return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' })
     if (!STAFF_ROLES.includes(role))

@@ -1,6 +1,6 @@
 import express from 'express'
 import requireAuth from '../middleware/requireAuth.js'
-import { getGoals, createGoal, toggleGoal, deleteGoal } from '../store.js'
+import { getGoals, createGoal, toggleGoal, deleteGoal, checkRiskDecay } from '../store.js'
 
 const router = express.Router()
 
@@ -30,6 +30,9 @@ router.post('/', requireAuth, (req, res) => {
 router.patch('/:id', requireAuth, (req, res) => {
   const goal = toggleGoal(req.userId, req.params.id)
   if (!goal) return res.status(404).json({ message: 'Objetivo no encontrado.' })
+  // Cumplir una meta es una señal positiva para el descenso automático de
+  // riesgo (ver checkRiskDecay en store.js). Desmarcarla no cuenta.
+  if (goal.completed) checkRiskDecay(req.userId)
   return res.json({ goal })
 })
 
