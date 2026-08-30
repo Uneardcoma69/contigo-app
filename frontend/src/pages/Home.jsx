@@ -191,6 +191,10 @@ export default function Home() {
                 width="990"
                 height="440"
               />
+              <span className="hero-badge reveal" style={{ '--rd': '0.03s' }}>
+                <span className="dot" aria-hidden="true"></span>
+                Apoyo emocional con acompañamiento profesional
+              </span>
               <h1 id="hero-title" className="reveal" style={{ '--rd': '0.06s' }}>Cuidar cómo te sientes también es cuidar tu salud</h1>
               <p className="hero-lead reveal" style={{ '--rd': '0.12s' }}>
                 En Contigo te acompaña un equipo de psicólogos titulados, en sesiones presenciales

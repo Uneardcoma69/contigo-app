@@ -224,6 +224,11 @@ export default function ChatPage() {
     grouped.push({ ...m, type: 'message' })
   })
 
+  // Antes de que la persona escriba algo, solo está el saludo sintético:
+  // se muestra como un estado inicial grande en vez de una burbuja sola.
+  const chatHero = !loadingHist && messages.length === 1 && !typing
+  const nombre = user?.name?.split(' ')[0] || ''
+
   return (
     <div className="app-layout" style={{ position: 'relative', overflow: 'hidden' }}>
       
@@ -247,6 +252,16 @@ export default function ChatPage() {
           {loadingHist ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
               <span className="spinner spinner--dark" style={{ width: 28, height: 28 }} />
+            </div>
+          ) : chatHero ? (
+            <div className="chat-hero">
+              <img className="chat-hero__avatar" src="/marca/contigo-favicon.png" alt="Contigo" />
+              {nombre && <p className="chat-hero__saludo">Hola, {nombre}.</p>}
+              <h1 className="chat-hero__titulo">¿Cómo te sientes hoy?</h1>
+              <p className="chat-hero__texto">Escribe lo que quieras, como te salga. Si no sabes por dónde empezar, toma una de estas.</p>
+              <div className="chat-hero__grid">
+                {QUICK_REPLIES.map(q => <button key={q} className="quick-reply" onClick={() => send(q)}>{q}</button>)}
+              </div>
             </div>
           ) : (
             <>
@@ -278,7 +293,7 @@ export default function ChatPage() {
         </div>
 
         <div className="chat-input-area">
-          {messages.length <= 2 && !typing && (
+          {messages.length <= 2 && !typing && !chatHero && (
             <div className="quick-replies anim-float">
               {QUICK_REPLIES.map(q => <button key={q} className="quick-reply" onClick={() => send(q)}>{q}</button>)}
             </div>
@@ -304,7 +319,7 @@ export default function ChatPage() {
             <button className="chat-send-btn" onClick={() => send()} disabled={!text.trim() || typing || loadingHist}>
               {typing
                 ? <span className="spinner" style={{ width: 18, height: 18 }} />
-                : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                : <Icono nombre="enviar" tamano={22} strokeWidth={2.3} />
               }
             </button>
           </div>

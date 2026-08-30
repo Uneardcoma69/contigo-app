@@ -30,26 +30,29 @@ export default function Header({ actions }) {
 
   // El icono y el texto van separados para poder ocultar la palabra en
   // pantallas angostas sin que el enlace pierda su nombre accesible.
-  const navLink = (to, nombreIcono, texto) => (
-    <Link
-      to={to}
-      aria-label={texto}
-      className="header__nav-link"
-      style={{
-        fontSize: '0.95rem',
-        fontWeight: 500,
-        color: location.pathname === to ? 'var(--teal-dark)' : 'var(--slate)',
-        textDecoration: 'none',
-        borderRadius: 'var(--radius-pill)',
-        background: location.pathname === to ? 'var(--teal-pale)' : 'transparent',
-        border: location.pathname === to ? '1px solid var(--teal-light)' : '1px solid transparent',
-        transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
-      }}
-    >
-      <Icono nombre={nombreIcono} tamano={19} />
-      <span className="header__nav-texto">{texto}</span>
-    </Link>
-  )
+  const navLink = (to, nombreIcono, texto) => {
+    const activo = location.pathname === to
+    return (
+      <Link
+        to={to}
+        aria-label={texto}
+        className="header__nav-link"
+        style={{
+          fontSize: '0.9rem',
+          fontWeight: 500,
+          color: activo ? 'var(--sobre-acento)' : 'var(--slate)',
+          textDecoration: 'none',
+          borderRadius: 'var(--radius-pill)',
+          background: activo ? 'var(--teal)' : 'transparent',
+          border: '1px solid transparent',
+          transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
+        }}
+      >
+        <Icono nombre={nombreIcono} tamano={19} />
+        <span className="header__nav-texto">{texto}</span>
+      </Link>
+    )
+  }
 
   return (
     <header className="header">

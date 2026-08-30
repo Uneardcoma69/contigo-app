@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
 import Header from '../components/Header.jsx'
 import Icono from '../components/Icono.jsx'
+import ProgressRing from '../components/ProgressRing.jsx'
 import { CATEGORIES } from '../constants.js'
 
 /**
@@ -16,6 +17,14 @@ import { CATEGORIES } from '../constants.js'
 
 const fmtFecha = d => new Date(d).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
 const fmtHora  = d => new Date(d).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
+
+/** Saludo acorde a la hora del día, en vez de un "Hola" siempre igual. */
+function saludo() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Buenos días'
+  if (h < 19) return 'Buenas tardes'
+  return 'Buenas noches'
+}
 
 /** «Faltan 3 días» · «Es hoy» — más útil que una fecha suelta. */
 function cuantoFalta(fecha) {
@@ -70,20 +79,20 @@ export default function PanelPage() {
       <Header />
       <main className="page">
         <div className="page-head">
-          <h1 className="page-head__title">Hola, {nombre}</h1>
+          <h1 className="page-head__title">{saludo()}, {nombre}</h1>
           <p className="page-head__sub">Este es tu espacio. ¿Por dónde quieres empezar?</p>
         </div>
 
         <div className="panel-inicio">
           {/* ── Columna izquierda: chat y citas ── */}
           <div className="panel-inicio__col">
-            <Tarjeta to="/chat" aria-label="Abrir el chat de acompañamiento">
+            <Tarjeta to="/chat" className="tarjeta-panel tarjeta-panel--oscura" aria-label="Abrir el chat de acompañamiento">
               <div className="tarjeta-panel__icono"><Icono nombre="chat" tamano={24} /></div>
-              <h2 className="tarjeta-panel__titulo">Chat Contigo</h2>
+              <h2 className="tarjeta-panel__titulo">Hablar con Contigo</h2>
               <p className="tarjeta-panel__texto">
                 Un espacio para hablar de lo que sientes, a cualquier hora del día.
               </p>
-              <span className="tarjeta-panel__accion">Conversar →</span>
+              <span className="tarjeta-panel__accion">Continuar la conversación →</span>
             </Tarjeta>
 
             <Tarjeta to="/citas" aria-label="Ver mis citas y el calendario">
@@ -149,12 +158,14 @@ export default function PanelPage() {
               </div>
             ) : (
               <>
-                <div className="progress" style={{ marginBottom: 6 }}>
-                  <div className="progress__fill" style={{ width: `${pct}%` }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
+                  <ProgressRing pct={pct} size={64} strokeWidth={7} color="var(--teal)">
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--navy)' }}>{pct}%</span>
+                  </ProgressRing>
+                  <p className="meta" style={{ margin: 0 }}>
+                    {hechas} de {metas.length} completados
+                  </p>
                 </div>
-                <p className="meta" style={{ marginBottom: 16 }}>
-                  {hechas} de {metas.length} completados · {pct}%
-                </p>
 
                 <div className="list">
                   {pendientes.map(m => (

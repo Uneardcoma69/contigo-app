@@ -68,29 +68,35 @@ export default function CitasPage() {
 
         {proximaEstaFuera && (
           <div style={{
-            background: 'var(--teal-pale)', border: '1px solid var(--teal-light)',
-            borderRadius: 'var(--radius-lg)', padding: '18px 22px', marginBottom: 20,
+            position: 'relative', overflow: 'hidden',
+            background: 'var(--teal)', borderRadius: 'var(--radius-xl)',
+            padding: 'clamp(22px, 3vw, 32px)', marginBottom: 20,
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            flexWrap: 'wrap', gap: 12
+            flexWrap: 'wrap', gap: 16
           }}>
-            <div>
+            <div style={{
+              position: 'absolute', right: -100, top: -120, width: 320, height: 320, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(102,178,166,0.24) 0%, rgba(102,178,166,0) 70%)', pointerEvents: 'none'
+            }} />
+            <div style={{ position: 'relative' }}>
               <div style={{
-                fontSize: '0.72rem', fontWeight: 600, color: 'var(--teal-dark)',
-                textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4
+                fontSize: '0.68rem', fontWeight: 700, color: 'var(--dorado)',
+                textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10
               }}>
                 Tu próxima cita no está en esta semana
               </div>
               <div style={{
-                fontWeight: 600, fontSize: '1.15rem', color: 'var(--navy)', textTransform: 'capitalize'
+                fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'clamp(1.3rem, 2.4vw, 1.7rem)',
+                color: 'var(--sobre-acento)', textTransform: 'capitalize', marginBottom: 6
               }}>
                 {fmtFecha(siguiente.date)} · {fmtHora(siguiente.date)}
               </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--slate)', marginTop: 2 }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--muted-on-dark)' }}>
                 {siguiente.modality === 'online' ? 'En línea' : 'Presencial'} ·{' '}
                 {siguiente.durationMin} min · con {siguiente.psychologistName}
               </div>
             </div>
-            <button className="btn btn--outline btn--sm" onClick={irALaProxima}>
+            <button className="btn btn--sm" style={{ position: 'relative', background: 'var(--white)', color: 'var(--teal)', border: 'none' }} onClick={irALaProxima}>
               Ir a esa semana →
             </button>
           </div>
@@ -99,10 +105,14 @@ export default function CitasPage() {
         <section className="panel">
           <div className="panel__head">
             <h2 className="panel__title">Semana {rangoDeSemana(diasDeSemana(semana))}</h2>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="btn btn--outline btn--sm" onClick={() => moverSemana(-1)}>← Anterior</button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button className="btn btn--icon" aria-label="Semana anterior" title="Semana anterior" onClick={() => moverSemana(-1)}>
+                <Icono nombre="flecha-izq" tamano={17} />
+              </button>
               <button className="btn btn--outline btn--sm" onClick={() => setSemana(inicioDeSemana(new Date()))}>Hoy</button>
-              <button className="btn btn--outline btn--sm" onClick={() => moverSemana(1)}>Siguiente →</button>
+              <button className="btn btn--icon" aria-label="Semana siguiente" title="Semana siguiente" onClick={() => moverSemana(1)}>
+                <Icono nombre="flecha" tamano={17} />
+              </button>
             </div>
           </div>
 

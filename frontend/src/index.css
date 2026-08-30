@@ -15,19 +15,22 @@
   color-scheme: light;
 
   /* ── Acento ───────────────────────────────────────────────────
-     El verde de la marca, tomado tal cual de la hoja de identidad
-     (#146A5C). Da 6.5:1 con blanco encima, así que sirve de fondo para
-     los botones sin ceder legibilidad.
+     Verde bosque más oscuro y cálido que la versión anterior (#146A5C):
+     da 12.4:1 con blanco encima, y es el mismo tono que ahora llevan
+     los títulos (--navy) — el rediseño usa un solo verde oscuro para
+     texto Y acción en vez de dos colores separados.
 
-     El coral (#FF6B6B) y el ámbar (#FFC857) de la marca NO entran en la
-     interfaz como color de texto: dan 2.8:1 y 1.5:1 sobre blanco, muy
-     por debajo del mínimo legible. Viven en el logotipo, donde son
-     forma y no información. */
-  --teal:       #146a5c;   /* acción principal · color de marca */
-  --teal-dark:  #0f564a;   /* presionado */
+     El ámbar (#FFC857) de la marca sigue sin entrar como color de TEXTO
+     sobre fondo claro (da 1.5:1 sobre blanco, muy por debajo del mínimo
+     legible). Sobre este verde oscuro sí funciona (8.1:1) — se usa como
+     texto de urgencia/disponibilidad SOLO sobre fondos --teal, o como
+     forma decorativa (puntos, acentos), nunca como texto sobre --white
+     o --bg-color. */
+  --teal:       #0b3b34;   /* acción principal · color de marca */
+  --teal-dark:  #082a24;   /* presionado */
   --teal-light: #b9e2db;   /* bordes y realces suaves */
   --teal-pale:  #eaf5f2;   /* fondos teñidos · color de marca */
-  --teal-ink:   #0f564a;   /* texto sobre fondo claro */
+  --teal-ink:   #082a24;   /* texto sobre fondo claro */
   /* Lo que se escribe ENCIMA del acento. Se invierte con el tema: en
      claro el acento es oscuro y pide texto blanco; en oscuro el acento
      es claro y el blanco encima queda en 1.9:1, ilegible. */
@@ -37,21 +40,32 @@
   --sage-light: #d9ebe3;
   --sage-pale:  #f2f8f5;
 
+  /* Acento cálido intermedio: para links y CTAs secundarios, y para
+     eyebrows/etiquetas sobre fondo CLARO — --sage da solo 2.3:1 ahí
+     (falla AA), este da 3.9:1. Sobre fondo oscuro seguí usando --sage
+     (ahí sí pasa, 5:1). */
+  --acento-calido:      #2f9080;
+  --acento-calido-dark: #0b3b34;   /* hover · = --teal */
+  --dorado:             #ffc857;   /* ver nota de la sección Acento */
+  --muted-on-dark:      #9dc4bb;   /* texto secundario sobre --teal sólido */
+
   /* ── Superficies ──────────────────────────────────────────────
      Los grises llevan una pizca del acento: un gris neutro puro se
-     ve accidental al lado de un color con temperatura. */
-  --bg-color:   #f6f7f7;   /* fondo de la aplicación */
+     ve accidental al lado de un color con temperatura. Ahora con
+     temperatura cálida (crema) en vez de fría. */
+  --bg-color:   #fbf8f4;   /* fondo de la aplicación */
   --white:      #ffffff;   /* superficie elevada */
-  --cream:      #fafbfb;   /* superficie hundida */
+  --cream:      #fbf8f4;   /* superficie hundida */
   --cream2:     #eef0f0;   /* separadores y rieles */
+  --surface-warm: #f4efe7; /* superficie secundaria cálida, alterna con --white */
 
   /* ── Texto ────────────────────────────────────────────────────
      Los tres niveles cumplen contraste AA sobre sus fondos. Un gris
      más claro se vería elegante en una maqueta y sería ilegible para
      quien abre la aplicación cansado o a media luz. */
-  --navy:       #10161c;   /* títulos y texto principal */
+  --navy:       #0b3b34;   /* títulos y texto principal · = --teal */
   --navy-light: #33414d;
-  --slate:      #5a6a75;   /* texto secundario · 5.6:1 sobre #f6f7f7 */
+  --slate:      #5a6a75;   /* texto secundario · 5.3:1 sobre #fbf8f4 */
   --slate-light:#64717a;   /* 5.0:1 sobre blanco; el tono más claro que
                               todavía se lee sin esfuerzo */
 
@@ -59,7 +73,7 @@
      Casi invisibles: separan sin dibujar cajas. */
   --line:         #e6e9e9;
   --line-strong:  #d3d8d8;
-  --border:       #e6e9e9;
+  --border:       #e8e4dc;   /* cálido, a tono con el fondo crema nuevo */
   --border-light: #eef0f0;
 
   /* ── Vidrio ───────────────────────────────────────────────────
@@ -123,9 +137,9 @@
 
   --transition:   0.2s ease;
   --font:         'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  /* La serif se reserva al nombre de la marca: ahí es donde una
-     identidad debe notarse, no repartida por toda la interfaz. */
+  /* La serif ahora viste los títulos de toda la interfaz, no solo el
+     nombre de marca — es el cambio tipográfico central del rediseño. */
+  --font-display: 'Fraunces', Georgia, serif;
   --font-marca:   'Fraunces', Georgia, serif;
 
   /* ── Escala tipográfica ──────────────────────────────────────
@@ -176,6 +190,14 @@
   --weight-medium: 500;
   --weight-semi:   600;
 }
+
+/* ─── Breakpoints ──────────────────────────────────────────────
+   No hay forma de usar variables CSS dentro de @media, así que esto
+   queda como convención documentada, no como token. Misma cascada que
+   ya usaba landing.css, adoptada como estándar para el resto de la app:
+     960px — colapsa grids de 2-3 columnas a 1.
+     760px — ajustes de tipografía grande / grids secundarios.
+     560px — apila del todo, botones a ancho completo. */
 
 /* ─── Modo oscuro (en reposo) ──────────────────────────────────
    Contigo se ve SIEMPRE en claro. Es una decisión de producto: el tema
@@ -1214,6 +1236,40 @@ h1 { letter-spacing: var(--tracking-tight); }
   transform: translateY(-1px);
 }
 
+/* Estado inicial del chat: reemplaza la lista de mensajes mientras solo
+   está el saludo sintético, antes de que la persona escriba algo. */
+.chat-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 12px;
+}
+.chat-hero__avatar { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; margin-bottom: 22px; }
+.chat-hero__saludo { font-size: 0.9rem; font-weight: 600; color: var(--acento-calido); margin: 0 0 10px; }
+.chat-hero__titulo {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  margin: 0 0 14px;
+}
+.chat-hero__texto { font-size: 1rem; color: var(--slate); margin: 0 0 28px; max-width: 34rem; }
+.chat-hero__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.chat-hero__grid .quick-reply {
+  text-align: left;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  white-space: normal;
+  line-height: 1.4;
+}
+
 /* Chat Empty */
 .chat-empty {
   flex: 1;
@@ -1280,6 +1336,52 @@ h1 { letter-spacing: var(--tracking-tight); }
 .auth-card__footer { text-align: center; margin-top: 1.5rem; font-size: 0.93rem; color: var(--slate); font-weight: 400; }
 .auth-card__footer a { color: var(--teal-ink); font-weight: 600; text-decoration: none; transition: color var(--transition); }
 .auth-card__footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Layout de dos columnas: el formulario a la izquierda, un panel oscuro
+   con una historia real a la derecha — se apila a una columna en mobile. */
+.auth-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+}
+.auth-split .auth-page { min-height: 100vh; }
+
+.auth-split__panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--teal);
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(28px, 4vw, 56px);
+}
+.auth-split__panel::before {
+  content: "";
+  position: absolute;
+  top: -140px; right: -120px;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 178, 166, 0.28) 0%, rgba(102, 178, 166, 0) 70%);
+  pointer-events: none;
+}
+.auth-split__quote {
+  position: relative;
+  margin: 0;
+  max-width: 30rem;
+}
+.auth-split__quote p {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.4vw, 1.9rem);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--sobre-acento);
+  margin: 0 0 20px;
+}
+.auth-split__quote footer { font-size: 0.88rem; color: var(--muted-on-dark); }
+
+@media (max-width: 960px) {
+  .auth-split { grid-template-columns: 1fr; }
+  .auth-split__panel { display: none; }
+}
 
 /* ─── Movimiento ─────────────────────────────────────────────── */
 /* Los halos de fondo se quedan quietos: en una herramienta de salud
@@ -1649,6 +1751,20 @@ h1 { letter-spacing: var(--tracking-tight); }
   transition: background-color var(--dur) var(--ease-out);
 }
 .tarjeta-panel:hover .tarjeta-panel__icono { background: var(--teal-light); }
+
+/* Variante destacada: la tarjeta de "hablar con Contigo" del panel de
+   inicio, siempre disponible — se distingue del resto por fondo sólido
+   en vez de una etiqueta más. */
+.tarjeta-panel--oscura {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+.tarjeta-panel--oscura:hover { border-color: var(--teal-dark); }
+.tarjeta-panel--oscura .tarjeta-panel__icono { background: rgba(255, 255, 255, 0.12); color: var(--sobre-acento); }
+.tarjeta-panel--oscura:hover .tarjeta-panel__icono { background: rgba(255, 255, 255, 0.18); }
+.tarjeta-panel--oscura .tarjeta-panel__titulo,
+.tarjeta-panel--oscura .tarjeta-panel__accion { color: var(--sobre-acento); }
+.tarjeta-panel--oscura .tarjeta-panel__texto { color: var(--muted-on-dark); }
 
 .tarjeta-panel__titulo {
   margin: 0 0 var(--space-2);

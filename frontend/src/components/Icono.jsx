@@ -24,6 +24,7 @@ const TRAZOS = {
   salir: <><path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3" /><path d="m16 16 4-4-4-4" /><path d="M20 12H9" /></>,
 
   flecha: <><path d="M4 12h15" /><path d="m13 6 6 6-6 6" /></>,
+  'flecha-izq': <><path d="M20 12H5" /><path d="m11 6-6 6 6 6" /></>,
 
   alerta: <><path d="M12 3.5 2.8 19.5h18.4L12 3.5Z" /><path d="M12 10v4" /><path d="M12 17.2h.01" /></>,
 
@@ -42,6 +43,7 @@ const TRAZOS = {
   calendario: <><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 9.5h17" /><path d="M8 3v4M16 3v4" /></>,
 
   // ── Estado y acciones ──
+  enviar:   <><path d="M22 2 11 13" /><path d="M22 2 15 22 11 13 2 9 22 2Z" /></>,
   check:    <path d="m4.5 12.5 5 5 10-11" />,
   cerrar:   <path d="M6 6l12 12M18 6 6 18" />,
   circulo:  <circle cx="12" cy="12" r="8.5" />,

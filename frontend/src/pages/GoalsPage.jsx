@@ -8,6 +8,7 @@ import ChangePasswordCard from '../components/ChangePasswordCard.jsx'
 import { useToast } from '../hooks/useToast.js'
 import { CATEGORIES, tinte } from '../constants.js'
 import Icono from '../components/Icono.jsx'
+import ProgressRing from '../components/ProgressRing.jsx'
 
 function getCat(id) {
   return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]
@@ -162,22 +163,9 @@ function CategoryCard({ cat, goals, onToggle, onDelete }) {
             </div>
           </div>
         </div>
-        <div style={{
-          fontWeight: 600, fontSize: '1.1rem',
-          color: pct === 100 ? 'var(--exito)' : 'var(--navy)'
-        }}>
-          {pct}%
-        </div>
-      </div>
-
-      {/* Barra de progreso */}
-      <div style={{ height: 5, background: 'var(--cream2)' }}>
-        <div style={{
-          height: '100%', width: `${pct}%`,
-          background: cat.color,
-          transition: 'width 0.5s ease',
-          borderRadius: '0 2px 2px 0'
-        }} />
+        <ProgressRing pct={pct} size={40} strokeWidth={4} color={pct === 100 ? 'var(--exito)' : cat.color} trackColor={tinte(cat.color, 15)}>
+          <span style={{ fontWeight: 700, fontSize: '0.66rem', color: pct === 100 ? 'var(--exito)' : 'var(--navy)' }}>{pct}%</span>
+        </ProgressRing>
       </div>
 
       {/* Lista de objetivos */}
@@ -354,26 +342,17 @@ export default function GoalsPage() {
         {/* Resumen general */}
         {total > 0 && (
           <div style={{
-            background: 'var(--white)', border: 'none',
+            display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
+            background: 'var(--white)', border: '1px solid var(--border)',
             borderRadius: 'var(--radius-xl)', padding: '24px 28px',
             marginBottom: 24, boxShadow: 'var(--shadow-md)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ fontWeight: 500, color: 'var(--navy)' }}>Progreso total</span>
-              <span style={{ fontWeight: 600, color: 'var(--teal-dark)', fontSize: '1.1rem' }}>
-                {pct}%
-              </span>
-            </div>
-            <div style={{ height: 12, background: 'var(--cream2)', borderRadius: 99, overflow: 'hidden', border: '1px solid var(--border)' }}>
-              <div style={{
-                height: '100%', width: `${pct}%`,
-                background: 'linear-gradient(90deg, var(--teal), var(--sage))',
-                borderRadius: 99, transition: 'width 0.5s ease'
-              }} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>{done} completados</span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>{total - done} pendientes</span>
+            <ProgressRing pct={pct} size={90} strokeWidth={9} color="var(--teal)" trackColor="var(--surface-warm)">
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', fontWeight: 500, color: 'var(--navy)' }}>{pct}%</span>
+            </ProgressRing>
+            <div>
+              <span style={{ fontWeight: 500, color: 'var(--navy)', display: 'block', marginBottom: 6 }}>Progreso total</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--slate)' }}>{done} completados · {total - done} pendientes</span>
             </div>
           </div>
         )}
@@ -489,18 +468,27 @@ export default function GoalsPage() {
 
         {/* Celebración */}
         {total > 0 && done === total && (
-          <div className="anim-pulse" style={{
-            marginTop: 32, textAlign: 'center', padding: '32px',
-            background: 'var(--teal-pale)', borderRadius: 'var(--radius-xl)',
-            border: '1px solid var(--teal-light)'
+          <div style={{
+            position: 'relative', overflow: 'hidden', marginTop: 32, textAlign: 'center',
+            padding: 'clamp(40px, 6vw, 64px) 28px', background: 'var(--teal)', borderRadius: 'var(--radius-xl)'
           }}>
-            <div style={{ marginBottom: 8, color: 'var(--exito)' }}><Icono nombre="fiesta" tamano={32} /></div>
-            <p style={{ fontWeight: 600, color: 'var(--teal-dark)', margin: '0 0 4px', fontSize: '1.1rem' }}>
-              ¡Completaste todos tus objetivos!
-            </p>
-            <p style={{ color: 'var(--slate)', fontSize: '0.875rem', margin: 0 }}>
-              Eso merece un momento de orgullo. Sigue así.
-            </p>
+            <div style={{
+              position: 'absolute', top: -140, left: '50%', transform: 'translateX(-50%)',
+              width: 420, height: 420, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255,200,87,0.22) 0%, rgba(255,200,87,0) 68%)', pointerEvents: 'none'
+            }} />
+            <div style={{ position: 'relative' }}>
+              <div className="anim-pulse" style={{
+                width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,200,87,0.16)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--dorado)'
+              }}><Icono nombre="fiesta" tamano={32} /></div>
+              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', color: 'var(--sobre-acento)', margin: '0 0 10px' }}>
+                Completaste todos tus objetivos
+              </p>
+              <p style={{ color: 'var(--muted-on-dark)', fontSize: '0.95rem', margin: 0 }}>
+                Eso no fue suerte: fue constancia. Tómate el momento antes de poner el siguiente.
+              </p>
+            </div>
           </div>
         )}
 
