@@ -1,7 +1,7 @@
 // Registro de auditoría: qué queda constancia, quién puede leerlo y
 // que no se pueda alterar desde la aplicación.
 
-const BASE = 'http://localhost:3000/api'
+const BASE = process.env.CONTIGO_API_BASE || 'http://localhost:3000/api'
 let failures = 0
 
 async function api(method, path, { token, body } = {}) {

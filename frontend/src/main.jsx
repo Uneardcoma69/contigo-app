@@ -10,6 +10,7 @@ import PanelPage from './pages/PanelPage.jsx'
 import ChatPage  from './pages/ChatPage.jsx'
 import CitasPage from './pages/CitasPage.jsx'
 import GoalsPage from './pages/GoalsPage.jsx'
+import HistorialPage from './pages/HistorialPage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
 import StaffPage from './pages/StaffPage.jsx'
 import LegalPage from './pages/LegalPage.jsx'
@@ -70,6 +71,7 @@ const TITULO_POR_RUTA = {
   '/chat':     'Chat',
   '/citas':    'Mis citas',
   '/goals':    'Mis metas',
+  '/historial':'Tu historial',
   '/staff':    'Panel del equipo',
   '/admin':    'Panel de alertas',
   '/legal':    'Aviso legal',
@@ -101,6 +103,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/chat"     element={<RequireAuth><ChatPage /></RequireAuth>} />
           <Route path="/citas"    element={<RequireAuth><CitasPage /></RequireAuth>} />
           <Route path="/goals"    element={<RequireAuth><GoalsPage /></RequireAuth>} />
+          <Route path="/historial" element={<RequireAuth><HistorialPage /></RequireAuth>} />
           <Route path="/staff"    element={<RequireStaff><StaffPage /></RequireStaff>} />
           <Route path="/admin"    element={<RequireAdmin><AdminPage /></RequireAdmin>} />
           <Route path="*"         element={<Navigate to="/" replace />} />

@@ -9,9 +9,9 @@ import { CATEGORIES } from '../constants.js'
 /**
  * Panel de inicio de la persona usuaria.
  *
- * Es la primera pantalla tras iniciar sesión. Reúne en un vistazo las tres
- * cosas que le pertenecen —con quién hablar, cuándo es su cita y qué metas
- * tiene—, en vez de dejarla caer directamente en el chat sin contexto.
+ * Es la primera pantalla tras iniciar sesión. Reúne en un vistazo lo que le
+ * pertenece —con quién hablar, cuándo es su cita, qué metas tiene y cómo ha
+ * estado—, en vez de dejarla caer directamente en el chat sin contexto.
  */
 
 const fmtFecha = d => new Date(d).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -115,6 +115,15 @@ export default function PanelPage() {
                   <span className="tarjeta-panel__accion">Ver el calendario →</span>
                 </>
               )}
+            </Tarjeta>
+
+            <Tarjeta to="/historial" aria-label="Ver tu historial emocional">
+              <div className="tarjeta-panel__icono"><Icono nombre="reportes" tamano={24} /></div>
+              <h2 className="tarjeta-panel__titulo">Tu historial emocional</h2>
+              <p className="tarjeta-panel__texto">
+                Un mapa de cómo has estado, día a día. Solo para ti.
+              </p>
+              <span className="tarjeta-panel__accion">Ver mi historial →</span>
             </Tarjeta>
           </div>
 
