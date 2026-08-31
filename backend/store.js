@@ -1098,6 +1098,138 @@ export function getRiskEventsForDay(userId, date) {
   }))
 }
 
+// ── Línea de tiempo agregada (vista del equipo) ─────────────────
+// A diferencia de getRiskHeatmap (una persona, muchos días), esto agrega
+// TODOS los pacientes por día: para que el equipo vea el patrón de la
+// semana de un vistazo, en vez de tener que abrir paciente por paciente.
+
+const DIAS_SEMANA_CORTOS = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
+
+// En UTC, no en hora local: created_at se guarda siempre en UTC (ahora()),
+// así que agrupar los días en hora local desalinearía las celdas del mapa
+// de calor con los datos reales apenas la hora local cruce la medianoche
+// UTC (pasa todas las tardes/noches en Colombia, UTC-5).
+function inicioDeSemanaBackend(fecha) {
+  const d = new Date(fecha)
+  const dia = (d.getUTCDay() + 6) % 7 // lunes = 0
+  d.setUTCDate(d.getUTCDate() - dia)
+  d.setUTCHours(0, 0, 0, 0)
+  return d
+}
+
+/**
+ * Arma la oración-resumen a partir de los datos ya calculados.
+ * Simplificación conocida: el rango horario de los picos se calcula con
+ * min/max directo sobre la hora del día, así que un grupo de alertas entre
+ * las 23:00 y la 1:00 se lee como "entre las 0:00 y las 23:00" en vez de
+ * cruzar la medianoche. Es un caso borde razonable de dejar así por ahora.
+ */
+function construirResumenSemanal({ diasDeAlerta, diasTranquilos, nombresPico, horaMin, horaMax }) {
+  if (diasDeAlerta === 0) {
+    return `Esta semana no hubo días de alerta — ${diasTranquilos} ${diasTranquilos === 1 ? 'día tranquilo' : 'días tranquilos'}.`
+  }
+
+  const partes = [
+    `Esta semana hubo ${diasDeAlerta} ${diasDeAlerta === 1 ? 'día de alerta' : 'días de alerta'}` +
+    (diasTranquilos > 0 ? ` y ${diasTranquilos} ${diasTranquilos === 1 ? 'día tranquilo' : 'días tranquilos'}.` : '.')
+  ]
+
+  if (horaMin !== null) {
+    partes.push(horaMin === horaMax
+      ? `Los picos fueron alrededor de las ${horaMin}:00.`
+      : `Los picos fueron entre las ${horaMin}:00 y las ${horaMax}:00.`)
+  }
+
+  if (nombresPico.length === 1) {
+    partes.push(`Vinieron de la misma persona: ${nombresPico[0]}.`)
+  } else if (nombresPico.length > 1) {
+    partes.push(`Vinieron de ${nombresPico.length} personas distintas.`)
+  }
+
+  return partes.join(' ')
+}
+
+/**
+ * Resumen semanal + mapa de calor de 6 semanas, agregados entre todos los
+ * pacientes. Se calcula bajo demanda (no vive en un cron ni se cachea): el
+ * volumen de datos de este proyecto no lo justifica todavía.
+ */
+export function getRiskWeeklyOverview() {
+  const inicioSemana = inicioDeSemanaBackend(new Date())
+  const ahora = new Date()
+
+  const alertasSemana = all(
+    `SELECT ra.level, ra.user_id, ra.created_at, u.name AS user_name
+       FROM risk_alerts ra JOIN users u ON u.id = ra.user_id
+      WHERE ra.created_at >= ?
+      ORDER BY ra.created_at ASC`,
+    [inicioSemana.toISOString()]
+  )
+
+  const diasTranscurridos = Math.min(7, Math.floor((ahora - inicioSemana) / 86400000) + 1)
+  const picosAlto = alertasSemana.filter(a => a.level === 'alto')
+  const diasDeAlerta = new Set(picosAlto.map(a => a.created_at.slice(0, 10))).size
+  const diasTranquilos = Math.max(0, diasTranscurridos - diasDeAlerta)
+
+  const horasPico = picosAlto.map(a => new Date(a.created_at).getHours())
+  const horaMin = horasPico.length ? Math.min(...horasPico) : null
+  const horaMax = horasPico.length ? Math.max(...horasPico) : null
+  const nombresPico = [...new Set(picosAlto.map(a => a.user_name))]
+
+  const mensajesSemana = all(
+    `SELECT strftime('%H', created_at) AS hora FROM messages
+      WHERE role = 'user' AND created_at >= ?`,
+    [inicioSemana.toISOString()]
+  )
+  const porHora = new Map()
+  for (const m of mensajesSemana) porHora.set(m.hora, (porHora.get(m.hora) || 0) + 1)
+  let horaMasActiva = null, maxConteo = 0
+  for (const [hora, n] of porHora) {
+    if (n > maxConteo) { maxConteo = n; horaMasActiva = hora }
+  }
+
+  const resumen = construirResumenSemanal({ diasDeAlerta, diasTranquilos, nombresPico, horaMin, horaMax })
+
+  // Mapa de 6 semanas: el nivel más alto alcanzado ese día entre todos los pacientes.
+  const hace6Semanas = new Date(inicioSemana)
+  hace6Semanas.setUTCDate(hace6Semanas.getUTCDate() - 35)
+  const alertasHistoricas = all(
+    `SELECT substr(created_at, 1, 10) AS dia, level FROM risk_alerts WHERE created_at >= ?`,
+    [hace6Semanas.toISOString()]
+  )
+  const nivelPorDia = new Map()
+  for (const f of alertasHistoricas) {
+    const actual = nivelPorDia.get(f.dia)
+    if (!actual || NIVEL_ORDEN[f.level] > NIVEL_ORDEN[actual]) nivelPorDia.set(f.dia, f.level)
+  }
+
+  const semanas = []
+  for (let s = 5; s >= 0; s--) {
+    const inicio = new Date(inicioSemana)
+    inicio.setUTCDate(inicio.getUTCDate() - s * 7)
+    const celdas = []
+    for (let d = 0; d < 7; d++) {
+      const dia = new Date(inicio)
+      dia.setUTCDate(dia.getUTCDate() + d)
+      const clave = dia.toISOString().slice(0, 10)
+      celdas.push({ fecha: clave, nivel: nivelPorDia.get(clave) || null })
+    }
+    semanas.push({ inicio: inicio.toISOString().slice(0, 10), celdas })
+  }
+
+  return {
+    resumen,
+    stats: {
+      conversaciones: mensajesSemana.length,
+      alertasAlto: picosAlto.length,
+      horaMasActiva: horaMasActiva !== null ? `${horaMasActiva}:00` : null,
+      personasEnSeguimiento: getPatients().length
+    },
+    diasSemana: DIAS_SEMANA_CORTOS,
+    semanas
+  }
+}
+
 // ── Resúmenes para listados ────────────────────────────────────
 // Las pantallas de lista (pacientes, reportes, panel de alertas) solo
 // necesitan conteos, pero pedían el objeto completo de cada paciente: una

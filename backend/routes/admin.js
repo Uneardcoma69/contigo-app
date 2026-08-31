@@ -5,12 +5,19 @@ import {
   getAllUsers, getRiskSummaries, getRiskProfile, getHistory, findUserById,
   findUserByEmail, createUser, setUserRole, assignPatient, getStaffMembers,
   getContactMessages, setUserPassword, bumpTokenVersion,
-  getAuditLog, AUDIT_ACTIONS, ROLES, STAFF_ROLES
+  getAuditLog, AUDIT_ACTIONS, ROLES, STAFF_ROLES, getRiskWeeklyOverview
 } from '../store.js'
 import { isDesktop, updateConfig } from '../desktopConfig.js'
 import { auditar } from '../auditoria.js'
 
 const router = express.Router()
+
+// GET /api/admin/risk-timeline — resumen semanal + mapa de calor agregado
+// entre todos los pacientes (no vive en el setInterval de /dashboard: es una
+// vista de análisis, no de alertas en vivo, así que se pide una sola vez).
+router.get('/risk-timeline', requireAdmin, (_req, res) => {
+  return res.json(getRiskWeeklyOverview())
+})
 
 // GET /api/admin/dashboard — Panel principal con todos los perfiles de riesgo
 router.get('/dashboard', requireAdmin, (_req, res) => {

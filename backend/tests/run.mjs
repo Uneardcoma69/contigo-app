@@ -39,6 +39,7 @@ const ARCHIVOS = [
   'contrasenas.test.mjs',
   'auditoria.test.mjs',
   'alerta-riesgo-correo.test.mjs',
+  'riskTimeline.test.mjs',
 ]
 
 function puertoLibre() {

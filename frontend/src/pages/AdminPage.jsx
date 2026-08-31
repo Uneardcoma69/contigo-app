@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
 import { Navigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -30,6 +30,112 @@ function StatCard({ label, count, color, bg, border, total }) {
       </div>
       <div style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--navy)' }}>{label}</div>
       <div style={{ fontSize: '0.78rem', color: 'var(--slate)', fontWeight: 500 }}>{pct}% del total</div>
+    </div>
+  )
+}
+
+const NIVEL_MAPA_COLOR = {
+  alto: 'var(--riesgo-alto)',
+  medio: 'var(--riesgo-medio)',
+  bajo: 'var(--riesgo-bajo)'
+}
+const NIVEL_MAPA_LABEL = { alto: 'Alerta', medio: 'Atención', bajo: 'Tranquilo' }
+
+/**
+ * A diferencia de HeatmapGrid (una celda = un paciente, coloreada por su
+ * nivel actual), esto es una celda = un día, coloreada por lo peor que pasó
+ * ese día entre TODOS los pacientes — el resumen semanal del equipo.
+ */
+function MapaDeSemanas({ semanas, diasSemana }) {
+  return (
+    // Igual que SemanaCitas.jsx: columnas con un mínimo fijo y scroll
+    // horizontal si no caben, en vez de encogerse hasta ser ilegibles.
+    <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '46px repeat(7, minmax(30px, 1fr))', gap: 6, alignItems: 'center', minWidth: 320 }}>
+      <span />
+      {diasSemana.map(d => (
+        <span key={d} style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--slate-light)', textAlign: 'center' }}>{d}</span>
+      ))}
+      {semanas.map(sem => (
+        <Fragment key={sem.inicio}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--slate)', whiteSpace: 'nowrap' }}>
+            {new Date(sem.inicio + 'T12:00:00Z').toLocaleDateString('es', { day: 'numeric', month: 'short' })}
+          </span>
+          {sem.celdas.map(c => (
+            <div
+              key={c.fecha}
+              title={`${c.fecha}${c.nivel ? ' — ' + NIVEL_MAPA_LABEL[c.nivel] : ' — sin actividad'}`}
+              style={{
+                aspectRatio: '1', borderRadius: 8,
+                background: c.nivel ? NIVEL_MAPA_COLOR[c.nivel] : 'var(--cream2)',
+                border: c.nivel === 'alto' ? '1.5px solid var(--riesgo-alto)' : '1px solid transparent'
+              }}
+            />
+          ))}
+        </Fragment>
+      ))}
+    </div>
+    </div>
+  )
+}
+
+/** Resumen semanal agregado entre todos los pacientes — se pide una sola
+    vez al entrar (no vive en el auto-refresh de 15s del dashboard). */
+function ResumenSemanal() {
+  const [overview, setOverview] = useState(null)
+
+  useEffect(() => {
+    let activo = true
+    axios.get('/api/admin/risk-timeline')
+      .then(({ data }) => { if (activo) setOverview(data) })
+      .catch(() => {})
+    return () => { activo = false }
+  }, [])
+
+  if (!overview) return null
+
+  const { resumen, stats, semanas, diasSemana } = overview
+
+  return (
+    <div style={{
+      background: 'var(--white)', borderRadius: 'var(--radius-lg)',
+      padding: '24px', marginBottom: 28, boxShadow: 'var(--shadow-md)',
+      border: '1px solid var(--border)'
+    }}>
+      <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--acento-calido)', marginBottom: 10 }}>
+        Línea de tiempo
+      </span>
+      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 400, fontSize: 'clamp(1.05rem, 1.8vw, 1.35rem)', lineHeight: 1.5, color: 'var(--navy)', margin: '0 0 18px', maxWidth: '48rem' }}>
+        {resumen}
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 26px', paddingBottom: 18, marginBottom: 18, borderBottom: '1px solid var(--border-light)' }}>
+        {[
+          [stats.conversaciones, 'conversaciones'],
+          [stats.alertasAlto, 'alertas de riesgo alto'],
+          [stats.horaMasActiva ?? '—', 'hora más activa'],
+          [stats.personasEnSeguimiento, 'personas en seguimiento']
+        ].map(([valor, etiqueta]) => (
+          <span key={etiqueta} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 600, color: 'var(--navy)' }}>{valor}</span>
+            <span style={{ fontSize: '0.82rem', color: 'var(--slate)' }}>{etiqueta}</span>
+          </span>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px 16px', marginBottom: 12 }}>
+        <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--navy)' }}>Últimas 6 semanas</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: '0.72rem', color: 'var(--slate)', fontWeight: 600 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 3, background: 'var(--cream2)' }} /> Sin actividad
+          </span>
+          {['bajo', 'medio', 'alto'].map(n => (
+            <span key={n} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 3, background: NIVEL_MAPA_COLOR[n] }} /> {NIVEL_MAPA_LABEL[n]}
+            </span>
+          ))}
+        </div>
+      </div>
+      <MapaDeSemanas semanas={semanas} diasSemana={diasSemana} />
     </div>
   )
 }
@@ -289,6 +395,8 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
+
+        <ResumenSemanal />
 
         {/* Stat Cards */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
