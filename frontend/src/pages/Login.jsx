@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import AuthForm from '../components/AuthForm.jsx'
 import Header from '../components/Header.jsx'
@@ -7,6 +7,7 @@ import { homeFor } from '../constants.js'
 export default function Login() {
   const { user } = useAuth()
   const nav = useNavigate()
+  const location = useLocation()
 
   if (user) return <Navigate to={homeFor(user)} replace />
 
@@ -30,6 +31,12 @@ export default function Login() {
               </p>
             </div>
 
+            {location.state?.restablecida && (
+              <div className="alert" role="status" style={{ background: 'var(--teal-pale)', color: 'var(--teal-dark)', border: '1px solid var(--teal-light)' }}>
+                <span>Contraseña actualizada. Ya podés iniciar sesión con la nueva.</span>
+              </div>
+            )}
+
             <AuthForm
               mode="login"
               onSuccess={(loggedUser) => nav(homeFor(loggedUser))}
@@ -39,11 +46,9 @@ export default function Login() {
               marginTop: 16, textAlign: 'center', fontSize: '0.82rem',
               color: 'var(--slate)', lineHeight: 1.5
             }}>
-              ¿Olvidaste tu contraseña? Escríbenos a{' '}
-              <a href="mailto:hola@contigoaquiestoy.com" style={{ color: 'var(--teal-dark)', fontWeight: 500 }}>
-                hola@contigoaquiestoy.com
-              </a>{' '}
-              y te ayudamos a restablecerla.
+              <Link to="/recuperar-contrasena" style={{ color: 'var(--teal-dark)', fontWeight: 500 }}>
+                ¿Olvidaste tu contraseña?
+              </Link>
             </p>
           </div>
         </main>

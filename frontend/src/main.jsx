@@ -6,6 +6,8 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import Home      from './pages/Home.jsx'
 import Login     from './pages/Login.jsx'
 import Register  from './pages/Register.jsx'
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
+import ResetPasswordPage  from './pages/ResetPasswordPage.jsx'
 import PanelPage from './pages/PanelPage.jsx'
 import ChatPage  from './pages/ChatPage.jsx'
 import CitasPage from './pages/CitasPage.jsx'
@@ -67,6 +69,8 @@ function RequireAdmin({ children }) {
 const TITULO_POR_RUTA = {
   '/login':    'Iniciar sesión',
   '/register': 'Crear cuenta',
+  '/recuperar-contrasena':   'Recuperar contraseña',
+  '/restablecer-contrasena': 'Nueva contraseña',
   '/inicio':   'Inicio',
   '/chat':     'Chat',
   '/citas':    'Mis citas',
@@ -97,6 +101,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/"         element={<Home />} />
           <Route path="/login"    element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/recuperar-contrasena"   element={<ForgotPasswordPage />} />
+          <Route path="/restablecer-contrasena" element={<ResetPasswordPage />} />
           <Route path="/legal"          element={<LegalPage />} />
           <Route path="/legal/:seccion" element={<LegalPage />} />
           <Route path="/inicio"   element={<RequireAuth><PanelPage /></RequireAuth>} />

@@ -14,7 +14,7 @@
 // módulo nativo exigiría recompilarse por separado para cada uno.
 // WebAssembly es portable entre ambos sin compilar nada.
 
-import { randomUUID, randomBytes, createCipheriv, createDecipheriv } from 'crypto'
+import { randomUUID, randomBytes, createCipheriv, createDecipheriv, createHash } from 'crypto'
 import { createRequire } from 'module'
 import initSqlJs from 'sql.js'
 import fs from 'fs'
@@ -187,6 +187,19 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor_id);
 CREATE INDEX IF NOT EXISTS idx_audit_target ON audit_log(target_id);
+
+-- El token en claro no vive acá, solo su hash: igual que una contraseña,
+-- si alguien copiara este archivo no debería poder restablecer cuentas
+-- ajenas con lo que encuentre en él.
+CREATE TABLE IF NOT EXISTS password_resets (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  used INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash);
 `
 
 // Topes de conservación (antes se aplicaban recortando arrays en JS)
@@ -764,6 +777,44 @@ export function bumpTokenVersion(id) {
   if (!user) return null
   run('UPDATE users SET token_version = token_version + 1 WHERE id = ?', [id])
   return findUserById(id)
+}
+
+// ── Recuperación de contraseña por correo ───────────────────────
+const RESET_TOKEN_VIGENCIA_MIN = 60
+
+function hashToken(token) {
+  return createHash('sha256').update(token).digest('hex')
+}
+
+/**
+ * Genera un token de un solo uso para restablecer la contraseña. Borra
+ * cualquier token sin usar que ese usuario tuviera antes, para que no
+ * queden varios enlaces "válidos" a la vez — solo el último pedido sirve.
+ * Devuelve el token EN CLARO: es la única vez que existe fuera de la base
+ * (para meterlo en el correo); acá solo se guarda su hash.
+ */
+export function createPasswordReset(userId) {
+  run('DELETE FROM password_resets WHERE user_id = ? AND used = 0', [userId])
+  const token = randomBytes(32).toString('hex')
+  const vence = new Date(Date.now() + RESET_TOKEN_VIGENCIA_MIN * 60000).toISOString()
+  run(
+    `INSERT INTO password_resets (id, user_id, token_hash, expires_at, used, created_at)
+     VALUES (?,?,?,?,0,?)`,
+    [randomUUID(), userId, hashToken(token), vence, ahora()]
+  )
+  return token
+}
+
+/**
+ * Canjea un token: si es válido (existe, sin usar, sin vencer), lo marca
+ * usado y devuelve el userId asociado — nunca se puede reintentar con el
+ * mismo token, valga o no. Si no es válido, null, sin decir por qué.
+ */
+export function consumePasswordReset(token) {
+  const fila = one('SELECT * FROM password_resets WHERE token_hash = ?', [hashToken(token)])
+  if (!fila || fila.used || fila.expires_at < ahora()) return null
+  run('UPDATE password_resets SET used = 1 WHERE id = ?', [fila.id])
+  return fila.user_id
 }
 
 export function assignPatient(patientId, staffId) {

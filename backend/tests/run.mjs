@@ -40,6 +40,8 @@ const ARCHIVOS = [
   'auditoria.test.mjs',
   'alerta-riesgo-correo.test.mjs',
   'riskTimeline.test.mjs',
+  'passwordResetToken.test.mjs',
+  'passwordReset.test.mjs',
 ]
 
 function puertoLibre() {

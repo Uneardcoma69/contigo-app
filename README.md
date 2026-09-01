@@ -412,6 +412,8 @@ cabecera `Authorization: Bearer <token>`.
 |---|---|---|
 | `POST /auth/register` | Público | Crea una cuenta de paciente (mínimo 6 caracteres de contraseña) |
 | `POST /auth/login` | Público | Inicia sesión y devuelve el token |
+| `POST /auth/forgot-password` | Público | Pide el enlace de recuperación por correo; misma respuesta exista o no la cuenta |
+| `PUT /auth/reset-password` | Público | Canjea el token del correo por una contraseña nueva (vale 1 hora, un solo uso) |
 | `GET /auth/me` | Sesión | Datos del usuario actual, incluido su rol |
 | `PUT /auth/password` | Sesión | Cambia la propia contraseña y cierra las demás sesiones |
 | `GET /auth/medical` | Sesión | Consulta la propia ficha médica |
@@ -495,9 +497,11 @@ Lo que hoy no está resuelto, dicho sin rodeos:
   app de escritorio sí define esa variable. Para un despliegue web con varias personas hace
   falta apuntar `CONTIGO_DATA_DIR` a un volumen persistente (el sistema de archivos de
   Railway es efímero por defecto).
-- **No hay recuperación de contraseña por correo.** No existe servicio de envío de
-  correos: si alguien pierde su contraseña, el administrador debe restablecerla desde
-  la pestaña Equipo y entregarla por un canal seguro.
+- **La recuperación de contraseña por correo depende de tener SMTP configurado.**
+  El flujo existe (`/auth/forgot-password` + `/auth/reset-password`), pero si el
+  servidor no tiene `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS`, nadie recibe el enlace. En
+  ese caso, la vía de respaldo sigue siendo que el administrador restablezca la
+  contraseña desde la pestaña Equipo y la entregue por un canal seguro.
 - **El instalador no está firmado digitalmente.** Windows SmartScreen mostrará una
   advertencia al ejecutarlo. Hace falta un certificado de firma de código.
 - **El análisis de riesgo es por palabras clave.** No entiende contexto, ironía ni

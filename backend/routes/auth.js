@@ -1,9 +1,10 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, getAppointmentsForPatient, setUserPassword, bumpTokenVersion, STAFF_ROLES, getRiskHeatmap, getRiskEventsForDay } from '../store.js'
+import { findUserByEmail, findUserById, createUser, getMedicalRecord, upsertMedicalRecord, getAppointmentsForPatient, setUserPassword, bumpTokenVersion, STAFF_ROLES, getRiskHeatmap, getRiskEventsForDay, createPasswordReset, consumePasswordReset } from '../store.js'
 import requireAuth from '../middleware/requireAuth.js'
 import { effectiveRole } from '../middleware/requireRole.js'
+import { enviarRecuperacionContrasena } from '../mailer.js'
 
 const router = express.Router()
 
@@ -115,6 +116,58 @@ router.put('/password', requireAuth, async (req, res) => {
   } catch (e) {
     console.error('Change password error:', e)
     return res.status(500).json({ message: 'Error al cambiar la contraseña.' })
+  }
+})
+
+// ── Recuperación de contraseña (sin sesión) ─────────────────────
+// Mismo mensaje exista o no la cuenta: quien mira la respuesta no puede
+// distinguir un correo registrado de uno que no lo está.
+const MENSAJE_GENERICO_OLVIDE = 'Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña.'
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body || {}
+    if (!email?.trim())
+      return res.status(400).json({ message: 'Indica tu correo.' })
+
+    const user = findUserByEmail(email)
+    if (user) {
+      const token = createPasswordReset(user._id)
+      const appUrl = process.env.CONTIGO_APP_URL || `${req.protocol}://${req.get('host')}`
+      const resetUrl = `${appUrl}/restablecer-contrasena?token=${token}`
+      enviarRecuperacionContrasena({ userName: user.name, userEmail: user.email, resetUrl })
+        .catch(e => console.error('⚠️ Envío de recuperación falló:', e.message))
+    }
+
+    return res.json({ message: MENSAJE_GENERICO_OLVIDE })
+  } catch (e) {
+    console.error('Forgot password error:', e)
+    return res.status(500).json({ message: 'No pudimos procesar el pedido. Intenta de nuevo.' })
+  }
+})
+
+// PUT /api/auth/reset-password
+router.put('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body || {}
+    if (!token || !newPassword)
+      return res.status(400).json({ message: 'Faltan datos.' })
+    if (newPassword.length < 6)
+      return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 6 caracteres.' })
+
+    const userId = consumePasswordReset(token)
+    if (!userId)
+      return res.status(400).json({ message: 'El enlace no es válido o ya venció. Pide uno nuevo.' })
+
+    const hash = await bcrypt.hash(newPassword, 12)
+    setUserPassword(userId, hash)
+    bumpTokenVersion(userId)   // cierra cualquier sesión abierta con la contraseña vieja
+
+    return res.json({ message: 'Contraseña actualizada. Ya podés iniciar sesión.' })
+  } catch (e) {
+    console.error('Reset password error:', e)
+    return res.status(500).json({ message: 'No pudimos restablecer la contraseña. Intenta de nuevo.' })
   }
 })
 

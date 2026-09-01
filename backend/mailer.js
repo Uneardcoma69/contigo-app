@@ -84,3 +84,39 @@ export async function enviarAlertaRiesgoAlto({ userName, userEmail, lastMessage,
     console.error('⚠️ No se pudo enviar el correo de alerta de riesgo alto:', e.message)
   }
 }
+
+/**
+ * Envía el enlace para restablecer la contraseña. No lanza: si SMTP no está
+ * configurado o el envío falla, quien pidió el enlace ya recibió la misma
+ * respuesta genérica de siempre — el restablecimiento manual por el admin
+ * sigue existiendo como camino de respaldo.
+ * @param {{userName: string, userEmail: string, resetUrl: string}} datos
+ */
+export async function enviarRecuperacionContrasena({ userName, userEmail, resetUrl }) {
+  try {
+    const t = getTransporter()
+    if (!t) return
+
+    const cuerpo = [
+      `Hola, ${userName}.`,
+      '',
+      'Recibimos un pedido para restablecer tu contraseña de Contigo. Si fuiste vos, entrá a este enlace (vale por 1 hora, una sola vez):',
+      '',
+      resetUrl,
+      '',
+      'Si no pediste esto, ignorá este correo: tu contraseña sigue siendo la misma.'
+    ].join('\n')
+
+    const info = await t.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: userEmail,
+      subject: 'Contigo · Restablecer tu contraseña',
+      text: cuerpo
+    })
+
+    const vistaPrevia = nodemailer.getTestMessageUrl(info)
+    if (vistaPrevia) console.log('✉️  Vista previa del correo de recuperación:', vistaPrevia)
+  } catch (e) {
+    console.error('⚠️ No se pudo enviar el correo de recuperación de contraseña:', e.message)
+  }
+}
