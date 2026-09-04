@@ -191,17 +191,19 @@ router.get('/appointments', requireAuth, (req, res) => {
 })
 
 // ── Línea de tiempo emocional del propio usuario ───────────────
-// GET /api/auth/risk/heatmap?days=90 — mi mapa de calor de riesgo
+// GET /api/auth/risk/heatmap?days=90&tzOffset=180 — mi mapa de calor de riesgo
+// tzOffset es Date#getTimezoneOffset() del navegador: agrupa los días según
+// el calendario local de quien mira, no en UTC (ver tzModifier en store.js).
 router.get('/risk/heatmap', requireAuth, (req, res) => {
   const days = Math.min(Math.max(Number(req.query.days) || 90, 1), 366)
-  return res.json(getRiskHeatmap(req.userId, days))
+  return res.json(getRiskHeatmap(req.userId, days, Number(req.query.tzOffset) || 0))
 })
 
-// GET /api/auth/risk/events?date=YYYY-MM-DD — mis alertas de ese día
+// GET /api/auth/risk/events?date=YYYY-MM-DD&tzOffset=180 — mis alertas de ese día
 router.get('/risk/events', requireAuth, (req, res) => {
   const fecha = String(req.query.date || '')
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return res.status(400).json({ message: 'Fecha inválida.' })
-  return res.json({ events: getRiskEventsForDay(req.userId, fecha) })
+  return res.json({ events: getRiskEventsForDay(req.userId, fecha, Number(req.query.tzOffset) || 0) })
 })
 
 // ── Ficha médica del propio usuario ────────────────────────────

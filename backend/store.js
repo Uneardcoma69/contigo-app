@@ -1101,14 +1101,26 @@ export function getAllRiskProfiles() {
 // Es el mismo tope que ya usa el panel de alertas del equipo.
 const NIVEL_ORDEN = { bajo: 0, medio: 1, alto: 2 }
 
+// created_at se guarda en UTC. Sin este ajuste, un mensaje mandado de
+// noche en cualquier huso horario negativo (toda Latinoamérica) queda
+// agrupado en "el día siguiente" del mapa de calor. El frontend manda su
+// desfase local (Date#getTimezoneOffset) y lo aplicamos antes de cortar
+// la fecha, así el "día" coincide con el calendario de quien mira.
+function tzModifier(offsetMinutes) {
+  const n = Math.trunc(Number(offsetMinutes))
+  const clamped = Number.isFinite(n) ? Math.max(-840, Math.min(840, n)) : 0
+  return `${clamped === 0 ? '+0' : -clamped} minutes`
+}
+
 /** Agrupa mis propias alertas por día, para dibujar un mapa de calor. */
-export function getRiskHeatmap(userId, days) {
+export function getRiskHeatmap(userId, days, tzOffsetMinutes = 0) {
   const desde = new Date(Date.now() - days * 86400000).toISOString()
+  const modificador = tzModifier(tzOffsetMinutes)
   const filas = all(
-    `SELECT substr(created_at, 1, 10) AS dia, level, score
+    `SELECT substr(datetime(created_at, ?), 1, 10) AS dia, level, score
        FROM risk_alerts WHERE user_id = ? AND created_at >= ?
        ORDER BY created_at ASC`,
-    [userId, desde]
+    [modificador, userId, desde]
   )
 
   const porDia = new Map()
@@ -1134,12 +1146,12 @@ export function getRiskHeatmap(userId, days) {
 }
 
 /** Mis alertas de un día concreto (YYYY-MM-DD), para el detalle al hacer clic. */
-export function getRiskEventsForDay(userId, date) {
+export function getRiskEventsForDay(userId, date, tzOffsetMinutes = 0) {
   return all(
     `SELECT id, level, score, trigger_words, created_at
-       FROM risk_alerts WHERE user_id = ? AND substr(created_at, 1, 10) = ?
+       FROM risk_alerts WHERE user_id = ? AND substr(datetime(created_at, ?), 1, 10) = ?
        ORDER BY created_at ASC`,
-    [userId, date]
+    [userId, tzModifier(tzOffsetMinutes), date]
   ).map(f => ({
     id: f.id,
     level: f.level,

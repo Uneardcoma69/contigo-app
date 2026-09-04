@@ -102,7 +102,8 @@ export default function HistorialPage() {
   useEffect(() => {
     let activo = true
     setLoading(true)
-    axios.get(`/api/auth/risk/heatmap?days=${days}`)
+    const tzOffset = new Date().getTimezoneOffset()
+    axios.get(`/api/auth/risk/heatmap?days=${days}&tzOffset=${tzOffset}`)
       .then(({ data }) => { if (activo) setData(data) })
       .catch(() => showError('No se pudo cargar tu historial.'))
       .finally(() => { if (activo) setLoading(false) })
@@ -123,7 +124,8 @@ export default function HistorialPage() {
     if (!cell.inRange || cell.level === 'sin_datos') { setSelected(null); return }
     setSelected(cell)
     try {
-      const { data } = await axios.get(`/api/auth/risk/events?date=${cell.date}`)
+      const tzOffset = new Date().getTimezoneOffset()
+      const { data } = await axios.get(`/api/auth/risk/events?date=${cell.date}&tzOffset=${tzOffset}`)
       setDayEvents(data.events || [])
     } catch {
       setDayEvents([])
